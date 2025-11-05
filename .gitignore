@@ -82,4 +82,8 @@ outputs/*
 temp/
 tmp/
 *.tmp
-*.temp
+*.temp.env
+test.db
+*.log
+__pycache__/
+*.pyc
