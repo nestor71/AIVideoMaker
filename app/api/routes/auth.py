@@ -15,7 +15,7 @@ from app.core.database import get_db
 from app.core.security import (
     create_access_token,
     verify_password,
-    hash_password,
+    get_password_hash,
     get_current_user,
     generate_api_key
 )
@@ -114,7 +114,7 @@ async def register(user_data: UserRegister, db: Session = Depends(get_db)):
         username=user_data.username,
         email=user_data.email,
         full_name=user_data.full_name,
-        hashed_password=hash_password(user_data.password)
+        hashed_password=get_password_hash(user_data.password)
     )
 
     db.add(new_user)
@@ -159,7 +159,7 @@ async def login(credentials: UserLogin, db: Session = Depends(get_db)):
 
     # Crea JWT token
     access_token = create_access_token(
-        data={"sub": user.email, "user_id": str(user.id)},
+        data={"sub": str(user.id)},
         expires_delta=timedelta(days=30)
     )
 
