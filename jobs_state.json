@@ -1,0 +1,22 @@
+{
+  "7e2e96f3-3155-4e56-83c4-ec2aff539d6e": {
+    "job_id": "7e2e96f3-3155-4e56-83c4-ec2aff539d6e",
+    "status": "error",
+    "progress": -1,
+    "message": "\u274c Errore: Errore durante traduzione video",
+    "output_file": null,
+    "error": "Errore durante traduzione video",
+    "created_at": "2025-11-02T18:43:15.891451",
+    "updated_at": "2025-11-02T18:43:15.938823"
+  },
+  "6175f833-6f75-4c12-b2ee-2cac8e57326e": {
+    "job_id": "6175f833-6f75-4c12-b2ee-2cac8e57326e",
+    "status": "error",
+    "progress": -1,
+    "message": "\u274c Errore: Errore durante traduzione video",
+    "output_file": null,
+    "error": "Errore durante traduzione video",
+    "created_at": "2025-11-03T16:54:11.783672",
+    "updated_at": "2025-11-03T16:54:14.620155"
+  }
+}

@@ -1,0 +1,11 @@
+⚠️ Cosa Manca Ancora (per Produzione Vera)
+Database (PostgreSQL/Redis) invece di JSON
+Task queue (Celery/RQ) per processing distribuito
+Object storage (S3/MinIO) invece di filesystem locale
+Autenticazione (JWT/OAuth2)
+Rate limiting per IP
+Tests (pytest con coverage)
+Docker + docker-compose
+CI/CD pipeline
+Monitoring (Prometheus/Grafana)
+Rimozione opencv-python-headless duplicato (ho solo aggiunto a requirements, non rimosso il duplicato)

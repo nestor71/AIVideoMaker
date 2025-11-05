@@ -1,0 +1,477 @@
+"""
+Video Translation Module - AIVideoMaker
+========================================
+Modulo completo per traduzione video con:
+- Trascrizione audio tramite Whisper
+- Traduzione testo tramite Google Translate / DeepL
+- Sintesi vocale (TTS) con gTTS/pyttsx3
+- Lip-sync opzionale con Wav2Lip (richiede GPU per performance accettabili)
+- Ricombinazione video finale
+
+Autore: AIVideoMaker Team
+Data: 2025-11-01
+"""
+
+import os
+import subprocess
+import logging
+from pathlib import Path
+from typing import Optional, Callable
+import tempfile
+import shutil
+
+# Setup logging
+logger = logging.getLogger(__name__)
+
+
+class VideoTranslator:
+    """
+    Classe per gestire la traduzione completa di video
+    """
+
+    def __init__(self, temp_dir: Optional[str] = None):
+        """
+        Inizializza il traduttore video
+
+        Args:
+            temp_dir: Directory temporanea (default: system temp)
+        """
+        self.temp_dir = temp_dir or tempfile.gettempdir()
+        self.supported_languages = {
+            'en': 'Inglese',
+            'es': 'Spagnolo',
+            'fr': 'Francese',
+            'de': 'Tedesco',
+            'pt': 'Portoghese',
+            'ru': 'Russo',
+            'ja': 'Giapponese',
+            'zh-CN': 'Cinese (Semplificato)',
+            'ar': 'Arabo',
+            'hi': 'Hindi',
+            'it': 'Italiano'
+        }
+
+    def translate_video(
+        self,
+        input_video_path: str,
+        output_video_path: str,
+        target_language: str = 'en',
+        source_language: str = 'auto',
+        enable_lipsync: bool = False,
+        progress_callback: Optional[Callable[[int, str], bool]] = None
+    ) -> bool:
+        """
+        Traduce un video in una lingua target
+
+        Args:
+            input_video_path: Path del video input
+            output_video_path: Path del video output
+            target_language: Codice lingua target (es. 'en', 'es', 'fr')
+            source_language: Codice lingua sorgente (default: 'auto' per rilevamento automatico)
+            enable_lipsync: Abilita lip-sync (MOLTO lento, richiede GPU)
+            progress_callback: Callback per progress update(progress: int, message: str) -> bool (True = continua)
+
+        Returns:
+            True se successo, False altrimenti
+        """
+        try:
+            # Validazione input
+            if not os.path.exists(input_video_path):
+                raise FileNotFoundError(f"Video non trovato: {input_video_path}")
+
+            if target_language not in self.supported_languages:
+                raise ValueError(f"Lingua non supportata: {target_language}")
+
+            self._update_progress(progress_callback, 5, "Inizializzazione traduzione video...")
+
+            # Se lip-sync attivo, usa ElevenLabs che fa tutto (traduzione + TTS + lip-sync)
+            if enable_lipsync:
+                self._update_progress(progress_callback, 10, "🎙️ Uso ElevenLabs per dubbing professionale con lip-sync...")
+
+                try:
+                    from elevenlabs_integration import ElevenLabsClient
+
+                    client = ElevenLabsClient()
+                    self._update_progress(progress_callback, 20, "Upload video a ElevenLabs...")
+
+                    success = client.dub_video(
+                        video_path=input_video_path,
+                        target_language=target_language,
+                        output_path=output_video_path,
+                        source_language=source_language
+                    )
+
+                    if success:
+                        self._update_progress(progress_callback, 100, "✅ Dubbing con lip-sync completato!")
+                        return True
+                    else:
+                        raise Exception("ElevenLabs dubbing fallito, provo metodo standard...")
+
+                except ImportError:
+                    logger.error("elevenlabs_integration.py non trovato, uso metodo standard")
+                    enable_lipsync = False  # Fallback a metodo standard
+                except Exception as e:
+                    logger.error(f"Errore ElevenLabs: {e}, uso metodo standard")
+                    enable_lipsync = False  # Fallback a metodo standard
+
+            # Metodo standard (senza lip-sync o se ElevenLabs fallisce)
+            # STEP 1: Estrazione audio dal video
+            self._update_progress(progress_callback, 10, "Estrazione audio dal video...")
+            audio_path = self._extract_audio(input_video_path)
+
+            # STEP 2: Trascrizione audio con Whisper
+            self._update_progress(progress_callback, 25, "Trascrizione audio con Whisper AI...")
+            transcription = self._transcribe_audio(audio_path, source_language)
+
+            # STEP 3: Traduzione del testo
+            self._update_progress(progress_callback, 40, f"Traduzione testo in {self.supported_languages[target_language]}...")
+            translated_text = self._translate_text(transcription['text'], target_language)
+
+            # STEP 4: Generazione audio tradotto con TTS
+            self._update_progress(progress_callback, 55, "Generazione audio tradotto con sintesi vocale...")
+            translated_audio_path = self._generate_tts(translated_text, target_language)
+
+            # STEP 5: Sostituisci l'audio (senza lip-sync)
+            self._update_progress(progress_callback, 85, "Combinazione video con audio tradotto...")
+            success = self._combine_video_audio(input_video_path, translated_audio_path, output_video_path)
+
+            self._update_progress(progress_callback, 100, "✅ Traduzione completata!")
+
+            # Cleanup file temporanei
+            self._cleanup_temp_files([audio_path, translated_audio_path])
+
+            return success
+
+        except Exception as e:
+            logger.error(f"Errore traduzione video: {e}")
+            self._update_progress(progress_callback, -1, f"❌ Errore: {str(e)}")
+            return False
+
+    def _extract_audio(self, video_path: str) -> str:
+        """
+        Estrae l'audio dal video
+
+        Args:
+            video_path: Path del video
+
+        Returns:
+            Path del file audio estratto
+        """
+        audio_path = os.path.join(self.temp_dir, f"extracted_audio_{os.getpid()}.wav")
+
+        cmd = [
+            'ffmpeg', '-i', video_path,
+            '-vn',  # No video
+            '-acodec', 'pcm_s16le',  # Audio codec per Whisper
+            '-ar', '16000',  # Sample rate 16kHz
+            '-ac', '1',  # Mono
+            '-y',  # Overwrite
+            audio_path
+        ]
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        if result.returncode != 0:
+            raise Exception(f"Errore estrazione audio: {result.stderr}")
+
+        logger.info(f"Audio estratto: {audio_path}")
+        return audio_path
+
+    def _transcribe_audio(self, audio_path: str, source_language: str = 'auto') -> dict:
+        """
+        Trascrive l'audio usando Whisper
+
+        Args:
+            audio_path: Path del file audio
+            source_language: Lingua sorgente ('auto' per rilevamento automatico)
+
+        Returns:
+            Dict con trascrizione completa
+        """
+        try:
+            import whisper
+        except ImportError:
+            raise Exception(
+                "Whisper non installato. Esegui: pip install openai-whisper"
+            )
+
+        # Carica modello Whisper (usa "base" per velocità, "medium/large" per accuratezza)
+        logger.info("Caricamento modello Whisper...")
+        model = whisper.load_model("base")
+
+        # Trascrivi
+        if source_language == 'auto' or not source_language:
+            # Rilevamento automatico lingua
+            logger.info("Trascrizione in corso (rilevamento automatico lingua)...")
+            result = model.transcribe(audio_path)
+            logger.info(f"Lingua rilevata: {result.get('language', 'sconosciuta')}")
+        else:
+            # Lingua specificata
+            logger.info(f"Trascrizione in corso (lingua: {source_language})...")
+            result = model.transcribe(audio_path, language=source_language)
+
+        logger.info(f"Trascrizione completata: {len(result['text'])} caratteri")
+        return result
+
+    def _translate_text(self, text: str, target_language: str) -> str:
+        """
+        Traduce il testo nella lingua target
+
+        Args:
+            text: Testo da tradurre
+            target_language: Codice lingua target
+
+        Returns:
+            Testo tradotto
+        """
+        try:
+            from googletrans import Translator
+            translator = Translator()
+
+            # Traduci in chunks per evitare limiti API
+            max_chunk_size = 5000
+            chunks = [text[i:i+max_chunk_size] for i in range(0, len(text), max_chunk_size)]
+
+            translated_chunks = []
+            for chunk in chunks:
+                result = translator.translate(chunk, dest=target_language)
+                translated_chunks.append(result.text)
+
+            translated_text = ' '.join(translated_chunks)
+            logger.info(f"Testo tradotto: {len(translated_text)} caratteri")
+
+            return translated_text
+
+        except ImportError:
+            raise Exception(
+                "googletrans non installato. Esegui: pip install googletrans==4.0.0-rc1"
+            )
+        except Exception as e:
+            logger.error(f"Errore traduzione con Google Translate: {e}")
+            raise Exception(f"Errore traduzione: {str(e)}")
+
+    def _generate_tts(self, text: str, language: str) -> str:
+        """
+        Genera audio dalla voce sintetizzata (TTS)
+
+        Args:
+            text: Testo da sintetizzare
+            language: Codice lingua
+
+        Returns:
+            Path del file audio generato
+        """
+        try:
+            from gtts import gTTS
+        except ImportError:
+            raise Exception(
+                "gTTS non installato. Esegui: pip install gTTS"
+            )
+
+        # Genera audio con gTTS
+        tts_output = os.path.join(self.temp_dir, f"tts_audio_{os.getpid()}.mp3")
+
+        # Converti codice lingua per gTTS (es. 'zh-CN' -> 'zh-cn')
+        gtts_lang = language.lower()
+
+        logger.info(f"Generazione TTS per lingua: {gtts_lang}")
+        tts = gTTS(text=text, lang=gtts_lang, slow=False)
+        tts.save(tts_output)
+
+        # Converti MP3 -> WAV per compatibilità
+        wav_output = os.path.join(self.temp_dir, f"tts_audio_{os.getpid()}.wav")
+
+        cmd = [
+            'ffmpeg', '-i', tts_output,
+            '-acodec', 'pcm_s16le',
+            '-ar', '44100',
+            '-ac', '2',
+            '-y',
+            wav_output
+        ]
+
+        result = subprocess.run(cmd, capture_output=True)
+
+        if result.returncode != 0:
+            raise Exception("Errore conversione audio TTS")
+
+        # Rimuovi MP3 temporaneo
+        os.unlink(tts_output)
+
+        logger.info(f"Audio TTS generato: {wav_output}")
+        return wav_output
+
+    def _apply_lipsync(self, video_path: str, audio_path: str) -> str:
+        """
+        Applica lip-sync al video usando Wav2Lip
+
+        ⚠️ ATTENZIONE: Questa funzione è MOLTO LENTA su CPU (10-30 minuti per video brevi)
+        Richiede GPU NVIDIA con CUDA per performance accettabili
+
+        Args:
+            video_path: Path video originale
+            audio_path: Path audio tradotto
+
+        Returns:
+            Path del video con lip-sync applicato
+        """
+        # NOTA: Questa è una implementazione placeholder
+        # Wav2Lip richiede setup complesso con modelli pre-trained, GPU, etc.
+
+        logger.warning(
+            "⚠️ Lip-sync richiede Wav2Lip installato e configurato. "
+            "Per ora ritorno il video originale senza lip-sync."
+        )
+
+        # TODO: Implementare Wav2Lip quando disponibile
+        # Per ora ritorna il video originale
+        return video_path
+
+    def _combine_video_audio(
+        self,
+        video_path: str,
+        audio_path: str,
+        output_path: str
+    ) -> bool:
+        """
+        Combina video e audio tradotto
+
+        Args:
+            video_path: Path video (può avere lip-sync già applicato)
+            audio_path: Path audio tradotto
+            output_path: Path output finale
+
+        Returns:
+            True se successo
+        """
+        # Ottieni durata audio
+        audio_duration = self._get_audio_duration(audio_path)
+
+        # Combina video + audio tradotto
+        # Se audio è più corto del video, estende con silenzio
+        # Se audio è più lungo, taglia il video alla durata dell'audio
+
+        cmd = [
+            'ffmpeg',
+            '-i', video_path,
+            '-i', audio_path,
+            '-c:v', 'copy',  # Copia video stream senza ricodifica
+            '-map', '0:v:0',  # Usa video dal primo input
+            '-map', '1:a:0',  # Usa audio dal secondo input
+            '-shortest',  # Taglia alla durata più corta
+            '-y',  # Overwrite
+            output_path
+        ]
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        if result.returncode != 0:
+            logger.error(f"Errore combinazione video/audio: {result.stderr}")
+            return False
+
+        logger.info(f"Video finale creato: {output_path}")
+        return True
+
+    def _get_audio_duration(self, audio_path: str) -> float:
+        """
+        Ottiene la durata dell'audio in secondi
+
+        Args:
+            audio_path: Path file audio
+
+        Returns:
+            Durata in secondi
+        """
+        cmd = [
+            'ffprobe', '-v', 'error',
+            '-show_entries', 'format=duration',
+            '-of', 'default=noprint_wrappers=1:nokey=1',
+            audio_path
+        ]
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        try:
+            return float(result.stdout.strip())
+        except ValueError:
+            return 0.0
+
+    def _update_progress(
+        self,
+        callback: Optional[Callable[[int, str], bool]],
+        progress: int,
+        message: str
+    ) -> bool:
+        """
+        Aggiorna il progresso tramite callback
+
+        Args:
+            callback: Funzione callback
+            progress: Percentuale (0-100)
+            message: Messaggio di stato
+
+        Returns:
+            True se continuare, False se cancellare
+        """
+        if callback:
+            try:
+                return callback(progress, message)
+            except Exception as e:
+                logger.error(f"Errore callback progress: {e}")
+        return True
+
+    def _cleanup_temp_files(self, file_paths: list):
+        """
+        Rimuove file temporanei
+
+        Args:
+            file_paths: Lista di path da rimuovere
+        """
+        for path in file_paths:
+            try:
+                if os.path.exists(path):
+                    os.unlink(path)
+                    logger.debug(f"File temporaneo rimosso: {path}")
+            except Exception as e:
+                logger.warning(f"Impossibile rimuovere file temp {path}: {e}")
+
+
+# Funzione helper per uso standalone
+def translate_video_simple(
+    input_path: str,
+    output_path: str,
+    target_language: str = 'en',
+    enable_lipsync: bool = False
+) -> bool:
+    """
+    Funzione helper semplificata per traduzione video
+
+    Args:
+        input_path: Path video input
+        output_path: Path video output
+        target_language: Lingua target (codice ISO)
+        enable_lipsync: Abilita lip-sync (molto lento)
+
+    Returns:
+        True se successo
+    """
+    translator = VideoTranslator()
+    return translator.translate_video(
+        input_path,
+        output_path,
+        target_language,
+        enable_lipsync
+    )
+
+
+if __name__ == "__main__":
+    # Test standalone
+    logging.basicConfig(level=logging.INFO)
+
+    print("Video Translator Module - Test")
+    print("=" * 50)
+    print("Lingue supportate:")
+
+    translator = VideoTranslator()
+    for code, name in translator.supported_languages.items():
+        print(f"  {code}: {name}")

@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📁 File Manager - AI Video Maker</title>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/modern-styles.css">
+    <link rel="stylesheet" href="/static/css/alerts.css">
+    
+    <style>
+        /* File Manager Specific Styles */
+        .files-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .files-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .files-header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 600;
+        }
+        
+        .files-header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .files-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .stat-card .icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #3b82f6;
+        }
+        
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card .label {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .files-actions {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .action-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+        }
+        
+        .btn-refresh {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-refresh:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+        
+        .files-table {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 100%;
+        }
+        
+        .files-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .files-table th {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .files-table td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: middle;
+            color: #374151;
+        }
+        
+        .files-table tr:hover {
+            background: #f9fafb;
+        }
+        
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f3f4f6;
+            border-radius: 8px;
+            font-size: 18px;
+        }
+        
+        .file-preview-small {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+        .file-name-cell {
+            font-weight: 600;
+            color: #1f2937 !important;
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .file-date-cell {
+            color: #374151 !important;
+            font-weight: 500;
+        }
+        
+        .file-size-cell {
+            color: #374151 !important;
+            font-weight: 500;
+        }
+        
+        .file-duration-cell {
+            color: #374151 !important;
+            font-weight: 500;
+        }
+        
+        .file-type-badge-small {
+            background: #3b82f6;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .file-actions-row {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-download-small {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+        
+        .btn-download-small:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-1px);
+        }
+        
+        .btn-delete-small {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        
+        .btn-delete-small:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            transform: translateY(-1px);
+        }
+        
+        .file-preview {
+            height: 180px;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .file-preview img,
+        .file-preview video {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+        }
+        
+        .file-preview .file-icon {
+            font-size: 3rem;
+            color: #9ca3af;
+        }
+        
+        .file-type-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .file-info {
+            padding: 20px;
+        }
+        
+        .file-name {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+            word-break: break-all;
+        }
+        
+        .file-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 10px;
+            margin-bottom: 15px;
+            font-size: 0.75rem;
+            color: #6b7280;
+            line-height: 1.3;
+        }
+        
+        .file-details > div {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .file-details i {
+            width: 12px;
+            text-align: center;
+            color: #9ca3af;
+        }
+        
+        .file-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-download {
+            flex: 1;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 0.875rem;
+        }
+        
+        .btn-download:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateY(-1px);
+        }
+        
+        .btn-delete {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            padding: 10px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-delete:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            transform: translateY(-1px);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+        
+        .empty-state .icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #d1d5db;
+        }
+        
+        .empty-state h3 {
+            margin: 0 0 10px 0;
+            color: #374151;
+        }
+        
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Alert styles */
+        #alertContainer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+        }
+        
+        .alert {
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-width: 300px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .files-container {
+                padding: 15px;
+            }
+            
+            .files-header h1 {
+                font-size: 2rem;
+            }
+            
+            .files-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .action-group {
+                justify-content: center;
+            }
+            
+            .files-table {
+                overflow-x: auto;
+            }
+            
+            .files-table th,
+            .files-table td {
+                padding: 10px 8px;
+                font-size: 12px;
+            }
+            
+            .file-name-cell {
+                max-width: 120px;
+            }
+            
+            .btn-download-small,
+            .btn-delete-small {
+                padding: 4px 8px;
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="files-container">
+        <!-- Header -->
+        <div class="files-header">
+            <h1><i class="fas fa-folder-open"></i> File Manager</h1>
+            <p>Gestisci tutti i tuoi file caricati e video elaborati</p>
+        </div>
+        
+        <!-- Statistics -->
+        <div class="files-stats" id="filesStats">
+            <div class="stat-card">
+                <div class="icon"><i class="fas fa-magic"></i></div>
+                <div class="number" id="processedCount">0</div>
+                <div class="label">File Elaborati</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon"><i class="fas fa-file-video"></i></div>
+                <div class="number" id="videoCount">0</div>
+                <div class="label">Video Elaborati</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon"><i class="fas fa-file-image"></i></div>
+                <div class="number" id="imageCount">0</div>
+                <div class="label">Immagini Elaborate</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon"><i class="fas fa-hdd"></i></div>
+                <div class="number" id="totalSize">0 MB</div>
+                <div class="label">Spazio Utilizzato</div>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="files-actions">
+            <div class="action-group">
+                <button class="btn-refresh" onclick="loadFiles()">
+                    <i class="fas fa-sync-alt"></i> Aggiorna
+                </button>
+                <button class="btn-primary" onclick="window.location.href='/'">
+                    <i class="fas fa-arrow-left"></i> Torna all'Editor
+                </button>
+            </div>
+            
+            <div class="action-group">
+                <button class="btn-danger" onclick="deleteAllFiles()" id="deleteAllBtn">
+                    <i class="fas fa-trash-alt"></i> Elimina Tutti i File
+                </button>
+            </div>
+        </div>
+        
+        <!-- Files Grid -->
+        <div id="filesContainer">
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert System -->
+    <div id="alertContainer"></div>
+
+    <!-- <script src="/static/js/alerts.js"></script> -->
+    <script>
+        let allFiles = [];
+        
+        // Alert system function
+        function showAlert(message, type = 'info') {
+            console.log(`${type.toUpperCase()}: ${message}`);
+            const alertContainer = document.getElementById('alertContainer');
+            if (!alertContainer) return;
+            
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `
+                <span>${message}</span>
+                <button onclick="this.parentElement.remove()" style="margin-left: 10px; background: none; border: none; color: inherit; cursor: pointer;">×</button>
+            `;
+            
+            alertContainer.appendChild(alert);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (alert.parentElement) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
+        
+        // Load files on page load
+        document.addEventListener('DOMContentLoaded', loadFiles);
+        
+        async function loadFiles() {
+            try {
+                const container = document.getElementById('filesContainer');
+                container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+                
+                const response = await fetch('/api/files');
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}: Failed to load files`);
+                
+                const data = await response.json();
+                
+                allFiles = data.files || [];
+                
+                // Filtra statistiche per mostrare solo file elaborati
+                const processedFiles = allFiles.filter(file => file.directory === 'outputs');
+                const processedStats = {
+                    processed: processedFiles.length,
+                    totalSize: processedFiles.reduce((sum, file) => sum + file.size, 0),
+                    videos: processedFiles.filter(file => file.type === 'video').length,
+                    images: processedFiles.filter(file => file.type === 'image').length,
+                    audio: processedFiles.filter(file => file.type === 'audio').length
+                };
+                
+                updateStats(processedStats);
+                renderFiles(allFiles);
+                
+            } catch (error) {
+                console.error('Error loading files:', error);
+                document.getElementById('filesContainer').innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon"><i class="fas fa-exclamation-triangle"></i></div>
+                        <h3>Errore nel caricamento</h3>
+                        <p>Errore: ${error.message}</p>
+                        <button class="btn-primary" onclick="loadFiles()">Riprova</button>
+                    </div>
+                `;
+                showAlert('Errore nel caricamento dei file: ' + error.message, 'error');
+            }
+        }
+        
+        function updateStats(stats) {
+            document.getElementById('videoCount').textContent = stats?.videos || 0;
+            document.getElementById('imageCount').textContent = stats?.images || 0;
+            document.getElementById('processedCount').textContent = stats?.processed || 0;
+            document.getElementById('totalSize').textContent = formatSize(stats?.totalSize || 0);
+            
+            // Enable/disable delete all button based on processed files
+            const deleteAllBtn = document.getElementById('deleteAllBtn');
+            const processedFiles = allFiles.filter(file => file.directory === 'outputs');
+            if (processedFiles.length === 0) {
+                deleteAllBtn.disabled = true;
+                deleteAllBtn.style.opacity = '0.5';
+                deleteAllBtn.textContent = 'Nessun File da Eliminare';
+            } else {
+                deleteAllBtn.disabled = false;
+                deleteAllBtn.style.opacity = '1';
+                deleteAllBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Elimina Tutti i File Elaborati';
+            }
+        }
+        
+        function renderFiles(files) {
+            console.log('renderFiles called with:', files.length, 'files');
+            const container = document.getElementById('filesContainer');
+            
+            if (files.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon"><i class="fas fa-folder-open"></i></div>
+                        <h3>Nessun file trovato</h3>
+                        <p>Carica alcuni file nell'editor per vederli qui.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            console.log('Creating files table...');
+            const filesTable = document.createElement('div');
+            filesTable.className = 'files-table';
+            
+            let tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome File</th>
+                            <th>Data</th>
+                            <th>Tipo</th>
+                            <th>Stato</th>
+                            <th>Dimensioni</th>
+                            <th>Durata</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            // Filtra solo i file elaborati (outputs)
+            const processedFiles = files.filter(file => file.directory === 'outputs');
+            
+            processedFiles.forEach((file, index) => {
+                console.log('Creating row for processed file', index + 1, ':', file.name);
+                try {
+                    tableHTML += createFileRow(file);
+                    console.log('Row created successfully for:', file.name);
+                } catch (error) {
+                    console.error('Error creating row for', file.name, ':', error);
+                }
+            });
+            
+            // Se non ci sono file elaborati, mostra messaggio appropriato
+            if (processedFiles.length === 0) {
+                tableHTML += `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: #6b7280;">
+                            <i class="fas fa-magic" style="font-size: 2rem; margin-bottom: 10px;"></i><br>
+                            <strong>Nessun video elaborato</strong><br>
+                            <small>Elabora un video nell'editor per vederlo qui</small>
+                        </td>
+                    </tr>
+                `;
+            }
+            
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+            
+            filesTable.innerHTML = tableHTML;
+            
+            console.log('Replacing container content...');
+            container.innerHTML = '';
+            container.appendChild(filesTable);
+            console.log('Files table appended to container');
+            
+            // Add event listeners to buttons
+            addTableEventListeners();
+        }
+        
+        function createFileRow(file) {
+            const metadata = file.metadata || {};
+            
+            // Determina il tipo di file specifico
+            let fileTypeDisplay = '';
+            let fileStatus = '';
+            
+            if (file.directory === 'outputs') {
+                fileStatus = 'Elaborato';
+                fileTypeDisplay = file.type === 'video' ? 'Video Elaborato' : 'File Elaborato';
+            } else {
+                fileStatus = 'Caricato';
+                // Determina se è Logo, CTA o tipo normale
+                const fileName = file.name.toLowerCase();
+                
+                if (file.type === 'image') {
+                    // Se è un'immagine, probabilmente è un logo
+                    if (fileName.includes('logo') || fileName.includes('brand') || fileName.includes('watermark')) {
+                        fileTypeDisplay = 'Logo';
+                    } else {
+                        // Controlla le dimensioni per determinare se è un logo (di solito più piccole)
+                        if (metadata.width && metadata.height && metadata.width <= 500 && metadata.height <= 500) {
+                            fileTypeDisplay = 'Logo';
+                        } else {
+                            fileTypeDisplay = 'Immagine';
+                        }
+                    }
+                } else if (file.type === 'video') {
+                    // Se è un video, determina se è CTA o video principale
+                    if (fileName.includes('cta') || fileName.includes('call') || fileName.includes('action')) {
+                        fileTypeDisplay = 'CTA';
+                    } else if (fileName.includes('background') || fileName.includes('main') || fileName.includes('base')) {
+                        fileTypeDisplay = 'Video';
+                    } else {
+                        // Controlla la durata per determinare: CTA di solito sono più corti
+                        if (metadata.duration && metadata.duration < 30) {
+                            fileTypeDisplay = 'CTA';
+                        } else {
+                            fileTypeDisplay = 'Video';
+                        }
+                    }
+                } else if (file.type === 'audio') {
+                    fileTypeDisplay = 'Audio';
+                } else {
+                    fileTypeDisplay = file.category || file.type.toUpperCase();
+                }
+            }
+            
+            // File name con estensione rimossa per brevità
+            const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
+            const shortName = nameWithoutExt.length > 30 ? nameWithoutExt.substring(0, 30) + '...' : nameWithoutExt;
+            
+            // Data formattata
+            const dateFormatted = formatDate(file.modified);
+            
+            // Tipo con colore
+            let typeBadgeColor = '#6b7280';
+            if (fileTypeDisplay === 'Logo') typeBadgeColor = '#10b981';
+            else if (fileTypeDisplay === 'CTA') typeBadgeColor = '#f59e0b';
+            else if (fileTypeDisplay === 'Video' || fileTypeDisplay === 'Video Elaborato') typeBadgeColor = '#3b82f6';
+            else if (fileTypeDisplay === 'Immagine') typeBadgeColor = '#8b5cf6';
+            else if (fileTypeDisplay === 'Audio') typeBadgeColor = '#06b6d4';
+            
+            const typeBadge = `<span class="file-type-badge-small" style="background-color: ${typeBadgeColor}">${fileTypeDisplay}</span>`;
+            
+            // Stato con colore
+            const statusColor = file.directory === 'outputs' ? '#059669' : '#3b82f6';
+            const statusBadge = `<span class="file-type-badge-small" style="background-color: ${statusColor}">${fileStatus}</span>`;
+            
+            // File size
+            const size = formatSize(file.size);
+            
+            // Duration (solo per video e audio)
+            const duration = (file.type === 'video' || file.type === 'audio') && metadata.duration_formatted ? metadata.duration_formatted : '-';
+            
+            // Actions buttons
+            const actions = `
+                <div class="file-actions-row">
+                    <button class="btn-download-small" data-path="${file.path}" data-name="${file.name}">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                    <button class="btn-delete-small" data-path="${file.path}" data-name="${file.name}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            
+            return `
+                <tr>
+                    <td class="file-name-cell" title="${file.name}">${shortName}</td>
+                    <td class="file-date-cell">${dateFormatted}</td>
+                    <td>${typeBadge}</td>
+                    <td>${statusBadge}</td>
+                    <td class="file-size-cell">${size}</td>
+                    <td class="file-duration-cell">${duration}</td>
+                    <td>${actions}</td>
+                </tr>
+            `;
+        }
+        
+        function addTableEventListeners() {
+            // Add click listeners to download buttons
+            document.querySelectorAll('.btn-download-small').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const path = e.currentTarget.getAttribute('data-path');
+                    const name = e.currentTarget.getAttribute('data-name');
+                    downloadFile(path, name);
+                });
+            });
+            
+            // Add click listeners to delete buttons
+            document.querySelectorAll('.btn-delete-small').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const path = e.currentTarget.getAttribute('data-path');
+                    const name = e.currentTarget.getAttribute('data-name');
+                    deleteFile(path, name);
+                });
+            });
+        }
+        
+        function createFileCard(file) {
+            console.log('createFileCard called for:', file.name, file.type);
+            const card = document.createElement('div');
+            card.className = 'file-card';
+            
+            // Create file preview
+            const preview = document.createElement('div');
+            preview.className = 'file-preview';
+            
+            // Add preview content
+            console.log('Getting preview content for:', file.type);
+            const previewContent = getFilePreview(file);
+            console.log('Preview content:', previewContent);
+            preview.innerHTML = previewContent;
+            
+            // Add type badge
+            const badge = document.createElement('div');
+            badge.className = 'file-type-badge';
+            badge.textContent = file.category || file.type.toUpperCase();
+            preview.appendChild(badge);
+            
+            // Create file info section
+            const info = document.createElement('div');
+            info.className = 'file-info';
+            
+            // File name
+            const fileName = document.createElement('div');
+            fileName.className = 'file-name';
+            fileName.textContent = file.name;
+            info.appendChild(fileName);
+            
+            // File details
+            const details = document.createElement('div');
+            details.className = 'file-details';
+            details.innerHTML = getFileDetails(file);
+            info.appendChild(details);
+            
+            // File actions
+            const actions = document.createElement('div');
+            actions.className = 'file-actions';
+            
+            // Download button
+            const downloadBtn = document.createElement('button');
+            downloadBtn.className = 'btn-download';
+            downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download';
+            downloadBtn.addEventListener('click', () => downloadFile(file.path, file.name));
+            actions.appendChild(downloadBtn);
+            
+            // Delete button
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn-delete';
+            deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+            deleteBtn.title = 'Elimina';
+            deleteBtn.addEventListener('click', () => deleteFile(file.path, file.name));
+            actions.appendChild(deleteBtn);
+            
+            info.appendChild(actions);
+            
+            // Assemble the card
+            card.appendChild(preview);
+            card.appendChild(info);
+            
+            return card;
+        }
+        
+        function getFilePreview(file) {
+            if (file.type === 'video') {
+                return `<video preload="metadata" muted>
+                    <source src="${file.path}" type="video/mp4">
+                    <div class="file-icon"><i class="fas fa-file-video"></i></div>
+                </video>`;
+            } else if (file.type === 'image') {
+                return `<img src="${file.path}" alt="${file.name}" loading="lazy">`;
+            } else if (file.type === 'audio') {
+                return `<div class="file-icon"><i class="fas fa-file-audio"></i></div>`;
+            } else if (file.type === 'subtitle') {
+                return `<div class="file-icon"><i class="fas fa-closed-captioning"></i></div>`;
+            } else if (file.type === 'text') {
+                return `<div class="file-icon"><i class="fas fa-file-alt"></i></div>`;
+            } else {
+                return `<div class="file-icon"><i class="fas fa-file"></i></div>`;
+            }
+        }
+        
+        function getFileDetails(file) {
+            const metadata = file.metadata || {};
+            let details = [];
+            
+            // Always show date and size
+            details.push(`<div><i class="fas fa-calendar"></i> ${formatDate(file.modified)}</div>`);
+            details.push(`<div><i class="fas fa-hdd"></i> ${formatSize(file.size)}</div>`);
+            
+            // Add specific details based on file type
+            if (file.type === 'video' && metadata.width && metadata.height) {
+                details.push(`<div><i class="fas fa-tv"></i> ${metadata.width}×${metadata.height}</div>`);
+                if (metadata.duration_formatted) {
+                    details.push(`<div><i class="fas fa-clock"></i> ${metadata.duration_formatted}</div>`);
+                }
+                if (metadata.codec) {
+                    details.push(`<div><i class="fas fa-cog"></i> ${metadata.codec.toUpperCase()}</div>`);
+                }
+                if (metadata.bitrate) {
+                    details.push(`<div><i class="fas fa-tachometer-alt"></i> ${metadata.bitrate}</div>`);
+                }
+            } else if (file.type === 'image' && metadata.width && metadata.height) {
+                details.push(`<div><i class="fas fa-expand-arrows-alt"></i> ${metadata.width}×${metadata.height}</div>`);
+                if (metadata.mode) {
+                    details.push(`<div><i class="fas fa-palette"></i> ${metadata.mode}</div>`);
+                }
+            } else if (file.type === 'audio') {
+                if (metadata.duration_formatted) {
+                    details.push(`<div><i class="fas fa-clock"></i> ${metadata.duration_formatted}</div>`);
+                }
+                if (metadata.codec) {
+                    details.push(`<div><i class="fas fa-music"></i> ${metadata.codec.toUpperCase()}</div>`);
+                }
+                if (metadata.sample_rate) {
+                    details.push(`<div><i class="fas fa-wave-square"></i> ${metadata.sample_rate} Hz</div>`);
+                }
+                if (metadata.channels) {
+                    const channelText = metadata.channels === 1 ? 'Mono' : metadata.channels === 2 ? 'Stereo' : `${metadata.channels} canali`;
+                    details.push(`<div><i class="fas fa-volume-up"></i> ${channelText}</div>`);
+                }
+            } else if (file.type === 'subtitle') {
+                if (metadata.format) {
+                    details.push(`<div><i class="fas fa-code"></i> ${metadata.format}</div>`);
+                }
+                if (metadata.lines) {
+                    details.push(`<div><i class="fas fa-list"></i> ${metadata.lines} righe</div>`);
+                }
+            } else if (file.type === 'text') {
+                if (metadata.lines) {
+                    details.push(`<div><i class="fas fa-align-left"></i> ${metadata.lines} righe</div>`);
+                }
+            }
+            
+            return details.join('');
+        }
+        
+        function formatDate(timestamp) {
+            const date = new Date(timestamp * 1000);
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const fileDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            
+            const timeString = date.toLocaleTimeString('it-IT', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            // Se è oggi
+            if (fileDate.getTime() === today.getTime()) {
+                return `Oggi ${timeString}`;
+            }
+            
+            // Se è ieri
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (fileDate.getTime() === yesterday.getTime()) {
+                return `Ieri ${timeString}`;
+            }
+            
+            // Se è questa settimana
+            const weekAgo = new Date(today);
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            if (fileDate > weekAgo) {
+                const dayName = date.toLocaleDateString('it-IT', { weekday: 'long' });
+                return `${dayName.charAt(0).toUpperCase() + dayName.slice(1)} ${timeString}`;
+            }
+            
+            // Altrimenti data completa ma più leggibile
+            return date.toLocaleDateString('it-IT', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+            }) + ` ${timeString}`;
+        }
+        
+        function formatSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+        
+        async function downloadFile(filePath, fileName) {
+            try {
+                const response = await fetch(filePath);
+                if (!response.ok) throw new Error('Download failed');
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                a.click();
+                window.URL.revokeObjectURL(url);
+                
+                showAlert('Download avviato!', 'success');
+                
+            } catch (error) {
+                console.error('Download error:', error);
+                showAlert('Errore durante il download', 'error');
+            }
+        }
+        
+        async function deleteFile(filePath, fileName) {
+            if (!confirm(`Sei sicuro di voler eliminare "${fileName}"?`)) return;
+            
+            try {
+                const response = await fetch('/api/files/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ path: filePath })
+                });
+                
+                if (!response.ok) throw new Error('Delete failed');
+                
+                showAlert('File eliminato con successo', 'success');
+                loadFiles(); // Reload the files list
+                
+            } catch (error) {
+                console.error('Delete error:', error);
+                showAlert('Errore durante l\'eliminazione', 'error');
+            }
+        }
+        
+        async function deleteAllFiles() {
+            if (!confirm('Sei sicuro di voler eliminare TUTTI i file? Questa azione non può essere annullata.')) return;
+            
+            try {
+                const response = await fetch('/api/files/delete-all', {
+                    method: 'POST'
+                });
+                
+                if (!response.ok) throw new Error('Delete all failed');
+                
+                showAlert('Tutti i file sono stati eliminati', 'success');
+                loadFiles(); // Reload the files list
+                
+            } catch (error) {
+                console.error('Delete all error:', error);
+                showAlert('Errore durante l\'eliminazione', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
