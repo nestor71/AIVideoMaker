@@ -103,7 +103,18 @@ app.mount("/outputs", StaticFiles(directory=settings.output_dir), name="outputs"
 # ==================== ROUTES ====================
 
 # Import routes
-from app.api.routes import auth, chromakey, translation, thumbnail, youtube, pipeline
+from app.api.routes import (
+    auth,
+    chromakey,
+    translation,
+    thumbnail,
+    youtube,
+    pipeline,
+    metadata,
+    transcription,
+    logo,
+    screen_record
+)
 
 # Placeholder route per testing
 @app.get("/")
@@ -133,6 +144,12 @@ app.include_router(translation.router, prefix=f"{settings.api_prefix}/translatio
 app.include_router(thumbnail.router, prefix=f"{settings.api_prefix}/thumbnail", tags=["Thumbnail"])
 app.include_router(youtube.router, prefix=f"{settings.api_prefix}/youtube", tags=["YouTube"])
 app.include_router(pipeline.router, prefix=f"{settings.api_prefix}/pipelines", tags=["Pipeline AUTO"])
+
+# Nuove route - servizi aggiuntivi
+app.include_router(metadata.router, prefix=f"{settings.api_prefix}/metadata", tags=["Metadata Extraction"])
+app.include_router(transcription.router, prefix=f"{settings.api_prefix}/transcription", tags=["Transcription"])
+app.include_router(logo.router, prefix=f"{settings.api_prefix}/logo", tags=["Logo Overlay"])
+app.include_router(screen_record.router, prefix=f"{settings.api_prefix}/screen-record", tags=["Screen Recording"])
 
 # ==================== ERROR HANDLERS ====================
 

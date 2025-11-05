@@ -22,6 +22,8 @@ class JobType(str, enum.Enum):
     YOUTUBE_UPLOAD = "youtube_upload"
     SCREEN_RECORD = "screen_record"
     METADATA_GENERATION = "metadata_generation"
+    LOGO_OVERLAY = "logo_overlay"
+    TRANSCRIPTION = "transcription"
 
 
 class JobStatus(str, enum.Enum):
