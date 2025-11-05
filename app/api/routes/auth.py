@@ -6,10 +6,11 @@ Route per autenticazione JWT, registrazione utenti, gestione API keys
 
 from datetime import timedelta
 from typing import Optional
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_serializer
 
 from app.core.database import get_db
 from app.core.security import (
@@ -52,12 +53,17 @@ class Token(BaseModel):
 
 class UserResponse(BaseModel):
     """Schema per risposta utente"""
-    id: str
+    id: UUID
     username: str
     email: str
     full_name: Optional[str]
     is_active: bool
     is_admin: bool
+
+    @field_serializer('id')
+    def serialize_id(self, value: UUID) -> str:
+        """Serializza UUID come stringa per JSON"""
+        return str(value)
 
     class Config:
         from_attributes = True
@@ -65,11 +71,16 @@ class UserResponse(BaseModel):
 
 class APIKeyResponse(BaseModel):
     """Schema per risposta API key"""
-    id: str
+    id: UUID
     name: str
     key: str
     is_active: bool
     created_at: str
+
+    @field_serializer('id')
+    def serialize_id(self, value: UUID) -> str:
+        """Serializza UUID come stringa per JSON"""
+        return str(value)
 
     class Config:
         from_attributes = True
@@ -209,13 +220,7 @@ async def create_api_key(
     db.commit()
     db.refresh(api_key)
 
-    return {
-        "id": str(api_key.id),
-        "name": api_key.name,
-        "key": api_key.key,
-        "is_active": api_key.is_active,
-        "created_at": api_key.created_at.isoformat()
-    }
+    return api_key
 
 
 @router.get("/api-keys", response_model=list[APIKeyResponse])
@@ -232,7 +237,7 @@ async def list_api_keys(
 
     return [
         {
-            "id": str(key.id),
+            "id": key.id,  # field_serializer lo converte a str
             "name": key.name,
             "key": key.key[:8] + "..." + key.key[-4:],  # Mostra solo parte della key
             "is_active": key.is_active,
