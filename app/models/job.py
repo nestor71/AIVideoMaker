@@ -24,6 +24,7 @@ class JobType(str, enum.Enum):
     METADATA_GENERATION = "metadata_generation"
     LOGO_OVERLAY = "logo_overlay"
     TRANSCRIPTION = "transcription"
+    SEO_METADATA = "seo_metadata"
 
 
 class JobStatus(str, enum.Enum):
