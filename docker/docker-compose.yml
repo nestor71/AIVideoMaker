@@ -1,0 +1,125 @@
+# ============================================
+# AIVideoMaker Professional - Docker Compose
+# ============================================
+# Orchestrazione completa: API + Database + Redis + Celery
+
+version: '3.8'
+
+services:
+  # ==================== DATABASE ====================
+  postgres:
+    image: postgres:15-alpine
+    container_name: aivideomaker_db
+    environment:
+      POSTGRES_USER: aivideomaker
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: aivideomaker
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aivideomaker"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aivideomaker_network
+
+  # ==================== REDIS ====================
+  redis:
+    image: redis:7-alpine
+    container_name: aivideomaker_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aivideomaker_network
+
+  # ==================== API ====================
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: aivideomaker_api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://aivideomaker:password@postgres:5432/aivideomaker
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - ENVIRONMENT=development
+      - SECRET_KEY=${SECRET_KEY:-CHANGE_ME_IN_PRODUCTION}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - ../uploads:/app/uploads
+      - ../outputs:/app/outputs
+      - ../temp:/app/temp
+      - ../logs:/app/logs
+    ports:
+      - "8000:8000"
+    networks:
+      - aivideomaker_network
+    restart: unless-stopped
+
+  # ==================== CELERY WORKER ====================
+  celery_worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: aivideomaker_worker
+    command: celery -A app.workers.celery_app worker --loglevel=info
+    depends_on:
+      - postgres
+      - redis
+      - api
+    environment:
+      - DATABASE_URL=postgresql://aivideomaker:password@postgres:5432/aivideomaker
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - ../uploads:/app/uploads
+      - ../outputs:/app/outputs
+      - ../temp:/app/temp
+    networks:
+      - aivideomaker_network
+    restart: unless-stopped
+
+  # ==================== CELERY FLOWER (Monitoring) ====================
+  flower:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: aivideomaker_flower
+    command: celery -A app.workers.celery_app flower --port=5555
+    depends_on:
+      - redis
+      - celery_worker
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+    ports:
+      - "5555:5555"
+    networks:
+      - aivideomaker_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  aivideomaker_network:
+    driver: bridge

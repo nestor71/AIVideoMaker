@@ -1,0 +1,158 @@
+"""
+AIVideoMaker Professional - Main Entry Point
+=============================================
+Versione 2.0.0 - Architettura Modulare Enterprise-Grade
+
+Avvio applicazione:
+    python main.py
+
+    oppure
+
+    uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+Author: AIVideoMaker Team
+"""
+
+import logging
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
+from pathlib import Path
+
+from app.core.config import settings
+from app.core.database import init_db
+
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO if settings.environment != "production" else logging.WARNING,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(settings.log_file),
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Lifecycle manager - Startup/Shutdown events
+    """
+    # ========== STARTUP ==========
+    logger.info("=" * 60)
+    logger.info(f"🚀 Avvio {settings.app_name} v{settings.app_version}")
+    logger.info(f"   Environment: {settings.environment}")
+    logger.info(f"   API: {settings.api_host}:{settings.api_port}")
+    logger.info("=" * 60)
+
+    # Inizializza database
+    try:
+        logger.info("Inizializzazione database...")
+        init_db()
+        logger.info("✅ Database ready")
+    except Exception as e:
+        logger.error(f"❌ Errore inizializzazione database: {e}")
+        raise
+
+    # Verifica directory
+    for directory in [settings.upload_dir, settings.output_dir, settings.temp_dir]:
+        if not directory.exists():
+            directory.mkdir(parents=True, exist_ok=True)
+            logger.info(f"✅ Directory creata: {directory}")
+
+    logger.info("✅ Startup completato\n")
+
+    yield
+
+    # ========== SHUTDOWN ==========
+    logger.info("\n💤 Shutdown applicazione...")
+    logger.info("✅ Shutdown completato")
+
+
+# Crea FastAPI app
+app = FastAPI(
+    title=settings.app_name,
+    description="Professional Video Editing Suite con architettura modulare",
+    version=settings.app_version,
+    lifespan=lifespan,
+    docs_url="/docs" if settings.debug else None,  # Swagger UI
+    redoc_url="/redoc" if settings.debug else None,  # ReDoc
+)
+
+# ==================== MIDDLEWARE ====================
+
+# CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ==================== STATIC FILES ====================
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")
+app.mount("/outputs", StaticFiles(directory=settings.output_dir), name="outputs")
+
+# ==================== ROUTES ====================
+
+# Import routes (lazy import per evitare circular dependencies)
+# from app.api.routes import chromakey, translation, thumbnail, youtube, pipeline, auth
+
+# Placeholder route per testing
+@app.get("/")
+async def root():
+    return {
+        "app": settings.app_name,
+        "version": settings.app_version,
+        "status": "running",
+        "environment": settings.environment,
+        "message": "AIVideoMaker Professional API"
+    }
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint per monitoring"""
+    return {
+        "status": "healthy",
+        "version": settings.app_version,
+        "environment": settings.environment
+    }
+
+# ==================== API ROUTES (da implementare) ====================
+
+# app.include_router(auth.router, prefix=f"{settings.api_prefix}/auth", tags=["Authentication"])
+# app.include_router(chromakey.router, prefix=f"{settings.api_prefix}/chromakey", tags=["Chromakey"])
+# app.include_router(translation.router, prefix=f"{settings.api_prefix}/translation", tags=["Translation"])
+# app.include_router(thumbnail.router, prefix=f"{settings.api_prefix}/thumbnail", tags=["Thumbnail"])
+# app.include_router(youtube.router, prefix=f"{settings.api_prefix}/youtube", tags=["YouTube"])
+# app.include_router(pipeline.router, prefix=f"{settings.api_prefix}/pipeline", tags=["Pipeline AUTO"])
+
+# ==================== ERROR HANDLERS ====================
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    return {
+        "error": "Internal server error",
+        "message": str(exc) if settings.debug else "An error occurred"
+    }
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    logger.info(f"Starting {settings.app_name} on {settings.api_host}:{settings.api_port}")
+
+    uvicorn.run(
+        "main:app",
+        host=settings.api_host,
+        port=settings.api_port,
+        reload=settings.debug,
+        log_level="info" if settings.debug else "warning"
+    )

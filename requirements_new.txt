@@ -1,0 +1,89 @@
+# ============================================
+# AIVideoMaker Professional - Dependencies
+# ============================================
+# Versione 2.0.0 - Architettura Modulare
+# ============================================
+
+# ==================== WEB FRAMEWORK ====================
+fastapi==0.116.1
+uvicorn[standard]==0.35.0
+python-multipart==0.0.20
+jinja2==3.1.6
+
+# ==================== DATABASE ====================
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9  # PostgreSQL driver
+alembic==1.13.1  # Database migrations
+
+# ==================== REDIS & CACHING ====================
+redis==5.0.1
+hiredis==2.3.2  # C parser per performance
+
+# ==================== CELERY (Background Tasks) ====================
+celery==5.3.4
+flower==2.0.1  # Celery monitoring
+
+# ==================== SECURITY ====================
+python-jose[cryptography]==3.3.0  # JWT tokens
+passlib[bcrypt]==1.7.4  # Password hashing
+python-multipart==0.0.20  # Form data
+
+# ==================== VALIDATION ====================
+pydantic==2.9.2
+pydantic-settings==2.1.0  # Settings from env
+email-validator==2.1.0
+
+# ==================== COMPUTER VISION ====================
+opencv-python==4.12.0.88
+numpy==2.2.6
+pillow==10.4.0
+
+# ==================== VIDEO PROCESSING ====================
+# FFmpeg wrapper (system FFmpeg required)
+
+# ==================== AI SERVICES ====================
+openai==1.54.4  # DALL-E 3, Whisper
+openai-whisper==20231117  # Local Whisper inference
+
+# ==================== TRANSLATION ====================
+deep-translator==1.11.4  # Google Translate
+gtts==2.5.3  # Text-to-Speech
+
+# ==================== YOUTUBE API ====================
+google-api-python-client==2.108.0
+google-auth-httplib2==0.2.0
+google-auth-oauthlib==1.2.0
+
+# ==================== UTILITIES ====================
+requests==2.32.3
+python-magic==0.4.27  # File type detection
+python-dotenv==1.0.0  # .env file support
+
+# ==================== SCREEN RECORDING ====================
+pyautogui==0.9.54
+PyGetWindow==0.0.9
+
+# ==================== MONITORING & LOGGING ====================
+prometheus-client==0.19.0  # Metrics
+python-json-logger==2.0.7  # Structured logging
+
+# ==================== TESTING ====================
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+httpx==0.25.2  # Test client for FastAPI
+factory-boy==3.3.0  # Test fixtures
+
+# ==================== DEVELOPMENT ====================
+black==23.12.1  # Code formatter
+flake8==7.0.0  # Linter
+mypy==1.7.1  # Type checker
+pre-commit==3.6.0  # Git hooks
+
+# ==================== OPTIONAL (Advanced) ====================
+# ElevenLabs API (lip-sync professionale)
+# elevenlabs==1.0.0
+
+# GPU Acceleration (CUDA required)
+# torch>=2.0.0
+# torchvision>=0.15.0
