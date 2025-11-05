@@ -15,7 +15,7 @@ from app.core.security import get_current_user
 from app.core.config import settings
 from app.models.user import User
 from app.models.job import Job, JobType, JobStatus
-from app.services.thumbnail_service import ThumbnailService, ThumbnailParams, ThumbnailSource
+from app.services.thumbnail_service import ThumbnailService, ThumbnailParams
 
 router = APIRouter()
 
@@ -99,30 +99,18 @@ def process_thumbnail_task(job_id: str, params: ThumbnailRequest, db: Session):
         # Configura servizio
         service = ThumbnailService(settings)
 
-        # Determina source type
-        if params.source_type == "ai":
-            source = ThumbnailSource.AI
-        elif params.source_type == "upload":
-            source = ThumbnailSource.UPLOAD
-        elif params.source_type == "video_frame":
-            source = ThumbnailSource.VIDEO_FRAME
-        else:
-            raise ValueError(f"source_type non valido: {params.source_type}")
-
-        # Prepara parametri
+        # Prepara parametri (allinea nomi con ThumbnailParams)
         thumbnail_params = ThumbnailParams(
-            source=source,
             output_path=settings.output_dir / params.output_name,
-            prompt=params.prompt,
-            style=params.style,
-            image_path=Path(params.image_path) if params.image_path else None,
+            source_type=params.source_type,
+            ai_description=params.prompt,
+            ai_style=params.style,
+            upload_image_path=Path(params.image_path) if params.image_path else None,
             video_path=Path(params.video_path) if params.video_path else None,
             frame_timestamp=params.frame_timestamp,
-            text_overlay=params.text_overlay,
+            text=params.text_overlay,
             text_position=params.text_position,
-            text_size=params.text_size,
-            text_color=params.text_color,
-            text_style=params.text_style
+            text_color=params.text_color
         )
 
         # Callback per aggiornare progresso
