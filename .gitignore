@@ -88,3 +88,6 @@ test.db
 __pycache__/
 *.pyc
 .env
+
+# Backup files
+backup/
