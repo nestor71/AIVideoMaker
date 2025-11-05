@@ -18,6 +18,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pathlib import Path
 
 from app.core.config import settings
@@ -138,10 +139,13 @@ app.include_router(pipeline.router, prefix=f"{settings.api_prefix}/pipelines", t
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     logger.error(f"Unhandled exception: {exc}", exc_info=True)
-    return {
-        "error": "Internal server error",
-        "message": str(exc) if settings.debug else "An error occurred"
-    }
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "Internal server error",
+            "message": str(exc) if settings.debug else "An error occurred"
+        }
+    )
 
 
 if __name__ == "__main__":
