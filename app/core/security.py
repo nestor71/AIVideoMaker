@@ -17,7 +17,8 @@ from app.core.config import settings
 from app.core.database import get_db
 
 # Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Usiamo Argon2 invece di bcrypt (più moderno, vincitore PHC 2015)
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 # Security schemes
 bearer_scheme = HTTPBearer()
@@ -31,15 +32,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def get_password_hash(password: str) -> str:
     """
-    Hash password
+    Hash password con Argon2
 
-    Bcrypt limita password a 72 bytes. Tronchiamo automaticamente.
+    Argon2 è più sicuro di bcrypt (vincitore PHC 2015) e non ha limiti di lunghezza.
     """
-    # Bcrypt ha limite di 72 bytes - tronca password se necessario
-    password_bytes = password.encode('utf-8')
-    if len(password_bytes) > 72:
-        password = password_bytes[:72].decode('utf-8', errors='ignore')
-
     return pwd_context.hash(password)
 
 

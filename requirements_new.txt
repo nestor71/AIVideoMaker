@@ -25,7 +25,8 @@ flower==2.0.1  # Celery monitoring
 
 # ==================== SECURITY ====================
 python-jose[cryptography]==3.3.0  # JWT tokens
-passlib[bcrypt]==1.7.4  # Password hashing
+passlib[argon2]==1.7.4  # Password hashing (Argon2 - PHC 2015 winner)
+argon2-cffi==23.1.0  # Argon2 implementation
 python-multipart==0.0.20  # Form data
 
 # ==================== VALIDATION ====================
