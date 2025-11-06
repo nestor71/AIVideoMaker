@@ -112,6 +112,7 @@ app.mount("/outputs", StaticFiles(directory=settings.output_dir), name="outputs"
 # Import routes
 from app.api.routes import (
     auth,
+    admin,
     chromakey,
     translation,
     thumbnail,
@@ -147,6 +148,7 @@ async def health_check():
 # ==================== API ROUTES ====================
 
 app.include_router(auth.router, prefix=f"{settings.api_prefix}/auth", tags=["Authentication"])
+app.include_router(admin.router, prefix=f"{settings.api_prefix}/admin", tags=["Admin"])
 app.include_router(chromakey.router, prefix=f"{settings.api_prefix}/chromakey", tags=["Chromakey"])
 app.include_router(translation.router, prefix=f"{settings.api_prefix}/translation", tags=["Translation"])
 app.include_router(thumbnail.router, prefix=f"{settings.api_prefix}/thumbnail", tags=["Thumbnail"])
