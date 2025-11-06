@@ -119,10 +119,10 @@ from app.api.routes import (
     youtube,
     pipeline,
     metadata,
-    transcription,
+    # transcription,  # Richiede Whisper (temporaneamente disabilitato)
     logo,
-    screen_record,
-    seo_metadata
+    # screen_record,  # Richiede PyGetWindow (non installato)
+    # seo_metadata    # Richiede Whisper (temporaneamente disabilitato)
 )
 
 # Placeholder route per testing
@@ -157,10 +157,10 @@ app.include_router(pipeline.router, prefix=f"{settings.api_prefix}/pipelines", t
 
 # Nuove route - servizi aggiuntivi
 app.include_router(metadata.router, prefix=f"{settings.api_prefix}/metadata", tags=["Metadata Extraction"])
-app.include_router(transcription.router, prefix=f"{settings.api_prefix}/transcription", tags=["Transcription"])
+# app.include_router(transcription.router, prefix=f"{settings.api_prefix}/transcription", tags=["Transcription"])  # Richiede Whisper
 app.include_router(logo.router, prefix=f"{settings.api_prefix}/logo", tags=["Logo Overlay"])
-app.include_router(screen_record.router, prefix=f"{settings.api_prefix}/screen-record", tags=["Screen Recording"])
-app.include_router(seo_metadata.router, prefix=f"{settings.api_prefix}/seo", tags=["SEO Metadata AI"])
+# app.include_router(screen_record.router, prefix=f"{settings.api_prefix}/screen-record", tags=["Screen Recording"])  # Richiede PyGetWindow
+# app.include_router(seo_metadata.router, prefix=f"{settings.api_prefix}/seo", tags=["SEO Metadata AI"])  # Richiede Whisper
 
 # ==================== ERROR HANDLERS ====================
 

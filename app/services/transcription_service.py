@@ -14,8 +14,15 @@ Completamente testabile, nessuna dipendenza da FastAPI.
 import subprocess
 import tempfile
 import logging
-import whisper
 from pathlib import Path
+
+# Import opzionale di Whisper (per permettere avvio server senza Whisper installato)
+try:
+    import whisper
+    WHISPER_AVAILABLE = True
+except ImportError:
+    whisper = None
+    WHISPER_AVAILABLE = False
 from typing import Optional, Callable, Dict, Any, List
 from dataclasses import dataclass
 
