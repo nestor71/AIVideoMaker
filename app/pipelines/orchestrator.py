@@ -35,6 +35,11 @@ from app.services.chromakey_service import ChromakeyService, ChromakeyParams
 from app.services.translation_service import TranslationService, TranslationParams
 from app.services.thumbnail_service import ThumbnailService, ThumbnailParams
 from app.services.youtube_service import YouTubeService, YouTubeUploadParams
+from app.services.metadata_service import MetadataService, MetadataParams
+from app.services.transcription_service import TranscriptionService, TranscriptionParams
+from app.services.logo_overlay_service import LogoOverlayService, LogoOverlayParams
+from app.services.screen_record_service import ScreenRecordService, ScreenRecordParams
+from app.services.seo_metadata_service import SEOMetadataService, SEOMetadataParams
 
 logger = logging.getLogger(__name__)
 
@@ -67,13 +72,18 @@ class PipelineOrchestrator:
         self.db = db
         self.config = config or settings
 
-        # Inizializza servizi
+        # Inizializza TUTTI i servizi (9 totali)
         self.chromakey_service = ChromakeyService(config)
         self.translation_service = TranslationService(config)
         self.thumbnail_service = ThumbnailService(config)
         self.youtube_service = YouTubeService(config)
+        self.metadata_service = MetadataService(config)
+        self.transcription_service = TranscriptionService(config)
+        self.logo_overlay_service = LogoOverlayService(config)
+        self.screen_record_service = ScreenRecordService(config)
+        self.seo_metadata_service = SEOMetadataService(config)
 
-        logger.info("✅ PipelineOrchestrator inizializzato")
+        logger.info("✅ PipelineOrchestrator inizializzato con 9 servizi")
 
     def execute_pipeline(
         self,
@@ -239,6 +249,21 @@ class PipelineOrchestrator:
 
         elif job_type == JobType.YOUTUBE_UPLOAD:
             return self._execute_youtube_upload(parameters, input_files, progress_callback)
+
+        elif job_type == JobType.METADATA_EXTRACTION:
+            return self._execute_metadata(parameters, input_files, progress_callback)
+
+        elif job_type == JobType.TRANSCRIPTION:
+            return self._execute_transcription(parameters, input_files, progress_callback)
+
+        elif job_type == JobType.LOGO_OVERLAY:
+            return self._execute_logo_overlay(parameters, input_files, progress_callback)
+
+        elif job_type == JobType.SCREEN_RECORD:
+            return self._execute_screen_record(parameters, input_files, progress_callback)
+
+        elif job_type == JobType.SEO_METADATA:
+            return self._execute_seo_metadata(parameters, input_files, progress_callback)
 
         else:
             raise ValueError(f"Job type non supportato: {job_type}")
@@ -406,6 +431,176 @@ class PipelineOrchestrator:
         self.db.refresh(job)
 
         return job
+
+    def _execute_metadata(
+        self,
+        params: Dict[str, Any],
+        input_files: Dict[str, str],
+        progress_callback: Optional[Callable]
+    ) -> Dict[str, Any]:
+        """Esegue metadata extraction (tecnici)"""
+
+        # Resolve video path
+        video_path = Path(input_files.get('video') or params['video_path'])
+
+        metadata_params = MetadataParams(
+            video_path=video_path,
+            include_streams=params.get('include_streams', True),
+            include_format=params.get('include_format', True),
+            include_chapters=params.get('include_chapters', False)
+        )
+
+        result = self.metadata_service.extract(metadata_params)
+
+        # Metadata extraction non modifica file, passa video in avanti
+        result['output_files'] = {
+            'video': str(video_path),
+            'metadata': result  # Metadata accessibili come output
+        }
+
+        return result
+
+    def _execute_transcription(
+        self,
+        params: Dict[str, Any],
+        input_files: Dict[str, str],
+        progress_callback: Optional[Callable]
+    ) -> Dict[str, Any]:
+        """Esegue transcription"""
+
+        # Resolve media path
+        media_path = Path(input_files.get('video') or params['media_path'])
+        output_dir = Path(self.config.output_dir) / f"transcription_{datetime.now().timestamp()}"
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        transcription_params = TranscriptionParams(
+            media_path=media_path,
+            output_path=output_dir / "transcription",
+            model_size=params.get('model_size', 'base'),
+            language=params.get('language'),
+            task=params.get('task', 'transcribe'),
+            export_formats=params.get('export_formats', ['json', 'srt']),
+            word_timestamps=params.get('word_timestamps', False)
+        )
+
+        result = self.transcription_service.transcribe(transcription_params, progress_callback)
+
+        # Passa video + transcription in avanti
+        result['output_files'] = {
+            'video': str(media_path),
+            'transcription_json': result['output_paths'].get('json'),
+            'transcription_srt': result['output_paths'].get('srt')
+        }
+
+        return result
+
+    def _execute_logo_overlay(
+        self,
+        params: Dict[str, Any],
+        input_files: Dict[str, str],
+        progress_callback: Optional[Callable]
+    ) -> Dict[str, Any]:
+        """Esegue logo overlay"""
+
+        # Resolve paths
+        video_path = Path(input_files.get('video') or params['video_path'])
+        logo_path = Path(input_files.get('logo') or params['logo_path'])
+        output_path = Path(self.config.output_dir) / f"logo_overlay_{datetime.now().timestamp()}.mp4"
+
+        logo_params = LogoOverlayParams(
+            video_path=video_path,
+            logo_path=logo_path,
+            output_path=output_path,
+            position=params.get('position', 'bottom-right'),
+            custom_x=params.get('custom_x'),
+            custom_y=params.get('custom_y'),
+            margin=params.get('margin', 20),
+            logo_scale=params.get('logo_scale', 0.15),
+            opacity=params.get('opacity', 1.0),
+            start_time=params.get('start_time'),
+            end_time=params.get('end_time'),
+            quality=params.get('quality', 'high')
+        )
+
+        result = self.logo_overlay_service.overlay(logo_params, progress_callback)
+
+        result['output_files'] = {
+            'video': str(output_path),
+            'logo_overlay_output': str(output_path)
+        }
+
+        return result
+
+    def _execute_screen_record(
+        self,
+        params: Dict[str, Any],
+        input_files: Dict[str, str],
+        progress_callback: Optional[Callable]
+    ) -> Dict[str, Any]:
+        """Esegue screen recording"""
+
+        output_path = Path(self.config.output_dir) / f"screen_record_{datetime.now().timestamp()}.mp4"
+
+        record_params = ScreenRecordParams(
+            output_path=output_path,
+            mode=params.get('mode', 'fullscreen'),
+            window_title=params.get('window_title'),
+            area_x=params.get('area_x'),
+            area_y=params.get('area_y'),
+            area_width=params.get('area_width'),
+            area_height=params.get('area_height'),
+            duration_seconds=params['duration_seconds'],  # Required
+            fps=params.get('fps', 30),
+            quality=params.get('quality', 'high'),
+            record_audio=params.get('record_audio', True)
+        )
+
+        result = self.screen_record_service.record(record_params, progress_callback)
+
+        result['output_files'] = {
+            'video': str(output_path),
+            'screen_recording': str(output_path)
+        }
+
+        return result
+
+    def _execute_seo_metadata(
+        self,
+        params: Dict[str, Any],
+        input_files: Dict[str, str],
+        progress_callback: Optional[Callable]
+    ) -> Dict[str, Any]:
+        """Esegue SEO metadata generation (AI)"""
+
+        # Resolve video path
+        video_path = Path(input_files.get('video') or params['video_path'])
+        output_dir = Path(self.config.output_dir) / f"seo_{datetime.now().timestamp()}"
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        seo_params = SEOMetadataParams(
+            video_path=video_path,
+            output_dir=output_dir,
+            num_hashtags=params.get('num_hashtags', 10),
+            num_tags=params.get('num_tags', 30),
+            language=params.get('language', 'it'),
+            generate_thumbnail=params.get('generate_thumbnail', True),
+            thumbnail_style=params.get('thumbnail_style', 'modern'),
+            thumbnail_text_overlay=params.get('thumbnail_text_overlay', True),
+            num_frames_to_analyze=params.get('num_frames_to_analyze', 5),
+            analyze_audio=params.get('analyze_audio', True),
+            target_platform=params.get('target_platform', 'youtube')
+        )
+
+        result = self.seo_metadata_service.generate(seo_params, progress_callback)
+
+        # Passa video + SEO metadata + thumbnail in avanti
+        result['output_files'] = {
+            'video': str(video_path),
+            'seo_metadata': result,
+            'thumbnail': result.get('thumbnail_path')
+        }
+
+        return result
 
     def _step_progress_callback(
         self,

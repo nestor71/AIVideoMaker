@@ -23,6 +23,7 @@ from pathlib import Path
 
 from app.core.config import settings
 from app.core.database import init_db
+from app.core.rate_limit import RateLimitMiddleware
 
 # Setup logging
 logging.basicConfig(
@@ -84,6 +85,12 @@ app = FastAPI(
 )
 
 # ==================== MIDDLEWARE ====================
+
+# Rate Limiting (eseguito per primo)
+app.add_middleware(
+    RateLimitMiddleware,
+    enabled=settings.rate_limit_enabled
+)
 
 # CORS
 app.add_middleware(

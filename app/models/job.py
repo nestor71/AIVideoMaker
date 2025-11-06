@@ -21,7 +21,7 @@ class JobType(str, enum.Enum):
     THUMBNAIL = "thumbnail"
     YOUTUBE_UPLOAD = "youtube_upload"
     SCREEN_RECORD = "screen_record"
-    METADATA_GENERATION = "metadata_generation"
+    METADATA_EXTRACTION = "metadata_extraction"  # Renamed from METADATA_GENERATION for clarity
     LOGO_OVERLAY = "logo_overlay"
     TRANSCRIPTION = "transcription"
     SEO_METADATA = "seo_metadata"
