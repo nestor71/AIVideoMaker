@@ -125,7 +125,7 @@ def process_logo_task(job_id: str, params: LogoOverlayRequest, db: Session):
 
     except Exception as e:
         job.status = JobStatus.FAILED
-        job.error_message = str(e)
+        job.error = str(e)
         db.commit()
 
 
@@ -293,7 +293,7 @@ async def get_job_status(
     return {
         "job_id": str(job.id),
         "status": job.status.value,
-        "message": job.error_message or "Job in elaborazione" if job.status == JobStatus.PROCESSING else "Job completato",
+        "message": job.error or "Job in elaborazione" if job.status == JobStatus.PROCESSING else "Job completato",
         "output_path": job.result.get("output_path") if job.result else None,
         "progress": job.progress
     }

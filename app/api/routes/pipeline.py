@@ -128,14 +128,14 @@ def execute_pipeline_task(pipeline_id: str, db: Session):
             pipeline.status = PipelineStatus.COMPLETED
         else:
             pipeline.status = PipelineStatus.FAILED
-            pipeline.error_message = result.get("error")
+            pipeline.error = result.get("error")
 
         pipeline.result = result
         db.commit()
 
     except Exception as e:
         pipeline.status = PipelineStatus.FAILED
-        pipeline.error_message = str(e)
+        pipeline.error = str(e)
         db.commit()
 
 
@@ -342,7 +342,7 @@ async def get_pipeline(
         "started_at": pipeline.started_at.isoformat() if pipeline.started_at else None,
         "completed_at": pipeline.completed_at.isoformat() if pipeline.completed_at else None,
         "result": pipeline.result,
-        "error_message": pipeline.error_message
+        "error_message": pipeline.error
     }
 
 
@@ -388,7 +388,7 @@ async def list_pipelines(
             "total_steps": p.total_steps,
             "enabled_steps_count": len(p.enabled_steps),
             "progress": int((p.current_step / p.total_steps) * 100) if p.total_steps > 0 else 0,
-            "message": p.error_message or "In esecuzione" if p.status == PipelineStatus.RUNNING else "Completata"
+            "message": p.error or "In esecuzione" if p.status == PipelineStatus.RUNNING else "Completata"
         }
         for p in pipelines
     ]

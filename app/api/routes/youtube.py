@@ -126,7 +126,7 @@ def process_youtube_upload_task(job_id: str, params: YouTubeUploadRequest, db: S
 
     except Exception as e:
         job.status = JobStatus.FAILED
-        job.error_message = str(e)
+        job.error = str(e)
         db.commit()
 
 
@@ -370,7 +370,7 @@ async def get_job_status(
     return {
         "job_id": str(job.id),
         "status": job.status.value,
-        "message": job.error_message or "Job in elaborazione" if job.status == JobStatus.PROCESSING else "Job completato",
+        "message": job.error or "Job in elaborazione" if job.status == JobStatus.PROCESSING else "Job completato",
         "video_id": video_id,
         "video_url": video_url,
         "progress": job.progress
