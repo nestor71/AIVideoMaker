@@ -91,3 +91,6 @@ __pycache__/
 
 # Backup files
 backup/
+
+# Test files (non committare file di test pesanti)
+test_files/
