@@ -55,6 +55,26 @@ class ChromakeyResponse(BaseModel):
     error: Optional[str] = None
 
 
+class ChromakeyJobListItem(BaseModel):
+    """Schema per singolo job nella lista"""
+    job_id: str
+    status: str
+    progress: int
+    created_at: str
+    updated_at: str
+    output_path: Optional[str] = None
+    error: Optional[str] = None
+
+
+class ChromakeyJobListResponse(BaseModel):
+    """Schema per risposta lista job"""
+    jobs: list[ChromakeyJobListItem]
+    total: int
+    page: int
+    page_size: int
+    has_more: bool
+
+
 # ==================== Helper Functions ====================
 
 def create_chromakey_job(
@@ -264,4 +284,116 @@ async def get_job_status(
         "output_path": job.result.get("output_path") if job.result else None,
         "progress": job.progress,
         "error": job.error
+    }
+
+
+@router.get("/jobs", response_model=ChromakeyJobListResponse)
+async def list_chromakey_jobs(
+    status: Optional[str] = None,
+    page: int = 1,
+    page_size: int = 20,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Lista job chromakey dell'utente corrente
+
+    - **status**: Filtra per status ("pending", "processing", "completed", "failed")
+    - **page**: Numero pagina (default: 1)
+    - **page_size**: Elementi per pagina (default: 20, max: 100)
+
+    Richiede JWT token. Restituisce solo i job dell'utente corrente.
+    """
+    # Validazione page_size
+    if page_size > 100:
+        page_size = 100
+    if page_size < 1:
+        page_size = 1
+    if page < 1:
+        page = 1
+
+    # Query base
+    query = db.query(Job).filter(
+        Job.user_id == current_user.id,
+        Job.job_type == JobType.CHROMAKEY
+    )
+
+    # Filtro status
+    if status:
+        try:
+            status_enum = JobStatus(status)
+            query = query.filter(Job.status == status_enum)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Status non valido. Valori accettati: pending, processing, completed, failed"
+            )
+
+    # Count totale
+    total = query.count()
+
+    # Paginazione e ordinamento (più recenti prima)
+    jobs = query.order_by(Job.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
+
+    # Formatta risultati
+    job_list = []
+    for job in jobs:
+        job_list.append({
+            "job_id": str(job.id),
+            "status": job.status.value,
+            "progress": job.progress,
+            "created_at": job.created_at.isoformat() if job.created_at else None,
+            "updated_at": job.updated_at.isoformat() if job.updated_at else None,
+            "output_path": job.result.get("output_path") if job.result else None,
+            "error": job.error
+        })
+
+    return {
+        "jobs": job_list,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "has_more": total > (page * page_size)
+    }
+
+
+@router.delete("/jobs/{job_id}")
+async def delete_chromakey_job(
+    job_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Cancella un job chromakey
+
+    - **job_id**: ID del job da cancellare
+
+    Richiede JWT token. Puoi cancellare solo i tuoi job.
+    NOTA: Non cancella i file fisici, solo il record nel database.
+    """
+    job = db.query(Job).filter(
+        Job.id == job_id,
+        Job.user_id == current_user.id,
+        Job.job_type == JobType.CHROMAKEY
+    ).first()
+
+    if not job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job non trovato"
+        )
+
+    # Non permettere cancellazione job in processing
+    if job.status == JobStatus.PROCESSING:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Impossibile cancellare job in elaborazione. Attendere completamento."
+        )
+
+    db.delete(job)
+    db.commit()
+
+    return {
+        "message": "Job cancellato con successo",
+        "job_id": str(job_id)
     }
