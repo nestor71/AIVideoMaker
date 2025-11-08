@@ -98,21 +98,15 @@ def process_chromakey_task(job_id: str, params: ChromakeyRequest):
         # Configura servizio
         service = ChromakeyService(settings)
 
-        # Prepara parametri
+        # Prepara parametri (solo quelli supportati da ChromakeyParams)
         chromakey_params = ChromakeyParams(
             foreground_path=Path(params.foreground_video),
             background_path=Path(params.background_video),
             output_path=settings.output_dir / params.output_name,
             start_time=params.start_time,
-            end_time=params.end_time,
-            audio_mode=params.audio_mode,
-            green_threshold=params.green_threshold,
-            tolerance=params.tolerance,
-            edge_blur=params.edge_blur,
-            spill_reduction=params.spill_reduction,
-            fps=params.fps,
-            resolution=params.resolution,
-            quality=params.quality
+            duration=(params.end_time - params.start_time) if params.end_time else None,
+            audio_mode=params.audio_mode
+            # Altri parametri non supportati dal servizio ignorati
         )
 
         # Callback per aggiornare progresso
