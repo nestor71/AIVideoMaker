@@ -89,6 +89,9 @@ __pycache__/
 *.pyc
 .env
 
+# Database files
+*.db
+
 # Backup files
 backup/
 
