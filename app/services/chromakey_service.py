@@ -244,7 +244,10 @@ class ChromakeyService:
         return {
             'start_frame': start_frame,
             'end_frame': end_frame,
-            'duration': duration
+            'duration': duration,
+            'start_time': params.start_time,
+            'fps': video_info['bg_fps'],
+            'bg_duration': video_info['bg_duration']
         }
 
     def _load_logo(self, logo_path: Path, logo_scale: float) -> Optional[np.ndarray]:
@@ -503,19 +506,31 @@ class ChromakeyService:
                 ], check=True, capture_output=True)
 
             elif audio_mode in ["synced", "both", "timed"]:
-                # Mix audio foreground + background con amix filter
+                # Mix audio foreground + background con timing corretto
+                # Foreground audio deve apparire solo da start_time per duration secondi
+                start_ms = int(timing.get('start_time', 0) * 1000)  # millisecondi
+
+                # Filter complex:
+                # - Delay foreground audio di start_time
+                # - Mix con background audio
+                # - Durata = background (non shortest)
+                filter_complex = (
+                    f"[1:a]adelay={start_ms}|{start_ms}[a1];"
+                    f"[a1][2:a]amix=inputs=2:duration=first:normalize=0[aout]"
+                )
+
                 subprocess.run([
                     self.ffmpeg_path,
                     '-i', video_path,           # 0: video senza audio
                     '-i', str(fg_path),         # 1: foreground con audio
                     '-i', str(bg_path),         # 2: background con audio
-                    '-filter_complex', '[1:a][2:a]amix=inputs=2:duration=shortest:normalize=0[aout]',
+                    '-filter_complex', filter_complex,
                     '-map', '0:v:0',            # Video da input 0
-                    '-map', '[aout]',           # Audio mixato
+                    '-map', '[aout]',           # Audio mixato con timing
                     '-c:v', 'copy',             # Copia video (no re-encode)
                     '-c:a', 'aac',              # Encode audio come AAC
                     '-b:a', '192k',             # Bitrate audio 192k
-                    '-shortest',                # Durata = video più corto
+                    '-t', str(timing.get('bg_duration', 0)),  # Durata = background
                     '-y', str(output_path)
                 ], check=True, capture_output=True)
 

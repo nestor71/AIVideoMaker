@@ -33,6 +33,12 @@ class ChromakeyRequest(BaseModel):
     end_time: Optional[float] = None
     audio_mode: str = "synced"  # "synced", "foreground", "background", "none"
 
+    # Parametri posizionamento e dimensioni
+    position_x: int = 0  # Offset orizzontale dal centro (pixel, negativo = sinistra, positivo = destra)
+    position_y: int = 0  # Offset verticale dal centro (pixel, negativo = alto, positivo = basso)
+    scale: float = 1.0  # Scala foreground (0.1 = 10%, 1.0 = 100%, 2.0 = 200%)
+    opacity: float = 1.0  # Opacità foreground (0.0 = trasparente, 1.0 = opaco)
+
     # Parametri green screen
     green_threshold: int = 100
     tolerance: int = 50
@@ -125,8 +131,11 @@ def process_chromakey_task(job_id: str, params: ChromakeyRequest):
             output_path=settings.output_dir / params.output_name,
             start_time=params.start_time,
             duration=(params.end_time - params.start_time) if params.end_time else None,
-            audio_mode=params.audio_mode
-            # Altri parametri non supportati dal servizio ignorati
+            audio_mode=params.audio_mode,
+            position=(params.position_x, params.position_y),
+            scale=params.scale,
+            opacity=params.opacity
+            # Altri parametri (green_threshold, etc) non ancora implementati nel servizio
         )
 
         # Callback per aggiornare progresso
