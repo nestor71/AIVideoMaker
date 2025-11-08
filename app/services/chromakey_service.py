@@ -513,10 +513,10 @@ class ChromakeyService:
                 # Filter complex:
                 # - Delay foreground audio di start_time
                 # - Mix con background audio
-                # - Durata = background (non shortest)
+                # - duration=longest: usa durata audio più lungo (background)
                 filter_complex = (
                     f"[1:a]adelay={start_ms}|{start_ms}[a1];"
-                    f"[a1][2:a]amix=inputs=2:duration=first:normalize=0[aout]"
+                    f"[a1][2:a]amix=inputs=2:duration=longest:normalize=0[aout]"
                 )
 
                 subprocess.run([
@@ -530,7 +530,6 @@ class ChromakeyService:
                     '-c:v', 'copy',             # Copia video (no re-encode)
                     '-c:a', 'aac',              # Encode audio come AAC
                     '-b:a', '192k',             # Bitrate audio 192k
-                    '-t', str(timing.get('bg_duration', 0)),  # Durata = background
                     '-y', str(output_path)
                 ], check=True, capture_output=True)
 
