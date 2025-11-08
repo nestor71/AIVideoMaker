@@ -6,6 +6,7 @@ Route per sovrapposizione logo/watermark su video
 
 from pathlib import Path
 from typing import Optional
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, BackgroundTasks
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -85,7 +86,14 @@ def process_logo_task(job_id: str, params: LogoOverlayRequest):
     db = SessionLocal()
 
     try:
-        job = db.query(Job).filter(Job.id == job_id).first()
+        # Converti job_id da stringa a UUID
+        try:
+            job_id_uuid = UUID(job_id)
+        except (ValueError, AttributeError):
+            db.close()
+            return
+
+        job = db.query(Job).filter(Job.id == job_id_uuid).first()
 
         if not job:
             db.close()
@@ -286,8 +294,17 @@ async def get_job_status(
 
     Richiede JWT token. Puoi vedere solo i tuoi job.
     """
+    # Converti job_id da stringa a UUID
+    try:
+        job_id_uuid = UUID(job_id)
+    except (ValueError, AttributeError):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Job ID non valido"
+        )
+
     job = db.query(Job).filter(
-        Job.id == job_id,
+        Job.id == job_id_uuid,
         Job.user_id == current_user.id,
         Job.job_type == JobType.LOGO_OVERLAY
     ).first()
