@@ -52,6 +52,7 @@ class ChromakeyResponse(BaseModel):
     message: str
     output_path: Optional[str] = None
     progress: int = 0
+    error: Optional[str] = None
 
 
 # ==================== Helper Functions ====================
@@ -76,14 +77,19 @@ def create_chromakey_job(
     return job
 
 
-def process_chromakey_task(job_id: str, params: ChromakeyRequest, db: Session):
+def process_chromakey_task(job_id: str, params: ChromakeyRequest):
     """Task background per elaborazione chromakey"""
-    job = db.query(Job).filter(Job.id == job_id).first()
-
-    if not job:
-        return
+    # Crea nuova session per il background task (thread-safe)
+    from app.core.database import SessionLocal
+    db = SessionLocal()
 
     try:
+        job = db.query(Job).filter(Job.id == job_id).first()
+
+        if not job:
+            db.close()
+            return
+
         # Aggiorna status
         job.status = JobStatus.PROCESSING
         job.progress = 0
@@ -127,6 +133,8 @@ def process_chromakey_task(job_id: str, params: ChromakeyRequest, db: Session):
         job.status = JobStatus.FAILED
         job.error = str(e)
         db.commit()
+    finally:
+        db.close()
 
 
 # ==================== Routes ====================
@@ -157,7 +165,8 @@ async def process_chromakey(
     job = create_chromakey_job(current_user, request, db)
 
     # Avvia task in background
-    background_tasks.add_task(process_chromakey_task, str(job.id), request, db)
+    # Avvia task in background (session creata internamente)
+    background_tasks.add_task(process_chromakey_task, str(job.id), request)
 
     return {
         "job_id": str(job.id),
@@ -217,7 +226,8 @@ async def upload_and_process(
     job = create_chromakey_job(current_user, request, db)
 
     # Avvia task in background
-    background_tasks.add_task(process_chromakey_task, str(job.id), request, db)
+    # Avvia task in background (session creata internamente)
+    background_tasks.add_task(process_chromakey_task, str(job.id), request)
 
     return {
         "job_id": str(job.id),
@@ -255,7 +265,8 @@ async def get_job_status(
     return {
         "job_id": str(job.id),
         "status": job.status.value,
-        "message": job.error or "Job in elaborazione" if job.status == JobStatus.PROCESSING else "Job completato",
+        "message": job.error if job.status == JobStatus.FAILED else ("Job in elaborazione" if job.status == JobStatus.PROCESSING else "Job completato"),
         "output_path": job.result.get("output_path") if job.result else None,
-        "progress": job.progress
+        "progress": job.progress,
+        "error": job.error
     }
