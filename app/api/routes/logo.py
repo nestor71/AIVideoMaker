@@ -111,8 +111,8 @@ def process_logo_task(job_id: str, params: LogoOverlayRequest):
             logo_scale=params.logo_scale,
             opacity=params.opacity,
             start_time=params.start_time,
-            end_time=params.end_time,
-            quality=params.quality
+            end_time=params.end_time
+            # quality non implementato nel servizio
         )
 
         # Callback per aggiornare progresso
