@@ -6,6 +6,7 @@ JWT tokens, password hashing, API keys management.
 
 from datetime import datetime, timedelta
 from typing import Optional, Any
+from uuid import UUID
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status, Security
@@ -133,13 +134,19 @@ async def get_current_user(
         if user_id is None:
             raise credentials_exception
 
+        # Converti user_id da stringa a UUID per query SQLAlchemy
+        try:
+            user_id_uuid = UUID(user_id)
+        except (ValueError, AttributeError):
+            raise credentials_exception
+
     except Exception:
         raise credentials_exception
 
     # Import qui per evitare circular import
     from app.models.user import User
 
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(User).filter(User.id == user_id_uuid).first()
 
     if user is None:
         raise credentials_exception

@@ -20,7 +20,7 @@ from app.models.user import User
 logger = logging.getLogger(__name__)
 
 # Credenziali demo (SOLO per development)
-DEMO_EMAIL = "demo@aivideomaker.local"
+DEMO_EMAIL = "demo@aivideomaker.dev"
 DEMO_PASSWORD = "demo123"  # Password debole OK in dev
 DEMO_USERNAME = "demo"
 

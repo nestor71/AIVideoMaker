@@ -6,6 +6,7 @@ Esegue più job in sequenza automaticamente
 """
 
 from typing import Optional, List
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -262,9 +263,18 @@ async def execute_pipeline(
 
     Richiede JWT token. Elaborazione asincrona in background.
     """
+    # Converti pipeline_id da stringa a UUID
+    try:
+        pipeline_uuid = UUID(pipeline_id)
+    except (ValueError, AttributeError):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Pipeline ID non valido"
+        )
+
     # Verifica pipeline esiste e appartiene all'utente
     pipeline = db.query(Pipeline).filter(
-        Pipeline.id == pipeline_id,
+        Pipeline.id == pipeline_uuid,
         Pipeline.user_id == current_user.id
     ).first()
 
@@ -318,8 +328,17 @@ async def get_pipeline(
 
     Richiede JWT token. Puoi vedere solo le tue pipeline.
     """
+    # Converti pipeline_id da stringa a UUID
+    try:
+        pipeline_uuid = UUID(pipeline_id)
+    except (ValueError, AttributeError):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Pipeline ID non valido"
+        )
+
     pipeline = db.query(Pipeline).filter(
-        Pipeline.id == pipeline_id,
+        Pipeline.id == pipeline_uuid,
         Pipeline.user_id == current_user.id
     ).first()
 
@@ -415,8 +434,17 @@ async def toggle_step(
 
     Richiede JWT token.
     """
+    # Converti pipeline_id da stringa a UUID
+    try:
+        pipeline_uuid = UUID(pipeline_id)
+    except (ValueError, AttributeError):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Pipeline ID non valido"
+        )
+
     pipeline = db.query(Pipeline).filter(
-        Pipeline.id == pipeline_id,
+        Pipeline.id == pipeline_uuid,
         Pipeline.user_id == current_user.id
     ).first()
 
@@ -475,8 +503,17 @@ async def delete_pipeline(
 
     Richiede JWT token. Puoi eliminare solo le tue pipeline.
     """
+    # Converti pipeline_id da stringa a UUID
+    try:
+        pipeline_uuid = UUID(pipeline_id)
+    except (ValueError, AttributeError):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Pipeline ID non valido"
+        )
+
     pipeline = db.query(Pipeline).filter(
-        Pipeline.id == pipeline_id,
+        Pipeline.id == pipeline_uuid,
         Pipeline.user_id == current_user.id
     ).first()
 
