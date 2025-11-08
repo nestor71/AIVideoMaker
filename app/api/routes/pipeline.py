@@ -102,7 +102,13 @@ def create_pipeline(
 
 def execute_pipeline_task(pipeline_id: str, db: Session):
     """Task background per esecuzione pipeline"""
-    pipeline = db.query(Pipeline).filter(Pipeline.id == pipeline_id).first()
+    # Converti pipeline_id da stringa a UUID per query SQLAlchemy
+    try:
+        pipeline_uuid = UUID(pipeline_id)
+    except (ValueError, AttributeError):
+        return  # UUID non valido, esci silenziosamente
+
+    pipeline = db.query(Pipeline).filter(Pipeline.id == pipeline_uuid).first()
 
     if not pipeline:
         return
