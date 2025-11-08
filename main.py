@@ -15,7 +15,7 @@ Author: AIVideoMaker Team
 
 import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -59,6 +59,18 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"❌ Errore inizializzazione database: {e}")
         raise
+
+    # Setup utente demo (solo in development)
+    if settings.environment != "production":
+        try:
+            from app.core.database import SessionLocal
+            from app.core.demo_setup import setup_demo_user
+
+            db = SessionLocal()
+            setup_demo_user(db)
+            db.close()
+        except Exception as e:
+            logger.warning(f"⚠️  Errore setup demo user: {e}")
 
     # Verifica directory
     for directory in [settings.upload_dir, settings.output_dir, settings.temp_dir]:
@@ -166,6 +178,25 @@ async def api_status():
         "environment": settings.environment,
         "message": "AIVideoMaker Professional API v2.0"
     }
+
+@app.get("/demo-credentials")
+async def get_demo_credentials():
+    """
+    Ottieni credenziali demo per auto-login.
+
+    SOLO in development mode.
+    In production ritorna 404.
+    """
+    if settings.environment == "production":
+        raise HTTPException(status_code=404, detail="Not found")
+
+    from app.core.demo_setup import get_demo_credentials
+
+    credentials = get_demo_credentials()
+    if not credentials:
+        raise HTTPException(status_code=404, detail="Demo mode disabled")
+
+    return credentials
 
 # ==================== API ROUTES ====================
 

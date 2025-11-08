@@ -1878,6 +1878,41 @@
     </div>
 
     <!-- Scripts -->
+    <!-- Auth Manager - DEVE essere caricato per primo -->
+    <script src="/static/js/auth-helper.js"></script>
+
+    <!-- Fetch Auto-Auth Wrapper -->
+    <script>
+        /**
+         * Override globale di fetch() per aggiungere automaticamente
+         * autenticazione JWT a tutte le richieste API.
+         *
+         * Questo permette al codice esistente di funzionare senza modifiche,
+         * aggiungendo trasparentemente l'header Authorization.
+         */
+        (function() {
+            const originalFetch = window.fetch;
+
+            window.fetch = function(url, options = {}) {
+                // Solo per richieste API (che iniziano con /api)
+                if (typeof url === 'string' && url.startsWith('/api')) {
+                    // Aggiungi auth header se disponibile
+                    if (window.authManager && window.authManager.token) {
+                        options.headers = {
+                            ...options.headers,
+                            ...window.authManager.getAuthHeader()
+                        };
+                    }
+                }
+
+                // Chiama fetch originale
+                return originalFetch(url, options);
+            };
+
+            console.log('✅ Fetch auto-auth wrapper attivato');
+        })();
+    </script>
+
     <script src="/static/js/modern-app.js?v=3"></script>
     <script src="/static/js/metadata.js"></script>
 
