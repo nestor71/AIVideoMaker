@@ -110,9 +110,10 @@ def process_chromakey_task(job_id: str, params: ChromakeyRequest):
         )
 
         # Callback per aggiornare progresso
-        def progress_callback(progress: int):
+        def progress_callback(progress: int, message: str):
             job.progress = progress
             db.commit()
+            return True  # Continue processing
 
         # Esegui chromakey
         result = service.process(chromakey_params, progress_callback)
