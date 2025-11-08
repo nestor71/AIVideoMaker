@@ -6,6 +6,7 @@ Route per generazione automatica metadata SEO ottimizzati
 
 from pathlib import Path
 from typing import Optional, List
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, BackgroundTasks
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
@@ -85,7 +86,13 @@ def create_seo_job(
 
 def process_seo_task(job_id: str, params: SEOMetadataRequest, db: Session):
     """Task background per generazione SEO metadata"""
-    job = db.query(Job).filter(Job.id == job_id).first()
+    # Converti job_id da stringa a UUID
+    try:
+        job_id_uuid = UUID(job_id)
+    except (ValueError, AttributeError):
+        return
+
+    job = db.query(Job).filter(Job.id == job_id_uuid).first()
 
     if not job:
         return
@@ -303,8 +310,17 @@ async def get_job_status(
 
     Richiede JWT token. Puoi vedere solo i tuoi job.
     """
+    # Converti job_id da stringa a UUID
+    try:
+        job_id_uuid = UUID(job_id)
+    except (ValueError, AttributeError):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Job ID non valido"
+        )
+
     job = db.query(Job).filter(
-        Job.id == job_id,
+        Job.id == job_id_uuid,
         Job.user_id == current_user.id,
         Job.job_type == JobType.SEO_METADATA
     ).first()

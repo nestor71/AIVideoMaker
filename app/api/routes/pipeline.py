@@ -221,8 +221,11 @@ async def create_new_pipeline(
             detail="Pipeline deve avere almeno 1 step"
         )
 
-    # Verifica job_type validi
-    valid_job_types = ["chromakey", "translation", "thumbnail", "youtube_upload"]
+    # Verifica job_type validi (tutti i servizi disponibili)
+    valid_job_types = [
+        "chromakey", "translation", "thumbnail", "youtube_upload",
+        "logo_overlay", "transcription", "metadata_extraction", "seo_metadata"
+    ]
     for step in request.steps:
         if step.job_type not in valid_job_types:
             raise HTTPException(

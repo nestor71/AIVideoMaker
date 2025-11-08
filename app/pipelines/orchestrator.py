@@ -36,9 +36,8 @@ from app.services.translation_service import TranslationService, TranslationPara
 from app.services.thumbnail_service import ThumbnailService, ThumbnailParams
 from app.services.youtube_service import YouTubeService, YouTubeUploadParams
 from app.services.metadata_service import MetadataService, MetadataParams
-# Temporaneamente disabilitati (richiedono Whisper non ancora installato)
-# from app.services.transcription_service import TranscriptionService, TranscriptionParams
-# from app.services.seo_metadata_service import SEOMetadataService, SEOMetadataParams
+from app.services.transcription_service import TranscriptionService, TranscriptionParams
+from app.services.seo_metadata_service import SEOMetadataService, SEOMetadataParams
 from app.services.logo_overlay_service import LogoOverlayService, LogoOverlayParams
 # from app.services.screen_record_service import ScreenRecordService, ScreenRecordParams  # Richiede PyGetWindow non installato
 
@@ -73,18 +72,18 @@ class PipelineOrchestrator:
         self.db = db
         self.config = config or settings
 
-        # Inizializza servizi disponibili (6 di 9 - 3 temporaneamente disabilitati)
+        # Inizializza servizi disponibili (8 di 9 - 1 temporaneamente disabilitato)
         self.chromakey_service = ChromakeyService(config)
         self.translation_service = TranslationService(config)
         self.thumbnail_service = ThumbnailService(config)
         self.youtube_service = YouTubeService(config)
         self.metadata_service = MetadataService(config)
-        # self.transcription_service = TranscriptionService(config)  # Richiede Whisper
+        self.transcription_service = TranscriptionService(config)
         self.logo_overlay_service = LogoOverlayService(config)
         # self.screen_record_service = ScreenRecordService(config)  # Richiede PyGetWindow
-        # self.seo_metadata_service = SEOMetadataService(config)  # Richiede Whisper
+        self.seo_metadata_service = SEOMetadataService(config)
 
-        logger.info("✅ PipelineOrchestrator inizializzato con 6 servizi (3 temporaneamente disabilitati)")
+        logger.info("✅ PipelineOrchestrator inizializzato con 8 servizi (1 temporaneamente disabilitato: screen_record)")
 
     def execute_pipeline(
         self,
@@ -254,8 +253,8 @@ class PipelineOrchestrator:
         elif job_type == JobType.METADATA_EXTRACTION:
             return self._execute_metadata(parameters, input_files, progress_callback)
 
-        # elif job_type == JobType.TRANSCRIPTION:
-        #     return self._execute_transcription(parameters, input_files, progress_callback)
+        elif job_type == JobType.TRANSCRIPTION:
+            return self._execute_transcription(parameters, input_files, progress_callback)
 
         elif job_type == JobType.LOGO_OVERLAY:
             return self._execute_logo_overlay(parameters, input_files, progress_callback)
@@ -263,8 +262,8 @@ class PipelineOrchestrator:
         # elif job_type == JobType.SCREEN_RECORD:
         #     return self._execute_screen_record(parameters, input_files, progress_callback)
 
-        # elif job_type == JobType.SEO_METADATA:
-        #     return self._execute_seo_metadata(parameters, input_files, progress_callback)
+        elif job_type == JobType.SEO_METADATA:
+            return self._execute_seo_metadata(parameters, input_files, progress_callback)
 
         else:
             raise ValueError(f"Job type non supportato (o temporaneamente disabilitato): {job_type}")

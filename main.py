@@ -137,9 +137,9 @@ from app.api.routes import (
     pipeline,
     metadata,
     logo,
-    # transcription,  # Richiede Whisper (temporaneamente disabilitato)
+    transcription,  # Abilitato - Whisper opzionale (graceful degradation)
     # screen_record,  # Richiede PyGetWindow (non installato)
-    # seo_metadata    # Richiede Whisper (temporaneamente disabilitato)
+    seo_metadata    # Abilitato - Whisper opzionale (graceful degradation)
 )
 
 # Import file upload route
@@ -213,11 +213,11 @@ app.include_router(youtube.router, prefix=f"{settings.api_prefix}/youtube", tags
 app.include_router(pipeline.router, prefix=f"{settings.api_prefix}/pipelines", tags=["Pipeline AUTO"])
 app.include_router(logo.router, prefix=f"{settings.api_prefix}/logo", tags=["Logo Overlay"])
 app.include_router(metadata.router, prefix=f"{settings.api_prefix}/metadata", tags=["Metadata Extraction"])
+app.include_router(transcription.router, prefix=f"{settings.api_prefix}/transcription", tags=["Transcription"])  # Abilitato - Whisper opzionale
+app.include_router(seo_metadata.router, prefix=f"{settings.api_prefix}/seo", tags=["SEO Metadata AI"])  # Abilitato - Whisper opzionale
 
 # Temporarily disabled routes
-# app.include_router(transcription.router, prefix=f"{settings.api_prefix}/transcription", tags=["Transcription"])  # Richiede Whisper
 # app.include_router(screen_record.router, prefix=f"{settings.api_prefix}/screen-record", tags=["Screen Recording"])  # Richiede PyGetWindow
-# app.include_router(seo_metadata.router, prefix=f"{settings.api_prefix}/seo", tags=["SEO Metadata AI"])  # Richiede Whisper
 
 # ==================== ERROR HANDLERS ====================
 
