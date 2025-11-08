@@ -15,10 +15,11 @@ Author: AIVideoMaker Team
 
 import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.templating import Jinja2Templates
 from pathlib import Path
 
 from app.core.config import settings
@@ -107,6 +108,10 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")
 app.mount("/outputs", StaticFiles(directory=settings.output_dir), name="outputs")
 
+# ==================== TEMPLATES ====================
+
+templates = Jinja2Templates(directory="templates")
+
 # ==================== ROUTES ====================
 
 # Import routes
@@ -119,22 +124,28 @@ from app.api.routes import (
     youtube,
     pipeline,
     metadata,
-    # transcription,  # Richiede Whisper (temporaneamente disabilitato)
     logo,
+    # transcription,  # Richiede Whisper (temporaneamente disabilitato)
     # screen_record,  # Richiede PyGetWindow (non installato)
     # seo_metadata    # Richiede Whisper (temporaneamente disabilitato)
 )
 
-# Placeholder route per testing
+# Import file upload route
+from app.api.routes import files
+
+# ==================== HTML ROUTES ====================
+
 @app.get("/")
-async def root():
-    return {
-        "app": settings.app_name,
-        "version": settings.app_version,
-        "status": "running",
-        "environment": settings.environment,
-        "message": "AIVideoMaker Professional API"
-    }
+async def index(request: Request):
+    """Serve interfaccia web principale"""
+    return templates.TemplateResponse("index_new.html", {"request": request})
+
+@app.get("/translation")
+async def translation_page(request: Request):
+    """Serve pagina dedicata traduzione video"""
+    return templates.TemplateResponse("translation.html", {"request": request})
+
+# ==================== API STATUS ROUTES ====================
 
 @app.get("/health")
 async def health_check():
@@ -145,20 +156,35 @@ async def health_check():
         "environment": settings.environment
     }
 
+@app.get("/api-status")
+async def api_status():
+    """Status API completo"""
+    return {
+        "app": settings.app_name,
+        "version": settings.app_version,
+        "status": "running",
+        "environment": settings.environment,
+        "message": "AIVideoMaker Professional API v2.0"
+    }
+
 # ==================== API ROUTES ====================
 
+# Core routes
 app.include_router(auth.router, prefix=f"{settings.api_prefix}/auth", tags=["Authentication"])
 app.include_router(admin.router, prefix=f"{settings.api_prefix}/admin", tags=["Admin"])
+app.include_router(files.router, prefix="/api", tags=["File Upload"])  # Endpoint compatibilità /api/upload
+
+# Processing routes
 app.include_router(chromakey.router, prefix=f"{settings.api_prefix}/chromakey", tags=["Chromakey"])
 app.include_router(translation.router, prefix=f"{settings.api_prefix}/translation", tags=["Translation"])
 app.include_router(thumbnail.router, prefix=f"{settings.api_prefix}/thumbnail", tags=["Thumbnail"])
 app.include_router(youtube.router, prefix=f"{settings.api_prefix}/youtube", tags=["YouTube"])
 app.include_router(pipeline.router, prefix=f"{settings.api_prefix}/pipelines", tags=["Pipeline AUTO"])
-
-# Nuove route - servizi aggiuntivi
-app.include_router(metadata.router, prefix=f"{settings.api_prefix}/metadata", tags=["Metadata Extraction"])
-# app.include_router(transcription.router, prefix=f"{settings.api_prefix}/transcription", tags=["Transcription"])  # Richiede Whisper
 app.include_router(logo.router, prefix=f"{settings.api_prefix}/logo", tags=["Logo Overlay"])
+app.include_router(metadata.router, prefix=f"{settings.api_prefix}/metadata", tags=["Metadata Extraction"])
+
+# Temporarily disabled routes
+# app.include_router(transcription.router, prefix=f"{settings.api_prefix}/transcription", tags=["Transcription"])  # Richiede Whisper
 # app.include_router(screen_record.router, prefix=f"{settings.api_prefix}/screen-record", tags=["Screen Recording"])  # Richiede PyGetWindow
 # app.include_router(seo_metadata.router, prefix=f"{settings.api_prefix}/seo", tags=["SEO Metadata AI"])  # Richiede Whisper
 
