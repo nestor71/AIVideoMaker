@@ -72,8 +72,7 @@ def setup_demo_user(db: Session) -> bool:
             username=DEMO_USERNAME,
             hashed_password=get_password_hash(DEMO_PASSWORD),
             is_active=True,
-            is_admin=True,  # Admin per accesso completo in dev
-            email_verified=True  # Pre-verificato
+            is_admin=True  # Admin per accesso completo in dev
         )
 
         db.add(demo_user)
