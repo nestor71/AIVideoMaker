@@ -503,16 +503,19 @@ class ChromakeyService:
                 ], check=True, capture_output=True)
 
             elif audio_mode in ["synced", "both", "timed"]:
-                # Mix audio (implementazione completa richiede filtri audio complessi)
-                # Per ora usa background audio
+                # Mix audio foreground + background con amix filter
                 subprocess.run([
                     self.ffmpeg_path,
-                    '-i', video_path,
-                    '-i', str(bg_path),
-                    '-c:v', 'copy',
-                    '-map', '0:v:0',
-                    '-map', '1:a:0',
-                    '-shortest',
+                    '-i', video_path,           # 0: video senza audio
+                    '-i', str(fg_path),         # 1: foreground con audio
+                    '-i', str(bg_path),         # 2: background con audio
+                    '-filter_complex', '[1:a][2:a]amix=inputs=2:duration=shortest:normalize=0[aout]',
+                    '-map', '0:v:0',            # Video da input 0
+                    '-map', '[aout]',           # Audio mixato
+                    '-c:v', 'copy',             # Copia video (no re-encode)
+                    '-c:a', 'aac',              # Encode audio come AAC
+                    '-b:a', '192k',             # Bitrate audio 192k
+                    '-shortest',                # Durata = video più corto
                     '-y', str(output_path)
                 ], check=True, capture_output=True)
 
