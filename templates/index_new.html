@@ -1471,28 +1471,272 @@
                 <!-- Automation > Pipeline -->
                 <div class="tab-pane" id="pane-automation-pipeline">
                     <div class="section-header">
-                        <i class="fas fa-tasks"></i>
+                        <i class="fas fa-project-diagram"></i>
                         <h2>Pipeline Orchestrator</h2>
                     </div>
-                    <p class="section-description">Workflow automatizzati multi-step per processing batch</p>
+                    <p class="section-description">Crea workflow automatizzati multi-step: acquisisci video, elabora e pubblica in un'unica pipeline</p>
 
-                    <div style="max-width: 900px; margin: 0 auto;">
-                        <div style="background: #f8f9fa; padding: 30px; border-radius: 15px;">
+                    <div style="max-width: 1200px; margin: 0 auto;">
+
+                        <!-- FASE 1: Acquisizione Video -->
+                        <div id="pipelinePhase1" style="background: #f8f9fa; padding: 30px; border-radius: 15px; margin-bottom: 25px;">
                             <h3 style="color: #2c3e50; margin-bottom: 20px;">
-                                <i class="fas fa-layer-group"></i> Crea Workflow Personalizzato
+                                <span style="background: #667eea; color: white; width: 35px; height: 35px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 10px; font-weight: 700;">1</span>
+                                Acquisizione Video
                             </h3>
+                            <p style="color: #666; margin-bottom: 20px;">Scegli come ottenere il video da elaborare</p>
 
-                            <p style="color: #666; margin-bottom: 25px;">
-                                Combina multiple funzionalità in un workflow automatizzato. Ad esempio:
-                                <strong>Download → Chromakey → Logo → Trascrizione → YouTube Upload</strong>
-                            </p>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                                <!-- Opzione 1: Registra -->
+                                <div class="pipeline-source-option" data-source="record" style="background: white; padding: 25px; border-radius: 12px; border: 2px solid #e0e0e0; cursor: pointer; transition: all 0.3s;" onclick="selectPipelineSource('record')">
+                                    <div style="text-align: center;">
+                                        <i class="fas fa-record-vinyl" style="font-size: 2.5rem; color: #dc3545; margin-bottom: 15px;"></i>
+                                        <h4 style="color: #2c3e50; margin-bottom: 10px;">Registra Schermo</h4>
+                                        <p style="color: #666; font-size: 0.9rem; margin: 0;">Cattura schermo, finestra o tab del browser</p>
+                                    </div>
+                                </div>
 
-                            <div style="text-align: center; padding: 40px 20px; background: white; border-radius: 15px; border: 2px dashed #ccc;">
-                                <i class="fas fa-project-diagram" style="font-size: 3rem; color: #667eea; margin-bottom: 15px;"></i>
-                                <h4 style="color: #666; margin: 0;">Pipeline Orchestrator - In Sviluppo</h4>
-                                <p style="color: #999; margin: 10px 0 0 0;">Interfaccia drag-and-drop per creare workflow personalizzati</p>
+                                <!-- Opzione 2: Carica -->
+                                <div class="pipeline-source-option" data-source="upload" style="background: white; padding: 25px; border-radius: 12px; border: 2px solid #e0e0e0; cursor: pointer; transition: all 0.3s;" onclick="selectPipelineSource('upload')">
+                                    <div style="text-align: center;">
+                                        <i class="fas fa-cloud-upload-alt" style="font-size: 2.5rem; color: #667eea; margin-bottom: 15px;"></i>
+                                        <h4 style="color: #2c3e50; margin-bottom: 10px;">Carica Video</h4>
+                                        <p style="color: #666; font-size: 0.9rem; margin: 0;">Upload da computer o dispositivo</p>
+                                    </div>
+                                </div>
+
+                                <!-- Opzione 3: Scarica -->
+                                <div class="pipeline-source-option" data-source="download" style="background: white; padding: 25px; border-radius: 12px; border: 2px solid #e0e0e0; cursor: pointer; transition: all 0.3s;" onclick="selectPipelineSource('download')">
+                                    <div style="text-align: center;">
+                                        <i class="fas fa-download" style="font-size: 2.5rem; color: #28a745; margin-bottom: 15px;"></i>
+                                        <h4 style="color: #2c3e50; margin-bottom: 10px;">Scarica da Web</h4>
+                                        <p style="color: #666; font-size: 0.9rem; margin: 0;">YouTube, TikTok, Vimeo, 1000+ siti</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Source-specific forms -->
+                            <div id="pipelineSourceForms" style="margin-top: 25px; display: none;">
+                                <!-- Record Form -->
+                                <div id="pipelineRecordForm" style="display: none; background: white; padding: 20px; border-radius: 10px;">
+                                    <p style="color: #666; margin-bottom: 15px;">
+                                        <i class="fas fa-info-circle"></i> Clicca "Avvia Registrazione" per catturare lo schermo. Quando finisci, il video sarà automaticamente usato nella pipeline.
+                                    </p>
+                                    <button onclick="startPipelineRecording()" style="background: #dc3545; color: white; border: none; padding: 12px 25px; border-radius: 20px; font-weight: 600; cursor: pointer;">
+                                        <i class="fas fa-circle"></i> Avvia Registrazione
+                                    </button>
+                                    <div id="pipelineRecordStatus" style="margin-top: 15px; display: none; padding: 15px; background: #f0f9ff; border-radius: 10px;">
+                                        <i class="fas fa-circle" style="color: #dc3545; animation: blink 1s infinite;"></i>
+                                        <strong>Recording...</strong> <span id="pipelineRecordTimer">00:00</span>
+                                        <button onclick="stopPipelineRecording()" style="margin-left: 15px; background: #6c757d; color: white; border: none; padding: 8px 15px; border-radius: 15px; cursor: pointer;">
+                                            <i class="fas fa-stop"></i> Stop
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Upload Form -->
+                                <div id="pipelineUploadForm" style="display: none; background: white; padding: 20px; border-radius: 10px;">
+                                    <div class="upload-area" onclick="document.getElementById('pipelineVideoFile').click()" style="border: 2px dashed #ccc; border-radius: 10px; padding: 40px; text-align: center; cursor: pointer;">
+                                        <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 10px;"></i>
+                                        <p style="margin: 0; color: #666;">Trascina video o clicca per selezionare</p>
+                                    </div>
+                                    <input type="file" id="pipelineVideoFile" accept="video/*" style="display: none;" onchange="handlePipelineVideoUpload(event)">
+                                    <div id="pipelineVideoInfo" style="margin-top: 15px; display: none; padding: 15px; background: #f0f9ff; border-radius: 10px;">
+                                        <i class="fas fa-video" style="color: #667eea;"></i>
+                                        <strong id="pipelineVideoName"></strong>
+                                        <span id="pipelineVideoMeta" style="color: #666; margin-left: 10px;"></span>
+                                    </div>
+                                </div>
+
+                                <!-- Download Form -->
+                                <div id="pipelineDownloadForm" style="display: none; background: white; padding: 20px; border-radius: 10px;">
+                                    <input type="text" id="pipelineDownloadUrl" placeholder="https://youtube.com/watch?v=..." style="width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem; margin-bottom: 15px;">
+                                    <div style="display: flex; gap: 10px;">
+                                        <button onclick="downloadPipelineVideo()" style="flex: 1; background: #28a745; color: white; border: none; padding: 12px; border-radius: 20px; font-weight: 600; cursor: pointer;">
+                                            <i class="fas fa-download"></i> Scarica e Continua
+                                        </button>
+                                    </div>
+                                    <div id="pipelineDownloadStatus" style="margin-top: 15px; display: none; padding: 15px; background: #f0f9ff; border-radius: 10px;">
+                                        <i class="fas fa-spinner fa-spin"></i> <span id="pipelineDownloadStatusText">Download in corso...</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Video Ready Indicator -->
+                            <div id="pipelineVideoReady" style="display: none; margin-top: 20px; padding: 20px; background: #d4edda; border-left: 4px solid #28a745; border-radius: 10px;">
+                                <i class="fas fa-check-circle" style="color: #28a745;"></i>
+                                <strong>Video Pronto!</strong> <span id="pipelineVideoReadyName"></span>
+                                <button onclick="proceedToPhase2()" style="float: right; background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: 600; cursor: pointer;">
+                                    Procedi alla Configurazione <i class="fas fa-arrow-right"></i>
+                                </button>
                             </div>
                         </div>
+
+                        <!-- FASE 2: Configurazione Pipeline -->
+                        <div id="pipelinePhase2" style="background: #f8f9fa; padding: 30px; border-radius: 15px; margin-bottom: 25px; display: none;">
+                            <h3 style="color: #2c3e50; margin-bottom: 20px;">
+                                <span style="background: #667eea; color: white; width: 35px; height: 35px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 10px; font-weight: 700;">2</span>
+                                Seleziona Elaborazioni
+                            </h3>
+                            <p style="color: #666; margin-bottom: 20px;">Scegli quali lavorazioni applicare al video (in ordine sequenziale)</p>
+
+                            <!-- Template Quick Actions -->
+                            <div style="margin-bottom: 25px; padding: 20px; background: white; border-radius: 10px;">
+                                <h4 style="color: #2c3e50; margin-bottom: 15px;">
+                                    <i class="fas fa-magic"></i> Template Rapidi
+                                </h4>
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                    <button onclick="loadPipelineTemplate('video-completo')" style="background: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: 600;">
+                                        Video Completo (Chromakey + Logo + SEO + YouTube)
+                                    </button>
+                                    <button onclick="loadPipelineTemplate('quick-seo')" style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: 600;">
+                                        Quick SEO (SEO AI + YouTube)
+                                    </button>
+                                    <button onclick="loadPipelineTemplate('traduzione')" style="background: #ffc107; color: #2c3e50; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: 600;">
+                                        Multi-Lingua (Trascrizione + Traduzione + YouTube)
+                                    </button>
+                                    <button onclick="clearPipelineSteps()" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: 600;">
+                                        <i class="fas fa-trash"></i> Pulisci Tutto
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Steps Checkboxes -->
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                                <label class="pipeline-step-checkbox" style="display: flex; align-items: center; gap: 12px; padding: 15px; background: white; border-radius: 10px; border: 2px solid #e0e0e0; cursor: pointer;">
+                                    <input type="checkbox" class="pipeline-step" data-step="chromakey" onchange="togglePipelineStep(this)" style="width: 20px; height: 20px; accent-color: #667eea;">
+                                    <div>
+                                        <i class="fas fa-magic" style="color: #667eea;"></i>
+                                        <strong>Chromakey</strong>
+                                        <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #666;">Green screen removal</p>
+                                    </div>
+                                </label>
+
+                                <label class="pipeline-step-checkbox" style="display: flex; align-items: center; gap: 12px; padding: 15px; background: white; border-radius: 10px; border: 2px solid #e0e0e0; cursor: pointer;">
+                                    <input type="checkbox" class="pipeline-step" data-step="logo_overlay" onchange="togglePipelineStep(this)" style="width: 20px; height: 20px; accent-color: #667eea;">
+                                    <div>
+                                        <i class="fas fa-image" style="color: #667eea;"></i>
+                                        <strong>Logo Overlay</strong>
+                                        <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #666;">Aggiungi watermark</p>
+                                    </div>
+                                </label>
+
+                                <label class="pipeline-step-checkbox" style="display: flex; align-items: center; gap: 12px; padding: 15px; background: white; border-radius: 10px; border: 2px solid #e0e0e0; cursor: pointer;">
+                                    <input type="checkbox" class="pipeline-step" data-step="transcription" onchange="togglePipelineStep(this)" style="width: 20px; height: 20px; accent-color: #667eea;">
+                                    <div>
+                                        <i class="fas fa-closed-captioning" style="color: #667eea;"></i>
+                                        <strong>Trascrizione</strong>
+                                        <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #666;">Speech-to-text</p>
+                                    </div>
+                                </label>
+
+                                <label class="pipeline-step-checkbox" style="display: flex; align-items: center; gap: 12px; padding: 15px; background: white; border-radius: 10px; border: 2px solid #e0e0e0; cursor: pointer;">
+                                    <input type="checkbox" class="pipeline-step" data-step="translation" onchange="togglePipelineStep(this)" style="width: 20px; height: 20px; accent-color: #667eea;">
+                                    <div>
+                                        <i class="fas fa-language" style="color: #667eea;"></i>
+                                        <strong>Traduzione</strong>
+                                        <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #666;">Multi-lingua + AI voice</p>
+                                    </div>
+                                </label>
+
+                                <label class="pipeline-step-checkbox" style="display: flex; align-items: center; gap: 12px; padding: 15px; background: white; border-radius: 10px; border: 2px solid #e0e0e0; cursor: pointer;">
+                                    <input type="checkbox" class="pipeline-step" data-step="seo_metadata" onchange="togglePipelineStep(this)" style="width: 20px; height: 20px; accent-color: #667eea;">
+                                    <div>
+                                        <i class="fas fa-robot" style="color: #667eea;"></i>
+                                        <strong>SEO AI</strong>
+                                        <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #666;">Titolo, hashtag, thumbnail</p>
+                                    </div>
+                                </label>
+
+                                <label class="pipeline-step-checkbox" style="display: flex; align-items: center; gap: 12px; padding: 15px; background: white; border-radius: 10px; border: 2px solid #e0e0e0; cursor: pointer;">
+                                    <input type="checkbox" class="pipeline-step" data-step="thumbnail" onchange="togglePipelineStep(this)" style="width: 20px; height: 20px; accent-color: #667eea;">
+                                    <div>
+                                        <i class="fas fa-photo-video" style="color: #667eea;"></i>
+                                        <strong>Thumbnail</strong>
+                                        <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #666;">Genera copertina</p>
+                                    </div>
+                                </label>
+
+                                <label class="pipeline-step-checkbox" style="display: flex; align-items: center; gap: 12px; padding: 15px; background: white; border-radius: 10px; border: 2px solid #e0e0e0; cursor: pointer;">
+                                    <input type="checkbox" class="pipeline-step" data-step="youtube_upload" onchange="togglePipelineStep(this)" style="width: 20px; height: 20px; accent-color: #667eea;">
+                                    <div>
+                                        <i class="fab fa-youtube" style="color: #ff0000;"></i>
+                                        <strong>YouTube Upload</strong>
+                                        <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #666;">Pubblica automaticamente</p>
+                                    </div>
+                                </label>
+
+                                <label class="pipeline-step-checkbox" style="display: flex; align-items: center; gap: 12px; padding: 15px; background: white; border-radius: 10px; border: 2px solid #e0e0e0; cursor: pointer;">
+                                    <input type="checkbox" class="pipeline-step" data-step="metadata_extraction" onchange="togglePipelineStep(this)" style="width: 20px; height: 20px; accent-color: #667eea;">
+                                    <div>
+                                        <i class="fas fa-info-circle" style="color: #667eea;"></i>
+                                        <strong>Metadata Tecnici</strong>
+                                        <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #666;">Estrai info tecniche</p>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <!-- Selected Steps Summary -->
+                            <div id="pipelineStepsSummary" style="margin-top: 25px; padding: 20px; background: white; border-radius: 10px; display: none;">
+                                <h4 style="color: #2c3e50; margin-bottom: 15px;">
+                                    <i class="fas fa-list-ol"></i> Ordine Esecuzione (<span id="pipelineStepsCount">0</span> step)
+                                </h4>
+                                <div id="pipelineStepsList" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div style="text-align: center; margin-top: 25px;">
+                                <button onclick="goBackToPhase1()" style="background: #6c757d; color: white; border: none; padding: 12px 25px; border-radius: 20px; font-weight: 600; cursor: pointer; margin-right: 10px;">
+                                    <i class="fas fa-arrow-left"></i> Indietro
+                                </button>
+                                <button onclick="createAndRunPipeline()" id="pipelineRunBtn" disabled style="background: #28a745; color: white; border: none; padding: 12px 30px; border-radius: 20px; font-weight: 600; cursor: pointer; opacity: 0.5;">
+                                    <i class="fas fa-play"></i> Avvia Pipeline
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- FASE 3: Esecuzione & Monitoraggio -->
+                        <div id="pipelinePhase3" style="background: #f8f9fa; padding: 30px; border-radius: 15px; display: none;">
+                            <h3 style="color: #2c3e50; margin-bottom: 20px;">
+                                <span style="background: #667eea; color: white; width: 35px; height: 35px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 10px; font-weight: 700;">3</span>
+                                Esecuzione Pipeline
+                            </h3>
+
+                            <!-- Overall Progress -->
+                            <div style="background: white; padding: 25px; border-radius: 10px; margin-bottom: 20px;">
+                                <h4 style="color: #2c3e50; margin-bottom: 15px;">Progresso Totale</h4>
+                                <div style="background: #e0e0e0; border-radius: 10px; height: 20px; overflow: hidden; margin-bottom: 10px;">
+                                    <div id="pipelineOverallProgress" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100%; width: 0%; transition: width 0.5s;"></div>
+                                </div>
+                                <p id="pipelineOverallStatus" style="color: #666; margin: 0; text-align: center;">Inizializzazione...</p>
+                            </div>
+
+                            <!-- Steps Progress -->
+                            <div id="pipelineStepsProgress" style="display: flex; flex-direction: column; gap: 15px;"></div>
+
+                            <!-- Result -->
+                            <div id="pipelineResult" style="display: none; margin-top: 20px; padding: 25px; background: #d4edda; border-left: 4px solid #28a745; border-radius: 10px;">
+                                <h4 style="color: #28a745; margin-bottom: 15px;">
+                                    <i class="fas fa-check-circle"></i> Pipeline Completata!
+                                </h4>
+                                <p id="pipelineResultMessage" style="margin-bottom: 15px;"></p>
+                                <button onclick="resetPipeline()" style="background: #667eea; color: white; border: none; padding: 12px 25px; border-radius: 20px; font-weight: 600; cursor: pointer;">
+                                    <i class="fas fa-plus"></i> Crea Nuova Pipeline
+                                </button>
+                            </div>
+
+                            <!-- Error -->
+                            <div id="pipelineError" style="display: none; margin-top: 20px; padding: 25px; background: #f8d7da; border-left: 4px solid #dc3545; border-radius: 10px;">
+                                <h4 style="color: #dc3545; margin-bottom: 15px;">
+                                    <i class="fas fa-times-circle"></i> Errore Pipeline
+                                </h4>
+                                <p id="pipelineErrorMessage" style="margin-bottom: 15px;"></p>
+                                <button onclick="resetPipeline()" style="background: #667eea; color: white; border: none; padding: 12px 25px; border-radius: 20px; font-weight: 600; cursor: pointer;">
+                                    <i class="fas fa-redo"></i> Riprova
+                                </button>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
@@ -3080,6 +3324,455 @@
 
                 alert('✅ Metadata SEO applicati a YouTube Upload!');
             }, 300);
+        }
+
+        // ==================== PIPELINE ORCHESTRATOR FUNCTIONS ====================
+
+        let pipelineState = {
+            phase: 1,
+            source: null, // 'record', 'upload', 'download'
+            video: null, // file object or path
+            videoPath: null,
+            videoName: null,
+            steps: [],
+            pipelineId: null,
+            recordingData: null
+        };
+
+        // PHASE 1: Source Selection
+
+        function selectPipelineSource(source) {
+            pipelineState.source = source;
+
+            // Reset visual selection
+            document.querySelectorAll('.pipeline-source-option').forEach(opt => {
+                opt.style.border = '2px solid #e0e0e0';
+                opt.style.background = 'white';
+            });
+
+            // Highlight selected
+            const selected = document.querySelector(`[data-source="${source}"]`);
+            selected.style.border = '2px solid #667eea';
+            selected.style.background = '#f0f9ff';
+
+            // Show appropriate form
+            document.getElementById('pipelineSourceForms').style.display = 'block';
+            document.getElementById('pipelineRecordForm').style.display = source === 'record' ? 'block' : 'none';
+            document.getElementById('pipelineUploadForm').style.display = source === 'upload' ? 'block' : 'none';
+            document.getElementById('pipelineDownloadForm').style.display = source === 'download' ? 'block' : 'none';
+
+            // Hide video ready indicator
+            document.getElementById('pipelineVideoReady').style.display = 'none';
+        }
+
+        // Recording functions (integration with existing recorder)
+        let pipelineRecordingStream = null;
+        let pipelineRecordingTimer = null;
+        let pipelineRecordStartTime = null;
+        let pipelineMediaRecorder = null;
+        let pipelineRecordedChunks = [];
+
+        async function startPipelineRecording() {
+            try {
+                const displayStream = await navigator.mediaDevices.getDisplayMedia({
+                    video: { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } },
+                    audio: true
+                });
+
+                pipelineRecordingStream = displayStream;
+                pipelineRecordedChunks = [];
+
+                // Setup MediaRecorder
+                pipelineMediaRecorder = new MediaRecorder(pipelineRecordingStream, {
+                    mimeType: 'video/webm;codecs=vp9,opus'
+                });
+
+                pipelineMediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        pipelineRecordedChunks.push(event.data);
+                    }
+                };
+
+                pipelineMediaRecorder.onstop = () => {
+                    const blob = new Blob(pipelineRecordedChunks, { type: 'video/webm' });
+                    pipelineState.video = blob;
+                    pipelineState.videoName = `screen_recording_${Date.now()}.webm`;
+                    showPipelineVideoReady(pipelineState.videoName);
+                };
+
+                // Start recording
+                pipelineMediaRecorder.start(1000);
+                pipelineRecordStartTime = Date.now();
+
+                // Show recording status
+                document.getElementById('pipelineRecordStatus').style.display = 'block';
+
+                // Start timer
+                pipelineRecordingTimer = setInterval(() => {
+                    const elapsed = Math.floor((Date.now() - pipelineRecordStartTime) / 1000);
+                    const mins = Math.floor(elapsed / 60);
+                    const secs = elapsed % 60;
+                    document.getElementById('pipelineRecordTimer').textContent =
+                        mins.toString().padStart(2, '0') + ':' + secs.toString().padStart(2, '0');
+                }, 1000);
+
+                // Handle user stopping screen share
+                displayStream.getVideoTracks()[0].addEventListener('ended', () => {
+                    stopPipelineRecording();
+                });
+
+            } catch (err) {
+                alert('Errore nell\'avvio della registrazione: ' + err.message);
+            }
+        }
+
+        function stopPipelineRecording() {
+            if (pipelineMediaRecorder) {
+                pipelineMediaRecorder.stop();
+            }
+            if (pipelineRecordingStream) {
+                pipelineRecordingStream.getTracks().forEach(track => track.stop());
+            }
+            if (pipelineRecordingTimer) {
+                clearInterval(pipelineRecordingTimer);
+            }
+            document.getElementById('pipelineRecordStatus').style.display = 'none';
+        }
+
+        function handlePipelineVideoUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                pipelineState.video = file;
+                pipelineState.videoName = file.name;
+
+                // Show file info
+                document.getElementById('pipelineVideoName').textContent = file.name;
+                const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                document.getElementById('pipelineVideoMeta').textContent = `(${sizeMB} MB)`;
+                document.getElementById('pipelineVideoInfo').style.display = 'block';
+
+                showPipelineVideoReady(file.name);
+            }
+        }
+
+        async function downloadPipelineVideo() {
+            const url = document.getElementById('pipelineDownloadUrl').value.trim();
+
+            if (!url) {
+                alert('Inserisci un URL valido');
+                return;
+            }
+
+            const status = document.getElementById('pipelineDownloadStatus');
+            const statusText = document.getElementById('pipelineDownloadStatusText');
+            status.style.display = 'block';
+            statusText.textContent = 'Download in corso...';
+
+            try {
+                const response = await fetch('/api/v1/video-download/download', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url, quality: 'best', format: 'mp4' })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    pipelineState.videoPath = data.output_path;
+                    pipelineState.videoName = data.title || 'downloaded_video.mp4';
+
+                    statusText.textContent = '✓ Download completato!';
+                    setTimeout(() => {
+                        status.style.display = 'none';
+                        showPipelineVideoReady(pipelineState.videoName);
+                    }, 1500);
+                } else {
+                    const error = await response.json();
+                    statusText.textContent = `Errore: ${error.detail || 'Download fallito'}`;
+                }
+            } catch (error) {
+                statusText.textContent = `Errore: ${error.message}`;
+            }
+        }
+
+        function showPipelineVideoReady(videoName) {
+            document.getElementById('pipelineVideoReadyName').textContent = videoName;
+            document.getElementById('pipelineVideoReady').style.display = 'block';
+        }
+
+        function proceedToPhase2() {
+            pipelineState.phase = 2;
+            document.getElementById('pipelinePhase1').style.display = 'none';
+            document.getElementById('pipelinePhase2').style.display = 'block';
+        }
+
+        // PHASE 2: Pipeline Configuration
+
+        function togglePipelineStep(checkbox) {
+            const stepName = checkbox.dataset.step;
+            const isChecked = checkbox.checked;
+
+            if (isChecked) {
+                if (!pipelineState.steps.includes(stepName)) {
+                    pipelineState.steps.push(stepName);
+                }
+            } else {
+                pipelineState.steps = pipelineState.steps.filter(s => s !== stepName);
+            }
+
+            updatePipelineStepsSummary();
+        }
+
+        function updatePipelineStepsSummary() {
+            const count = pipelineState.steps.length;
+            const summary = document.getElementById('pipelineStepsSummary');
+            const list = document.getElementById('pipelineStepsList');
+            const runBtn = document.getElementById('pipelineRunBtn');
+
+            document.getElementById('pipelineStepsCount').textContent = count;
+
+            if (count > 0) {
+                summary.style.display = 'block';
+                runBtn.disabled = false;
+                runBtn.style.opacity = '1';
+
+                const stepNames = {
+                    'chromakey': '🎬 Chromakey',
+                    'logo_overlay': '🖼️ Logo Overlay',
+                    'transcription': '📝 Trascrizione',
+                    'translation': '🌍 Traduzione',
+                    'seo_metadata': '🤖 SEO AI',
+                    'thumbnail': '🖼️ Thumbnail',
+                    'youtube_upload': '📺 YouTube Upload',
+                    'metadata_extraction': '📊 Metadata Extraction'
+                };
+
+                list.innerHTML = pipelineState.steps.map((step, index) => `
+                    <div style="display: flex; align-items: center; padding: 12px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea;">
+                        <span style="background: #667eea; color: white; width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px; font-weight: 700; font-size: 0.9rem;">
+                            ${index + 1}
+                        </span>
+                        <strong>${stepNames[step] || step}</strong>
+                    </div>
+                `).join('');
+            } else {
+                summary.style.display = 'none';
+                runBtn.disabled = true;
+                runBtn.style.opacity = '0.5';
+            }
+        }
+
+        function loadPipelineTemplate(templateName) {
+            // Clear all checkboxes
+            document.querySelectorAll('.pipeline-step').forEach(cb => cb.checked = false);
+            pipelineState.steps = [];
+
+            // Load template
+            const templates = {
+                'video-completo': ['chromakey', 'logo_overlay', 'seo_metadata', 'youtube_upload'],
+                'quick-seo': ['seo_metadata', 'youtube_upload'],
+                'traduzione': ['transcription', 'translation', 'youtube_upload']
+            };
+
+            const steps = templates[templateName] || [];
+            steps.forEach(step => {
+                const checkbox = document.querySelector(`[data-step="${step}"]`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                    pipelineState.steps.push(step);
+                }
+            });
+
+            updatePipelineStepsSummary();
+        }
+
+        function clearPipelineSteps() {
+            document.querySelectorAll('.pipeline-step').forEach(cb => cb.checked = false);
+            pipelineState.steps = [];
+            updatePipelineStepsSummary();
+        }
+
+        function goBackToPhase1() {
+            pipelineState.phase = 1;
+            document.getElementById('pipelinePhase2').style.display = 'none';
+            document.getElementById('pipelinePhase1').style.display = 'block';
+        }
+
+        // PHASE 3: Execution & Monitoring
+
+        async function createAndRunPipeline() {
+            pipelineState.phase = 3;
+            document.getElementById('pipelinePhase2').style.display = 'none';
+            document.getElementById('pipelinePhase3').style.display = 'block';
+
+            // Build pipeline steps for API
+            const steps = pipelineState.steps.map((stepType, index) => ({
+                step_number: index + 1,
+                job_type: stepType,
+                enabled: true,
+                parameters: {} // Default empty parameters - backend will use defaults
+            }));
+
+            try {
+                // Create pipeline
+                const createResponse = await fetch('/api/v1/pipelines/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: `Pipeline ${new Date().toLocaleString('it-IT')}`,
+                        description: `Auto-generated pipeline from orchestrator`,
+                        steps: steps,
+                        stop_on_error: true
+                    })
+                });
+
+                if (!createResponse.ok) {
+                    throw new Error('Errore nella creazione della pipeline');
+                }
+
+                const pipelineData = await createResponse.json();
+                pipelineState.pipelineId = pipelineData.pipeline_id;
+
+                // Execute pipeline
+                const executeResponse = await fetch(`/api/v1/pipelines/${pipelineState.pipelineId}/execute`, {
+                    method: 'POST'
+                });
+
+                if (!executeResponse.ok) {
+                    throw new Error('Errore nell\'avvio della pipeline');
+                }
+
+                // Start monitoring
+                monitorPipelineExecution();
+
+            } catch (error) {
+                showPipelineError(error.message);
+            }
+        }
+
+        function monitorPipelineExecution() {
+            const pollInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/v1/pipelines/${pipelineState.pipelineId}`);
+                    if (response.ok) {
+                        const data = await response.json();
+
+                        // Update overall progress
+                        const progress = Math.round((data.current_step / data.total_steps) * 100);
+                        document.getElementById('pipelineOverallProgress').style.width = progress + '%';
+                        document.getElementById('pipelineOverallStatus').textContent =
+                            `Step ${data.current_step} di ${data.total_steps}`;
+
+                        // Update steps progress
+                        updateStepsProgress(data.steps, data.current_step);
+
+                        // Check if completed
+                        if (data.status === 'completed') {
+                            clearInterval(pollInterval);
+                            showPipelineSuccess(data);
+                        } else if (data.status === 'failed') {
+                            clearInterval(pollInterval);
+                            showPipelineError(data.error_message || 'Pipeline fallita');
+                        }
+                    }
+                } catch (error) {
+                    clearInterval(pollInterval);
+                    showPipelineError('Errore nel monitoraggio: ' + error.message);
+                }
+            }, 3000);
+        }
+
+        function updateStepsProgress(steps, currentStep) {
+            const container = document.getElementById('pipelineStepsProgress');
+            const stepNames = {
+                'chromakey': 'Chromakey',
+                'logo_overlay': 'Logo Overlay',
+                'transcription': 'Trascrizione',
+                'translation': 'Traduzione',
+                'seo_metadata': 'SEO AI',
+                'thumbnail': 'Thumbnail',
+                'youtube_upload': 'YouTube Upload',
+                'metadata_extraction': 'Metadata'
+            };
+
+            container.innerHTML = steps.map((step, index) => {
+                const stepNum = step.step_number;
+                const isActive = stepNum === currentStep;
+                const isCompleted = stepNum < currentStep;
+                const isPending = stepNum > currentStep;
+
+                let statusIcon, statusColor, statusBg;
+                if (isCompleted) {
+                    statusIcon = '✓';
+                    statusColor = '#28a745';
+                    statusBg = '#d4edda';
+                } else if (isActive) {
+                    statusIcon = '⏳';
+                    statusColor = '#667eea';
+                    statusBg = '#f0f9ff';
+                } else {
+                    statusIcon = '○';
+                    statusColor = '#999';
+                    statusBg = '#f8f9fa';
+                }
+
+                return `
+                    <div style="padding: 15px; background: ${statusBg}; border-radius: 10px; border-left: 4px solid ${statusColor};">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-size: 1.5rem;">${statusIcon}</span>
+                            <div style="flex: 1;">
+                                <strong style="color: ${statusColor};">Step ${stepNum}: ${stepNames[step.job_type] || step.job_type}</strong>
+                                <p style="margin: 5px 0 0 0; color: #666; font-size: 0.9rem;">
+                                    ${isCompleted ? 'Completato' : isActive ? 'In esecuzione...' : 'In attesa'}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function showPipelineSuccess(data) {
+            document.getElementById('pipelineOverallProgress').style.width = '100%';
+            document.getElementById('pipelineOverallStatus').textContent = 'Pipeline completata con successo!';
+            document.getElementById('pipelineResultMessage').textContent =
+                `Tutti gli ${data.total_steps} step sono stati completati. Il video è stato elaborato e pubblicato.`;
+            document.getElementById('pipelineResult').style.display = 'block';
+        }
+
+        function showPipelineError(errorMessage) {
+            document.getElementById('pipelineErrorMessage').textContent = errorMessage;
+            document.getElementById('pipelineError').style.display = 'block';
+        }
+
+        function resetPipeline() {
+            // Reset state
+            pipelineState = {
+                phase: 1,
+                source: null,
+                video: null,
+                videoPath: null,
+                videoName: null,
+                steps: [],
+                pipelineId: null,
+                recordingData: null
+            };
+
+            // Reset UI
+            document.getElementById('pipelinePhase1').style.display = 'block';
+            document.getElementById('pipelinePhase2').style.display = 'none';
+            document.getElementById('pipelinePhase3').style.display = 'none';
+            document.getElementById('pipelineVideoReady').style.display = 'none';
+            document.getElementById('pipelineSourceForms').style.display = 'none';
+            document.getElementById('pipelineResult').style.display = 'none';
+            document.getElementById('pipelineError').style.display = 'none';
+
+            // Reset selections
+            document.querySelectorAll('.pipeline-source-option').forEach(opt => {
+                opt.style.border = '2px solid #e0e0e0';
+                opt.style.background = 'white';
+            });
+
+            clearPipelineSteps();
         }
 
         // ==================== INITIALIZATION ====================
