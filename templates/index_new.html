@@ -374,10 +374,7 @@
 
             <!-- Sub-tabs for Metadata & SEO -->
             <div class="sub-tabs" id="subTabs-metadata">
-                <button class="sub-tab active" onclick="showSubTab('metadata', 'extraction')">
-                    <i class="fas fa-info-circle"></i> Metadati Tecnici
-                </button>
-                <button class="sub-tab" onclick="showSubTab('metadata', 'seo')">
+                <button class="sub-tab active" onclick="showSubTab('metadata', 'seo')">
                     <i class="fas fa-robot"></i> SEO AI
                 </button>
                 <button class="sub-tab" onclick="showSubTab('metadata', 'thumbnail')">
@@ -395,9 +392,14 @@
                 </button>
             </div>
 
-            <!-- Sub-tabs for Settings (none) -->
+            <!-- Sub-tabs for Settings -->
             <div class="sub-tabs" id="subTabs-settings">
-                <!-- No sub-tabs for settings -->
+                <button class="sub-tab active" onclick="showSubTab('settings', 'general')">
+                    <i class="fas fa-sliders-h"></i> Generali
+                </button>
+                <button class="sub-tab" onclick="showSubTab('settings', 'advanced')">
+                    <i class="fas fa-tools"></i> Strumenti Avanzati
+                </button>
             </div>
 
             <!-- CONTENT CONTAINER -->
@@ -1139,56 +1141,7 @@
 
                 <!-- ==================== METADATA & SEO ==================== -->
 
-                <!-- Metadata > Extraction -->
-                <div class="tab-pane" id="pane-metadata-extraction">
-                    <div class="section-header">
-                        <i class="fas fa-tags"></i>
-                        <h2>Metadati & SEO</h2>
-                    </div>
-                    <p class="section-description">Estrazione metadati video e ottimizzazione SEO</p>
-
-                    <div style="max-width: 800px; margin: 0 auto;">
-                        <!-- File Upload -->
-                        <div style="margin-bottom: 30px;">
-                            <h3 style="color: #667eea; margin-bottom: 15px;">
-                                <i class="fas fa-file-video"></i> File Video/Audio
-                            </h3>
-                            <div class="upload-area" id="metadataFileUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer;">
-                                <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 15px;"></i>
-                                <p style="margin: 0; color: #666;">Trascina file o clicca per selezionare</p>
-                                <small style="color: #999;">Estrai informazioni tecniche e metadata</small>
-                            </div>
-                            <input type="file" id="metadataFile" accept="video/*,audio/*" style="display: none;">
-                            <div id="metadataFileInfo" style="margin-top: 15px; padding: 15px; background: #f0f9ff; border-radius: 10px; display: none;">
-                                <i class="fas fa-file" style="color: #667eea;"></i>
-                                <span id="metadataFileName" style="margin-left: 10px; font-weight: 600;"></span>
-                            </div>
-                        </div>
-
-                        <!-- Extract Button -->
-                        <div style="text-align: center; margin-bottom: 30px;">
-                            <button onclick="extractMetadata()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px 40px; border-radius: 25px; font-size: 1.1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(102,126,234,0.3);">
-                                <i class="fas fa-tags"></i> Estrai Metadati
-                            </button>
-                        </div>
-
-                        <!-- Results Display -->
-                        <div id="metadataResults" style="display: none; background: #f8f9fa; padding: 25px; border-radius: 15px;">
-                            <h3 style="color: #2c3e50; margin-bottom: 20px;">
-                                <i class="fas fa-info-circle"></i> Informazioni File
-                            </h3>
-                            <div id="metadataContent" style="font-family: monospace; white-space: pre-wrap; background: white; padding: 20px; border-radius: 10px; max-height: 500px; overflow-y: auto;"></div>
-
-                            <div style="text-align: center; margin-top: 20px;">
-                                <button onclick="downloadMetadataJSON()" style="background: #667eea; color: white; border: none; padding: 10px 25px; border-radius: 20px; cursor: pointer;">
-                                    <i class="fas fa-download"></i> Scarica JSON
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Metadata > Thumbnail -->
+                <!-- Metadata > SEO AI -->
                 <div class="tab-pane" id="pane-metadata-thumbnail">
                     <div class="section-header">
                         <i class="fas fa-photo-video"></i>
@@ -1702,10 +1655,11 @@
 
                 <!-- ==================== IMPOSTAZIONI ==================== -->
 
-                <div class="tab-pane" id="pane-settings">
+                <!-- Settings > General -->
+                <div class="tab-pane" id="pane-settings-general">
                     <div class="section-header">
-                        <i class="fas fa-cog"></i>
-                        <h2>Impostazioni</h2>
+                        <i class="fas fa-sliders-h"></i>
+                        <h2>Impostazioni Generali</h2>
                     </div>
                     <p class="section-description">Configurazione generale della piattaforma</p>
 
@@ -1751,6 +1705,68 @@
                                     <i class="fas fa-save"></i> Salva Impostazioni
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings > Advanced Tools -->
+                <div class="tab-pane" id="pane-settings-advanced">
+                    <div class="section-header">
+                        <i class="fas fa-tools"></i>
+                        <h2>Strumenti Avanzati</h2>
+                    </div>
+                    <p class="section-description">Strumenti per utenti avanzati e developer</p>
+
+                    <div style="max-width: 800px; margin: 0 auto;">
+                        <!-- Metadata Extraction Tool -->
+                        <div style="background: #f8f9fa; padding: 25px; border-radius: 15px; margin-bottom: 25px;">
+                            <h3 style="color: #2c3e50; margin-bottom: 15px;">
+                                <i class="fas fa-info-circle"></i> Estrazione Metadati Tecnici
+                            </h3>
+                            <p style="color: #666; margin-bottom: 20px;">
+                                Estrai informazioni tecniche dettagliate da file video/audio (codec, bitrate, risoluzione, durata, ecc.)
+                            </p>
+
+                            <!-- File Upload -->
+                            <div style="margin-bottom: 20px;">
+                                <div class="upload-area" id="metadataFileUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 30px; text-align: center; cursor: pointer;">
+                                    <i class="fas fa-cloud-upload-alt" style="font-size: 2.5rem; color: #667eea; margin-bottom: 10px;"></i>
+                                    <p style="margin: 0; color: #666;">Trascina file video/audio o clicca per selezionare</p>
+                                    <small style="color: #999;">Supporta tutti i formati video e audio</small>
+                                </div>
+                                <input type="file" id="metadataFile" accept="video/*,audio/*" style="display: none;">
+                                <div id="metadataFileInfo" style="margin-top: 15px; padding: 15px; background: #f0f9ff; border-radius: 10px; display: none;">
+                                    <i class="fas fa-file" style="color: #667eea;"></i>
+                                    <span id="metadataFileName" style="margin-left: 10px; font-weight: 600;"></span>
+                                </div>
+                            </div>
+
+                            <!-- Extract Button -->
+                            <div style="text-align: center; margin-bottom: 20px;">
+                                <button onclick="extractMetadata()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-size: 1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(102,126,234,0.3);">
+                                    <i class="fas fa-search"></i> Analizza File
+                                </button>
+                            </div>
+
+                            <!-- Results Display -->
+                            <div id="metadataResults" style="display: none; background: white; padding: 20px; border-radius: 10px; border: 2px solid #e0e0e0;">
+                                <h4 style="color: #2c3e50; margin-bottom: 15px;">
+                                    <i class="fas fa-info-circle"></i> Informazioni Tecniche
+                                </h4>
+                                <div id="metadataContent" style="font-family: monospace; font-size: 0.9rem; white-space: pre-wrap; max-height: 400px; overflow-y: auto; background: #f8f9fa; padding: 15px; border-radius: 8px;"></div>
+
+                                <div style="text-align: center; margin-top: 15px;">
+                                    <button onclick="downloadMetadataJSON()" style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: 600;">
+                                        <i class="fas fa-download"></i> Scarica JSON
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Info Box -->
+                        <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; border-radius: 10px;">
+                            <strong><i class="fas fa-lightbulb"></i> Nota:</strong>
+                            Questi strumenti sono pensati per utenti avanzati. Per la maggior parte delle operazioni, i metadati vengono estratti e mostrati automaticamente quando carichi i file nelle altre sezioni.
                         </div>
                     </div>
                 </div>
