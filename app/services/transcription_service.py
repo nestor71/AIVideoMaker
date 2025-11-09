@@ -11,6 +11,8 @@ Servizio indipendente per trascrizione audio/video con Whisper:
 Completamente testabile, nessuna dipendenza da FastAPI.
 """
 
+from __future__ import annotations  # Lazy type hint evaluation per supportare whisper opzionale
+
 import subprocess
 import tempfile
 import logging
