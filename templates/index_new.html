@@ -421,6 +421,12 @@
                             <p>Aggiungi logo e branding ai tuoi video</p>
                         </div>
 
+                        <div class="dashboard-card" onclick="showPrimaryTab('video'); showSubTab('video', 'recorder');">
+                            <i class="fas fa-record-vinyl"></i>
+                            <h3>Screen Recorder</h3>
+                            <p>Registra schermo, finestra o tab con audio</p>
+                        </div>
+
                         <div class="dashboard-card" onclick="showPrimaryTab('download');">
                             <i class="fas fa-cloud-download-alt"></i>
                             <h3>Download Video</h3>
@@ -698,15 +704,141 @@
                 <div class="tab-pane" id="pane-video-recorder">
                     <div class="section-header">
                         <i class="fas fa-record-vinyl"></i>
-                        <h2>Video Recorder</h2>
+                        <h2>Screen Recorder</h2>
                     </div>
-                    <p class="section-description">Registra schermo, webcam o entrambi direttamente dal browser</p>
+                    <p class="section-description">Registra schermo, finestra o tab del browser con audio direttamente dal browser</p>
 
-                    <div style="text-align: center; padding: 60px 20px; color: #999;">
-                        <i class="fas fa-record-vinyl" style="font-size: 4rem; margin-bottom: 20px; opacity: 0.3;"></i>
-                        <h3 style="color: #666;">Video Recorder - In Sviluppo</h3>
-                        <p>Questa funzionalità è in fase di implementazione.</p>
+                    <div style="max-width: 1000px; margin: 0 auto;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                            <!-- Settings Panel -->
+                            <div>
+                                <div style="background: #f8f9fa; padding: 25px; border-radius: 15px; margin-bottom: 20px;">
+                                    <h3 style="color: #2c3e50; margin-bottom: 20px;">
+                                        <i class="fas fa-cog"></i> Impostazioni Registrazione
+                                    </h3>
+
+                                    <!-- Capture Type -->
+                                    <div style="margin-bottom: 20px;">
+                                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                            <i class="fas fa-desktop"></i> Tipo di Cattura
+                                        </label>
+                                        <select id="recorderCaptureType" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px;">
+                                            <option value="screen">Schermo Intero</option>
+                                            <option value="window">Finestra Applicazione</option>
+                                            <option value="tab" selected>Tab Browser</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Audio Source -->
+                                    <div style="margin-bottom: 20px;">
+                                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                            <i class="fas fa-microphone"></i> Sorgente Audio
+                                        </label>
+                                        <select id="recorderAudioSource" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px;">
+                                            <option value="none">Nessun Audio</option>
+                                            <option value="system" selected>Audio Sistema</option>
+                                            <option value="microphone">Microfono</option>
+                                            <option value="both">Sistema + Microfono</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Video Quality -->
+                                    <div style="margin-bottom: 20px;">
+                                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                            <i class="fas fa-hd-video"></i> Qualità Video
+                                        </label>
+                                        <select id="recorderQuality" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px;">
+                                            <option value="1080p">1080p (Full HD)</option>
+                                            <option value="720p" selected>720p (HD)</option>
+                                            <option value="480p">480p (SD)</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Frame Rate -->
+                                    <div style="margin-bottom: 20px;">
+                                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                            <i class="fas fa-film"></i> Frame Rate
+                                        </label>
+                                        <select id="recorderFPS" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px;">
+                                            <option value="30" selected>30 FPS</option>
+                                            <option value="60">60 FPS</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Recording Controls -->
+                                <div style="background: #f8f9fa; padding: 25px; border-radius: 15px;">
+                                    <h3 style="color: #2c3e50; margin-bottom: 20px;">
+                                        <i class="fas fa-video"></i> Controlli
+                                    </h3>
+
+                                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                                        <button id="recorderStartBtn" onclick="startRecording()" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 1.1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(220,53,69,0.3);">
+                                            <i class="fas fa-circle"></i> Inizia Registrazione
+                                        </button>
+
+                                        <button id="recorderPauseBtn" onclick="pauseRecording()" disabled style="background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 1.1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(255,193,7,0.3); opacity: 0.5;">
+                                            <i class="fas fa-pause"></i> Pausa
+                                        </button>
+
+                                        <button id="recorderStopBtn" onclick="stopRecording()" disabled style="background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%); color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 1.1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(108,117,125,0.3); opacity: 0.5;">
+                                            <i class="fas fa-stop"></i> Stop Registrazione
+                                        </button>
+                                    </div>
+
+                                    <!-- Recording Timer -->
+                                    <div id="recorderTimer" style="text-align: center; margin-top: 20px; padding: 15px; background: white; border-radius: 10px; display: none;">
+                                        <div style="font-size: 2rem; font-weight: 700; color: #dc3545; font-family: monospace;" id="recorderTimerDisplay">00:00:00</div>
+                                        <div style="margin-top: 5px;">
+                                            <span id="recorderStatus" style="display: inline-block; padding: 5px 15px; background: #dc3545; color: white; border-radius: 20px; font-size: 0.9rem; font-weight: 600;">
+                                                <i class="fas fa-circle" style="animation: blink 1s infinite;"></i> RECORDING
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Preview Panel -->
+                            <div>
+                                <div style="background: #000; border-radius: 15px; overflow: hidden; margin-bottom: 20px;">
+                                    <div style="padding: 15px; background: #1a1a1a; border-bottom: 1px solid #333;">
+                                        <h3 style="color: white; margin: 0; font-size: 1rem;">
+                                            <i class="fas fa-eye"></i> Preview
+                                        </h3>
+                                    </div>
+                                    <div style="position: relative; padding-bottom: 56.25%; background: #000;">
+                                        <video id="recorderPreview" autoplay muted style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;"></video>
+                                        <div id="recorderPreviewPlaceholder" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #666;">
+                                            <div style="text-align: center;">
+                                                <i class="fas fa-video-slash" style="font-size: 3rem; margin-bottom: 10px; opacity: 0.3;"></i>
+                                                <p style="margin: 0;">Nessuna anteprima</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Recorded Videos List -->
+                                <div style="background: #f8f9fa; padding: 25px; border-radius: 15px;">
+                                    <h3 style="color: #2c3e50; margin-bottom: 20px;">
+                                        <i class="fas fa-film"></i> Registrazioni Salvate
+                                    </h3>
+                                    <div id="recorderVideosList" style="max-height: 300px; overflow-y: auto;">
+                                        <div style="text-align: center; padding: 40px 20px; color: #999;">
+                                            <i class="fas fa-inbox" style="font-size: 2rem; opacity: 0.3; margin-bottom: 10px;"></i>
+                                            <p style="margin: 0;">Nessuna registrazione salvata</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+
+                    <style>
+                        @keyframes blink {
+                            0%, 50% { opacity: 1; }
+                            51%, 100% { opacity: 0; }
+                        }
+                    </style>
                 </div>
 
                 <!-- ==================== ACQUISIZIONE ==================== -->
@@ -2130,6 +2262,369 @@
                 progressBar.style.background = '#dc3545';
             }
         }
+
+        // ==================== SCREEN RECORDER FUNCTIONS ====================
+
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let recordingStream = null;
+        let recordingStartTime = null;
+        let recordingTimerInterval = null;
+        let isPaused = false;
+        let savedRecordings = [];
+
+        async function startRecording() {
+            try {
+                // Get settings
+                const quality = document.getElementById('recorderQuality').value;
+                const fps = parseInt(document.getElementById('recorderFPS').value);
+                const audioSource = document.getElementById('recorderAudioSource').value;
+
+                // Get resolution constraints
+                let width, height;
+                switch(quality) {
+                    case '1080p':
+                        width = 1920;
+                        height = 1080;
+                        break;
+                    case '720p':
+                        width = 1280;
+                        height = 720;
+                        break;
+                    case '480p':
+                        width = 854;
+                        height = 480;
+                        break;
+                }
+
+                // Request screen capture
+                const displayStream = await navigator.mediaDevices.getDisplayMedia({
+                    video: {
+                        width: { ideal: width },
+                        height: { ideal: height },
+                        frameRate: { ideal: fps }
+                    },
+                    audio: audioSource === 'system' || audioSource === 'both'
+                });
+
+                // Add microphone if needed
+                let audioStream = null;
+                if (audioSource === 'microphone' || audioSource === 'both') {
+                    try {
+                        audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    } catch (err) {
+                        console.warn('Microphone access denied:', err);
+                        alert('Impossibile accedere al microfono. Continuo con audio sistema.');
+                    }
+                }
+
+                // Combine streams
+                let tracks = [...displayStream.getVideoTracks()];
+
+                if (audioSource === 'both' && audioStream) {
+                    // Mix system audio and microphone
+                    const audioContext = new AudioContext();
+                    const systemSource = audioContext.createMediaStreamSource(displayStream);
+                    const micSource = audioContext.createMediaStreamSource(audioStream);
+                    const destination = audioContext.createMediaStreamDestination();
+
+                    systemSource.connect(destination);
+                    micSource.connect(destination);
+
+                    tracks.push(...destination.stream.getAudioTracks());
+                } else if (audioSource === 'system') {
+                    tracks.push(...displayStream.getAudioTracks());
+                } else if (audioSource === 'microphone' && audioStream) {
+                    tracks.push(...audioStream.getAudioTracks());
+                }
+
+                recordingStream = new MediaStream(tracks);
+
+                // Show preview
+                const preview = document.getElementById('recorderPreview');
+                preview.srcObject = recordingStream;
+                document.getElementById('recorderPreviewPlaceholder').style.display = 'none';
+
+                // Setup MediaRecorder
+                const options = {
+                    mimeType: 'video/webm;codecs=vp9,opus',
+                    videoBitsPerSecond: quality === '1080p' ? 5000000 : quality === '720p' ? 2500000 : 1000000
+                };
+
+                // Fallback to vp8 if vp9 not supported
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                    options.mimeType = 'video/webm;codecs=vp8,opus';
+                }
+
+                mediaRecorder = new MediaRecorder(recordingStream, options);
+                recordedChunks = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    saveRecording();
+                };
+
+                // Handle user stopping screen share
+                displayStream.getVideoTracks()[0].addEventListener('ended', () => {
+                    stopRecording();
+                });
+
+                // Start recording
+                mediaRecorder.start(1000); // Collect data every second
+                recordingStartTime = Date.now();
+                isPaused = false;
+
+                // Update UI
+                document.getElementById('recorderStartBtn').disabled = true;
+                document.getElementById('recorderStartBtn').style.opacity = '0.5';
+                document.getElementById('recorderPauseBtn').disabled = false;
+                document.getElementById('recorderPauseBtn').style.opacity = '1';
+                document.getElementById('recorderStopBtn').disabled = false;
+                document.getElementById('recorderStopBtn').style.opacity = '1';
+                document.getElementById('recorderTimer').style.display = 'block';
+
+                // Start timer
+                startTimer();
+
+            } catch (err) {
+                console.error('Error starting recording:', err);
+                if (err.name === 'NotAllowedError') {
+                    alert('Permesso negato. Devi autorizzare la condivisione schermo.');
+                } else {
+                    alert('Errore nell\'avvio della registrazione: ' + err.message);
+                }
+            }
+        }
+
+        function pauseRecording() {
+            if (!mediaRecorder) return;
+
+            if (isPaused) {
+                // Resume
+                mediaRecorder.resume();
+                isPaused = false;
+                document.getElementById('recorderPauseBtn').innerHTML = '<i class="fas fa-pause"></i> Pausa';
+                document.getElementById('recorderStatus').style.background = '#dc3545';
+                document.getElementById('recorderStatus').innerHTML = '<i class="fas fa-circle" style="animation: blink 1s infinite;"></i> RECORDING';
+                startTimer();
+            } else {
+                // Pause
+                mediaRecorder.pause();
+                isPaused = true;
+                document.getElementById('recorderPauseBtn').innerHTML = '<i class="fas fa-play"></i> Riprendi';
+                document.getElementById('recorderStatus').style.background = '#ffc107';
+                document.getElementById('recorderStatus').innerHTML = '<i class="fas fa-pause"></i> PAUSED';
+                stopTimer();
+            }
+        }
+
+        function stopRecording() {
+            if (!mediaRecorder) return;
+
+            // Stop recording
+            mediaRecorder.stop();
+
+            // Stop all tracks
+            if (recordingStream) {
+                recordingStream.getTracks().forEach(track => track.stop());
+            }
+
+            // Clear preview
+            const preview = document.getElementById('recorderPreview');
+            preview.srcObject = null;
+            document.getElementById('recorderPreviewPlaceholder').style.display = 'flex';
+
+            // Stop timer
+            stopTimer();
+
+            // Reset UI
+            document.getElementById('recorderStartBtn').disabled = false;
+            document.getElementById('recorderStartBtn').style.opacity = '1';
+            document.getElementById('recorderPauseBtn').disabled = true;
+            document.getElementById('recorderPauseBtn').style.opacity = '0.5';
+            document.getElementById('recorderPauseBtn').innerHTML = '<i class="fas fa-pause"></i> Pausa';
+            document.getElementById('recorderStopBtn').disabled = true;
+            document.getElementById('recorderStopBtn').style.opacity = '0.5';
+            document.getElementById('recorderTimer').style.display = 'none';
+            document.getElementById('recorderTimerDisplay').textContent = '00:00:00';
+
+            // Clean up
+            mediaRecorder = null;
+            recordingStream = null;
+            isPaused = false;
+        }
+
+        function startTimer() {
+            if (recordingTimerInterval) {
+                clearInterval(recordingTimerInterval);
+            }
+
+            const startOffset = isPaused ? parseInt(document.getElementById('recorderTimerDisplay').dataset.offset || 0) : 0;
+
+            recordingTimerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000) + startOffset;
+                const hours = Math.floor(elapsed / 3600);
+                const minutes = Math.floor((elapsed % 3600) / 60);
+                const seconds = elapsed % 60;
+
+                const display =
+                    hours.toString().padStart(2, '0') + ':' +
+                    minutes.toString().padStart(2, '0') + ':' +
+                    seconds.toString().padStart(2, '0');
+
+                document.getElementById('recorderTimerDisplay').textContent = display;
+                document.getElementById('recorderTimerDisplay').dataset.offset = startOffset;
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (recordingTimerInterval) {
+                clearInterval(recordingTimerInterval);
+                recordingTimerInterval = null;
+            }
+        }
+
+        function saveRecording() {
+            if (recordedChunks.length === 0) {
+                alert('Nessun dato registrato');
+                return;
+            }
+
+            // Create blob
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const duration = document.getElementById('recorderTimerDisplay').textContent;
+            const timestamp = new Date().toLocaleString('it-IT');
+            const size = (blob.size / (1024 * 1024)).toFixed(2);
+
+            // Save to list
+            const recording = {
+                url: url,
+                blob: blob,
+                duration: duration,
+                timestamp: timestamp,
+                size: size,
+                filename: `screen_recording_${Date.now()}.webm`
+            };
+
+            savedRecordings.push(recording);
+
+            // Update UI
+            updateRecordingsList();
+
+            // Clear chunks
+            recordedChunks = [];
+        }
+
+        function updateRecordingsList() {
+            const list = document.getElementById('recorderVideosList');
+
+            if (savedRecordings.length === 0) {
+                list.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; color: #999;">
+                        <i class="fas fa-inbox" style="font-size: 2rem; opacity: 0.3; margin-bottom: 10px;"></i>
+                        <p style="margin: 0;">Nessuna registrazione salvata</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = savedRecordings.map((rec, index) => `
+                <div style="background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #e0e0e0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <div>
+                            <div style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;">
+                                <i class="fas fa-video"></i> Registrazione #${savedRecordings.length - index}
+                            </div>
+                            <div style="font-size: 0.85rem; color: #666;">
+                                <i class="far fa-clock"></i> ${rec.timestamp}
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; font-size: 0.85rem; color: #666; margin-bottom: 10px;">
+                        <span><i class="fas fa-stopwatch"></i> ${rec.duration}</span>
+                        <span><i class="fas fa-hdd"></i> ${rec.size} MB</span>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="playRecording(${index})" style="flex: 1; background: #667eea; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                            <i class="fas fa-play"></i> Play
+                        </button>
+                        <button onclick="downloadRecording(${index})" style="flex: 1; background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                        <button onclick="deleteRecording(${index})" style="background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function playRecording(index) {
+            const recording = savedRecordings[index];
+            const preview = document.getElementById('recorderPreview');
+
+            preview.srcObject = null;
+            preview.src = recording.url;
+            preview.controls = true;
+            preview.muted = false;
+            preview.play();
+            document.getElementById('recorderPreviewPlaceholder').style.display = 'none';
+        }
+
+        function downloadRecording(index) {
+            const recording = savedRecordings[index];
+            const a = document.createElement('a');
+            a.href = recording.url;
+            a.download = recording.filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function deleteRecording(index) {
+            if (confirm('Eliminare questa registrazione?')) {
+                URL.revokeObjectURL(savedRecordings[index].url);
+                savedRecordings.splice(index, 1);
+                updateRecordingsList();
+
+                // Reset preview if it was playing this recording
+                const preview = document.getElementById('recorderPreview');
+                if (preview.src && !preview.srcObject) {
+                    preview.src = '';
+                    preview.controls = false;
+                    document.getElementById('recorderPreviewPlaceholder').style.display = 'flex';
+                }
+            }
+        }
+
+        // Check browser support on load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+                const recorderPane = document.getElementById('pane-video-recorder');
+                if (recorderPane) {
+                    recorderPane.innerHTML = `
+                        <div class="section-header">
+                            <i class="fas fa-record-vinyl"></i>
+                            <h2>Screen Recorder</h2>
+                        </div>
+                        <div style="text-align: center; padding: 60px 20px; background: #fff3cd; border-radius: 15px; margin: 20px;">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 4rem; color: #ffc107; margin-bottom: 20px;"></i>
+                            <h3 style="color: #856404;">Browser Non Supportato</h3>
+                            <p style="color: #856404;">
+                                Il tuo browser non supporta la registrazione schermo.<br>
+                                Usa Chrome, Edge, Firefox o Opera aggiornati.
+                            </p>
+                        </div>
+                    `;
+                }
+            }
+        });
 
         // ==================== INITIALIZATION ====================
 
