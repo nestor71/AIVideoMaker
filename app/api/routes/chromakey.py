@@ -206,9 +206,20 @@ async def upload_and_process(
     background: UploadFile = File(..., description="Video sfondo"),
     output_name: str = Form("chromakey_output.mp4"),
     audio_mode: str = Form("synced"),
+    # Parametri posizionamento e dimensioni
+    position_x: int = Form(0, description="Offset orizzontale dal centro (px, negativo=sinistra, positivo=destra)"),
+    position_y: int = Form(0, description="Offset verticale dal centro (px, negativo=alto, positivo=basso)"),
+    scale: float = Form(1.0, description="Scala foreground (0.1=10%, 1.0=100%, 2.0=200%)"),
+    opacity: float = Form(1.0, description="Opacità foreground (0.0=trasparente, 1.0=opaco)"),
+    # Parametri green screen
     green_threshold: int = Form(100),
     tolerance: int = Form(50),
     edge_blur: int = Form(5),
+    spill_reduction: float = Form(0.5, description="Riduzione riflessi verdi (0.0-1.0)"),
+    # Parametri temporali
+    start_time: float = Form(0.0, description="Inizio clip in secondi"),
+    end_time: Optional[float] = Form(None, description="Fine clip in secondi (null=tutto il video)"),
+    # Parametri video
     quality: str = Form("high"),
     background_tasks: BackgroundTasks = None,
     current_user: User = Depends(get_current_user),
@@ -218,6 +229,16 @@ async def upload_and_process(
     Upload e elaborazione chromakey in un'unica chiamata
 
     Upload di foreground (green screen) e background, poi elabora chromakey.
+
+    **Parametri posizionamento:**
+    - position_x: Offset orizzontale (0=centro, negativo=sinistra, positivo=destra)
+    - position_y: Offset verticale (0=centro, negativo=alto, positivo=basso)
+    - scale: Scala del foreground (0.5=50%, 1.0=100%, 2.0=200%)
+    - opacity: Opacità (0.0=trasparente, 1.0=opaco)
+
+    **Parametri temporali:**
+    - start_time: Inizio clip in secondi
+    - end_time: Fine clip in secondi (null=tutto il video)
 
     Richiede JWT token. Elaborazione asincrona in background.
     """
@@ -234,15 +255,22 @@ async def upload_and_process(
         content = await background.read()
         f.write(content)
 
-    # Crea request
+    # Crea request con tutti i parametri
     request = ChromakeyRequest(
         foreground_video=str(foreground_path),
         background_video=str(background_path),
         output_name=output_name,
         audio_mode=audio_mode,
+        position_x=position_x,
+        position_y=position_y,
+        scale=scale,
+        opacity=opacity,
         green_threshold=green_threshold,
         tolerance=tolerance,
         edge_blur=edge_blur,
+        spill_reduction=spill_reduction,
+        start_time=start_time,
+        end_time=end_time,
         quality=quality
     )
 
