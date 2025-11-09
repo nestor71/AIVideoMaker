@@ -4,12 +4,12 @@ User Model - Gestione utenti
 """
 
 from sqlalchemy import Column, String, Boolean, DateTime
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
 
 from app.core.database import Base
+from app.core.types import UUID
 
 
 class User(Base):
@@ -18,7 +18,7 @@ class User(Base):
     __tablename__ = "users"
 
     # Primary Key
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4, index=True)
 
     # Credenziali
     email = Column(String, unique=True, index=True, nullable=False)

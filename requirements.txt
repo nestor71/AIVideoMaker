@@ -21,7 +21,7 @@ python-dotenv==1.0.0
 
 # Computer Vision
 opencv-python==4.12.0.88
-numpy==2.2.6
+numpy==1.26.4  # Compatibile con Torch/Whisper (numpy 2.x non supportato)
 
 # Validation
 pydantic==2.9.2

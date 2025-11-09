@@ -5,7 +5,7 @@ Job per chromakey, traduzione, thumbnails, etc.
 """
 
 from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, ForeignKey, Text, JSON, Enum as SQLEnum
-from sqlalchemy.dialects.postgresql import UUID
+from app.core.types import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
@@ -42,11 +42,11 @@ class Job(Base):
     __tablename__ = "jobs"
 
     # Primary Key
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4, index=True)
 
     # Foreign Key
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    pipeline_id = Column(UUID(as_uuid=True), ForeignKey("pipelines.id"), nullable=True, comment="NULL se job standalone")
+    user_id = Column(UUID(), ForeignKey("users.id"), nullable=False)
+    pipeline_id = Column(UUID(), ForeignKey("pipelines.id"), nullable=True, comment="NULL se job standalone")
 
     # Job info
     job_type = Column(SQLEnum(JobType), nullable=False, index=True)

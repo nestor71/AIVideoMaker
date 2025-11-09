@@ -4,7 +4,7 @@ API Key Model - Gestione API keys
 """
 
 from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Text, Integer
-from sqlalchemy.dialects.postgresql import UUID
+from app.core.types import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
@@ -18,10 +18,10 @@ class APIKey(Base):
     __tablename__ = "api_keys"
 
     # Primary Key
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4, index=True)
 
     # Foreign Key
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    user_id = Column(UUID(), ForeignKey("users.id"), nullable=False)
 
     # Key
     key = Column(String(64), unique=True, index=True, nullable=False)

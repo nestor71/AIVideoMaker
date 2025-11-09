@@ -14,7 +14,7 @@ Ogni step è un Job collegato alla Pipeline.
 """
 
 from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, ForeignKey, Text, JSON, Enum as SQLEnum
-from sqlalchemy.dialects.postgresql import UUID, ARRAY
+from app.core.types import UUID, ARRAY
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
@@ -44,10 +44,10 @@ class Pipeline(Base):
     __tablename__ = "pipelines"
 
     # Primary Key
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4, index=True)
 
     # Foreign Key
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    user_id = Column(UUID(), ForeignKey("users.id"), nullable=False)
 
     # Pipeline info
     name = Column(String, nullable=False, comment="Nome descrittivo pipeline")

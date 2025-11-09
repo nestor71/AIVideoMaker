@@ -4,7 +4,7 @@ File Metadata Model - Tracking file caricati
 """
 
 from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, Boolean, Float
-from sqlalchemy.dialects.postgresql import UUID
+from app.core.types import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
@@ -18,10 +18,10 @@ class FileMetadata(Base):
     __tablename__ = "file_metadata"
 
     # Primary Key
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4, index=True)
 
     # Foreign Key
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    user_id = Column(UUID(), ForeignKey("users.id"), nullable=False)
 
     # File info
     filename = Column(String, nullable=False)
