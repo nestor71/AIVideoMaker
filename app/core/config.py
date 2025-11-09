@@ -31,6 +31,14 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = Field(default=60 * 24, description="Token expiry (minuti)")
     algorithm: str = Field(default="HS256", description="JWT algorithm")
 
+    # Google OAuth 2.0
+    google_client_id: Optional[str] = Field(default=None, description="Google OAuth Client ID")
+    google_client_secret: Optional[str] = Field(default=None, description="Google OAuth Client Secret")
+    google_redirect_uri: str = Field(
+        default="http://localhost:8000/api/v1/auth/google/callback",
+        description="Google OAuth redirect URI"
+    )
+
     # API Keys per servizi
     openai_api_key: Optional[str] = Field(default=None, description="OpenAI API key")
     elevenlabs_api_key: Optional[str] = Field(default=None, description="ElevenLabs API key")

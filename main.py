@@ -154,6 +154,11 @@ async def index(request: Request):
     """Serve interfaccia web principale"""
     return templates.TemplateResponse("index_new.html", {"request": request})
 
+@app.get("/login")
+async def login_page(request: Request):
+    """Serve pagina login/registrazione con Google OAuth"""
+    return templates.TemplateResponse("login.html", {"request": request})
+
 @app.get("/translation")
 async def translation_page(request: Request):
     """Serve pagina dedicata traduzione video"""

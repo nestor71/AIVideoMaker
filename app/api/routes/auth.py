@@ -4,13 +4,17 @@ Authentication Routes
 Route per autenticazione JWT, registrazione utenti, gestione API keys
 """
 
-from datetime import timedelta
+from datetime import timedelta, datetime
 from typing import Optional
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.responses import RedirectResponse, HTMLResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr, field_serializer
+import httpx
+import secrets
+import hashlib
 
 from app.core.database import get_db
 from app.core.security import (
@@ -332,3 +336,254 @@ async def delete_api_key(
     db.commit()
 
     return None
+
+
+# ==================== GOOGLE OAUTH 2.0 ====================
+
+# In-memory storage per OAuth state (production: usa Redis)
+oauth_states = {}
+
+@router.get("/google/login")
+async def google_login(request: Request):
+    """
+    Avvia flusso Google OAuth 2.0
+
+    **Come funziona:**
+    1. Genera state random per CSRF protection
+    2. Redirect utente a Google per autorizzazione
+    3. Google richiama /google/callback con authorization code
+    4. Scambiamo code per access token
+    5. Recuperiamo dati utente da Google
+    6. Creiamo/Login utente e ritorniamo JWT token
+
+    **Configurazione necessaria:**
+    - GOOGLE_CLIENT_ID in .env
+    - GOOGLE_CLIENT_SECRET in .env
+    - GOOGLE_REDIRECT_URI in .env (default: http://localhost:8000/api/v1/auth/google/callback)
+
+    **Ottieni credenziali:**
+    1. Vai a https://console.cloud.google.com/
+    2. Crea nuovo progetto o seleziona esistente
+    3. Abilita "Google+ API"
+    4. Crea credenziali OAuth 2.0 Client ID
+    5. Aggiungi redirect URI autorizzato
+    6. Copia Client ID e Client Secret in .env
+    """
+    if not settings.google_client_id or not settings.google_client_secret:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail=(
+                "Google OAuth non configurato. "
+                "Aggiungi GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET in .env"
+            )
+        )
+
+    # Genera state random per CSRF protection
+    state = secrets.token_urlsafe(32)
+    oauth_states[state] = {
+        "timestamp": datetime.utcnow(),
+        "used": False
+    }
+
+    # Pulizia stati vecchi (> 10 minuti)
+    current_time = datetime.utcnow()
+    expired_states = [
+        s for s, data in oauth_states.items()
+        if (current_time - data["timestamp"]).seconds > 600
+    ]
+    for s in expired_states:
+        del oauth_states[s]
+
+    # Costruisci URL autorizzazione Google
+    google_auth_url = (
+        "https://accounts.google.com/o/oauth2/v2/auth?"
+        f"client_id={settings.google_client_id}&"
+        f"redirect_uri={settings.google_redirect_uri}&"
+        "response_type=code&"
+        "scope=openid%20email%20profile&"
+        f"state={state}&"
+        "access_type=offline&"
+        "prompt=consent"
+    )
+
+    return RedirectResponse(url=google_auth_url)
+
+
+@router.get("/google/callback")
+async def google_callback(
+    code: Optional[str] = None,
+    state: Optional[str] = None,
+    error: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    """
+    Callback Google OAuth 2.0
+
+    Chiamato da Google dopo che l'utente autorizza l'app.
+    Scambia authorization code per access token e crea/login utente.
+    """
+    # Gestione errori Google
+    if error:
+        return HTMLResponse(
+            content=f"""
+            <html>
+                <body>
+                    <h1>⚠️ Errore Autenticazione Google</h1>
+                    <p>Errore: {error}</p>
+                    <p><a href="/login">Riprova</a></p>
+                </body>
+            </html>
+            """,
+            status_code=400
+        )
+
+    # Validazione parametri
+    if not code or not state:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Parametri mancanti: code e state richiesti"
+        )
+
+    # Verifica state (CSRF protection)
+    if state not in oauth_states:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="State non valido o scaduto. Riprova il login."
+        )
+
+    if oauth_states[state]["used"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="State già utilizzato. Possibile attacco CSRF."
+        )
+
+    # Marca state come usato
+    oauth_states[state]["used"] = True
+
+    # Scambia authorization code per access token
+    async with httpx.AsyncClient() as client:
+        token_response = await client.post(
+            "https://oauth2.googleapis.com/token",
+            data={
+                "code": code,
+                "client_id": settings.google_client_id,
+                "client_secret": settings.google_client_secret,
+                "redirect_uri": settings.google_redirect_uri,
+                "grant_type": "authorization_code"
+            }
+        )
+
+        if token_response.status_code != 200:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Errore scambio token: {token_response.text}"
+            )
+
+        token_data = token_response.json()
+        access_token = token_data.get("access_token")
+
+        if not access_token:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Access token non ricevuto da Google"
+            )
+
+        # Recupera dati utente da Google
+        user_response = await client.get(
+            "https://www.googleapis.com/oauth2/v2/userinfo",
+            headers={"Authorization": f"Bearer {access_token}"}
+        )
+
+        if user_response.status_code != 200:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Errore recupero dati utente da Google"
+            )
+
+        google_user = user_response.json()
+
+    # Estrai dati Google
+    google_email = google_user.get("email")
+    google_name = google_user.get("name")
+    google_id = google_user.get("id")
+
+    if not google_email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email non disponibile da Google"
+        )
+
+    # Cerca utente esistente per email
+    user = db.query(User).filter(User.email == google_email).first()
+
+    if user:
+        # Utente esiste: login
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Account disabilitato"
+            )
+
+        # Aggiorna last_login
+        user.last_login_at = datetime.utcnow()
+        db.commit()
+
+    else:
+        # Utente NON esiste: registrazione automatica
+        # Genera username univoco da email
+        base_username = google_email.split("@")[0]
+        username = base_username
+
+        # Verifica unicità username
+        counter = 1
+        while db.query(User).filter(User.username == username).first():
+            username = f"{base_username}{counter}"
+            counter += 1
+
+        # Genera password random (non usata, login solo via Google)
+        random_password = secrets.token_urlsafe(32)
+
+        # Crea nuovo utente
+        user = User(
+            email=google_email,
+            username=username,
+            full_name=google_name,
+            hashed_password=get_password_hash(random_password),
+            is_verified=True,  # Email già verificata da Google
+            last_login_at=datetime.utcnow()
+        )
+
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    # Genera JWT token per l'app
+    jwt_token = create_access_token(
+        data={"sub": str(user.id)},
+        expires_delta=timedelta(days=30)
+    )
+
+    # Redirect a pagina con token (auto-login)
+    return HTMLResponse(
+        content=f"""
+        <html>
+            <head>
+                <title>Login Completato</title>
+                <script>
+                    // Salva token in localStorage
+                    localStorage.setItem('auth_token', '{jwt_token}');
+
+                    // Redirect a homepage
+                    window.location.href = '/';
+                </script>
+            </head>
+            <body>
+                <h1>✅ Login completato!</h1>
+                <p>Benvenuto, {user.full_name or user.username}!</p>
+                <p>Reindirizzamento in corso...</p>
+                <p>Se non vieni reindirizzato, <a href="/">clicca qui</a>.</p>
+            </body>
+        </html>
+        """,
+        status_code=200
+    )

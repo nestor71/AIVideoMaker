@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - AIVideoMaker Professional</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 450px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .login-header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.active {
+            color: #667eea;
+            background: white;
+            border-bottom-color: #667eea;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .form-container {
+            padding: 30px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        input[type="email"],
+        input[type="password"],
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102,126,234,0.4);
+        }
+
+        .btn-google {
+            background: white;
+            color: #333;
+            border: 2px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-google:hover {
+            background: #f8f9fa;
+            border-color: #667eea;
+        }
+
+        .google-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 25px 0;
+            color: #999;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .divider span {
+            padding: 0 15px;
+            font-size: 0.85rem;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .success-message {
+            background: #efe;
+            color: #3c3;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .forgot-password {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .forgot-password a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .login-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .form-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1><i class="fas fa-video"></i> AIVideoMaker</h1>
+            <p>Professional Video Editing Suite</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('login')">
+                <i class="fas fa-sign-in-alt"></i> Accedi
+            </button>
+            <button class="tab" onclick="showTab('register')">
+                <i class="fas fa-user-plus"></i> Registrati
+            </button>
+        </div>
+
+        <div class="form-container">
+            <!-- LOGIN TAB -->
+            <div id="login-tab" class="tab-content active">
+                <div id="login-error" class="error-message"></div>
+                <div id="login-success" class="success-message"></div>
+
+                <!-- Google Login -->
+                <button class="btn btn-google" onclick="loginWithGoogle()">
+                    <svg class="google-icon" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Continua con Google
+                </button>
+
+                <div class="divider">
+                    <span>oppure</span>
+                </div>
+
+                <!-- Email Login Form -->
+                <form id="login-form" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="login-email">
+                            <i class="fas fa-envelope"></i> Email
+                        </label>
+                        <input type="email" id="login-email" required placeholder="tu@esempio.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="login-password">
+                            <i class="fas fa-lock"></i> Password
+                        </label>
+                        <input type="password" id="login-password" required placeholder="••••••••">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> Accedi
+                    </button>
+                </form>
+
+                <div class="forgot-password">
+                    <a href="#"><i class="fas fa-question-circle"></i> Password dimenticata?</a>
+                </div>
+            </div>
+
+            <!-- REGISTER TAB -->
+            <div id="register-tab" class="tab-content">
+                <div id="register-error" class="error-message"></div>
+                <div id="register-success" class="success-message"></div>
+
+                <!-- Google Register -->
+                <button class="btn btn-google" onclick="loginWithGoogle()">
+                    <svg class="google-icon" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Registrati con Google
+                </button>
+
+                <div class="divider">
+                    <span>oppure</span>
+                </div>
+
+                <!-- Email Register Form -->
+                <form id="register-form" onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label for="register-username">
+                            <i class="fas fa-user"></i> Username
+                        </label>
+                        <input type="text" id="register-username" required placeholder="username_univoco">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-email">
+                            <i class="fas fa-envelope"></i> Email
+                        </label>
+                        <input type="email" id="register-email" required placeholder="tu@esempio.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-password">
+                            <i class="fas fa-lock"></i> Password
+                        </label>
+                        <input type="password" id="register-password" required placeholder="••••••••" minlength="8">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-fullname">
+                            <i class="fas fa-id-card"></i> Nome Completo (opzionale)
+                        </label>
+                        <input type="text" id="register-fullname" placeholder="Mario Rossi">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i> Crea Account
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab Switching
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            document.querySelectorAll('.tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            event.target.closest('.tab').classList.add('active');
+
+            // Clear messages
+            clearMessages();
+        }
+
+        // Google OAuth Login
+        function loginWithGoogle() {
+            // Redirect to Google OAuth endpoint
+            window.location.href = '/api/v1/auth/google/login';
+        }
+
+        // Email/Password Login
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const response = await fetch('/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Save token
+                    localStorage.setItem('auth_token', data.access_token);
+
+                    // Show success
+                    showMessage('login-success', '✅ Login completato! Reindirizzamento...');
+
+                    // Redirect to homepage
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1000);
+                } else {
+                    showMessage('login-error', `❌ ${data.detail || 'Errore login'}`);
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showMessage('login-error', '❌ Errore connessione al server');
+            }
+        }
+
+        // Email/Password Registration
+        async function handleRegister(event) {
+            event.preventDefault();
+
+            const username = document.getElementById('register-username').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const fullName = document.getElementById('register-fullname').value || null;
+
+            try {
+                const response = await fetch('/api/v1/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username,
+                        email,
+                        password,
+                        full_name: fullName
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Show success
+                    showMessage('register-success', '✅ Account creato! Passa a "Accedi" per fare login.');
+
+                    // Clear form
+                    document.getElementById('register-form').reset();
+
+                    // Auto-switch to login tab after 2s
+                    setTimeout(() => {
+                        showTab('login');
+                    }, 2000);
+                } else {
+                    showMessage('register-error', `❌ ${data.detail || 'Errore registrazione'}`);
+                }
+            } catch (error) {
+                console.error('Register error:', error);
+                showMessage('register-error', '❌ Errore connessione al server');
+            }
+        }
+
+        // Show message helper
+        function showMessage(elementId, message) {
+            clearMessages();
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.style.display = 'block';
+        }
+
+        // Clear all messages
+        function clearMessages() {
+            document.querySelectorAll('.error-message, .success-message').forEach(el => {
+                el.style.display = 'none';
+                el.textContent = '';
+            });
+        }
+
+        // Check if already logged in
+        window.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('auth_token');
+            if (token) {
+                // Already logged in, redirect to homepage
+                window.location.href = '/';
+            }
+        });
+    </script>
+</body>
+</html>
