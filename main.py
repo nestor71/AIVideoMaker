@@ -139,7 +139,8 @@ from app.api.routes import (
     logo,
     transcription,  # Abilitato - Whisper opzionale (graceful degradation)
     # screen_record,  # Richiede PyGetWindow (non installato)
-    seo_metadata    # Abilitato - Whisper opzionale (graceful degradation)
+    seo_metadata,   # Abilitato - Whisper opzionale (graceful degradation)
+    video_download  # Download video da YouTube, TikTok, Vimeo, ecc.
 )
 
 # Import file upload route
@@ -215,6 +216,7 @@ app.include_router(logo.router, prefix=f"{settings.api_prefix}/logo", tags=["Log
 app.include_router(metadata.router, prefix=f"{settings.api_prefix}/metadata", tags=["Metadata Extraction"])
 app.include_router(transcription.router, prefix=f"{settings.api_prefix}/transcription", tags=["Transcription"])  # Abilitato - Whisper opzionale
 app.include_router(seo_metadata.router, prefix=f"{settings.api_prefix}/seo", tags=["SEO Metadata AI"])  # Abilitato - Whisper opzionale
+app.include_router(video_download.router, prefix=f"{settings.api_prefix}/video-download", tags=["Video Download"])  # Download da YouTube, TikTok, Vimeo, ecc.
 
 # Temporarily disabled routes
 # app.include_router(screen_record.router, prefix=f"{settings.api_prefix}/screen-record", tags=["Screen Recording"])  # Richiede PyGetWindow

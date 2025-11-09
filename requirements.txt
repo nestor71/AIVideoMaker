@@ -57,6 +57,9 @@ google-api-python-client
 google-auth-httplib2
 google-auth-oauthlib
 
+# Video Download (YouTube, TikTok, etc.)
+yt-dlp==2024.11.4
+
 # Optional: Lip-sync (richiede GPU NVIDIA con CUDA per performance accettabili)
 # Nota: Wav2Lip non è su PyPI, va installato manualmente da GitHub se necessario
 # torch>=2.0.0  # Per lip-sync con Wav2Lip (molto pesante, ~3GB)
