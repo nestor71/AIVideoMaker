@@ -193,6 +193,63 @@ async def get_current_user_info(
     return current_user
 
 
+@router.post("/quick-token", response_model=Token)
+async def quick_token(
+    email: str,
+    db: Session = Depends(get_db)
+):
+    """
+    🚀 TESTING RAPIDO: Genera token immediato per testing
+
+    **SOLO PER DEVELOPMENT!**
+
+    Genera un token JWT immediatamente per l'utente specificato,
+    senza richiedere password. Perfetto per testing rapido in Swagger.
+
+    **Come usare:**
+    1. Registra un utente normale (se non esiste)
+    2. Chiama questo endpoint con l'email dell'utente
+    3. Copia il token
+    4. Usa "Authorize" in Swagger e incolla il token
+    5. Il token dura 30 giorni - salvalo per riutilizzarlo!
+
+    **Esempio:**
+    - email: ettore@test.com
+
+    **Tip:** Salva il token in un file di testo sul desktop.
+    Quando riavvii il server o ricarichi Swagger, ri-incolla lo stesso token!
+
+    ⚠️ Disabilitare in produzione!
+    """
+    # Trova utente
+    user = db.query(User).filter(User.email == email).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Utente con email '{email}' non trovato. Registrati prima con /register"
+        )
+
+    # Verifica utente attivo
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Utente disabilitato"
+        )
+
+    # Crea JWT token (30 giorni)
+    access_token = create_access_token(
+        data={"sub": str(user.id)},
+        expires_delta=timedelta(days=30)
+    )
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "expires_in": 30 * 24 * 60 * 60  # 30 giorni in secondi
+    }
+
+
 @router.post("/api-keys", response_model=APIKeyResponse, status_code=status.HTTP_201_CREATED)
 async def create_api_key(
     key_data: APIKeyCreate,
