@@ -58,7 +58,7 @@ def init_db():
     try:
         # Import tutti i modelli per creare tabelle
         from app.models import (
-            user, job, pipeline, api_key, file_metadata
+            user, job, pipeline, api_key, file_metadata, user_settings
         )
 
         logger.info("Creazione tabelle database...")

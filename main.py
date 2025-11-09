@@ -140,7 +140,8 @@ from app.api.routes import (
     transcription,  # Abilitato - Whisper opzionale (graceful degradation)
     # screen_record,  # Richiede PyGetWindow (non installato)
     seo_metadata,   # Abilitato - Whisper opzionale (graceful degradation)
-    video_download  # Download video da YouTube, TikTok, Vimeo, ecc.
+    video_download,  # Download video da YouTube, TikTok, Vimeo, ecc.
+    user_settings   # User preferences e UI state persistence
 )
 
 # Import file upload route
@@ -204,6 +205,7 @@ async def get_demo_credentials():
 # Core routes
 app.include_router(auth.router, prefix=f"{settings.api_prefix}/auth", tags=["Authentication"])
 app.include_router(admin.router, prefix=f"{settings.api_prefix}/admin", tags=["Admin"])
+app.include_router(user_settings.router, prefix=f"{settings.api_prefix}/user", tags=["User Settings"])
 app.include_router(files.router, prefix="/api", tags=["File Upload"])  # Endpoint compatibilità /api/upload
 
 # Processing routes
