@@ -14,7 +14,7 @@ Ogni step è un Job collegato alla Pipeline.
 """
 
 from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, ForeignKey, Text, JSON, Enum as SQLEnum
-from app.core.types import UUID, ARRAY
+from app.core.types import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
