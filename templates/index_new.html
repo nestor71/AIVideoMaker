@@ -586,10 +586,111 @@
                     </div>
                     <p class="section-description">Aggiungi logo, watermark e branding ai tuoi video</p>
 
-                    <div style="text-align: center; padding: 60px 20px; color: #999;">
-                        <i class="fas fa-image" style="font-size: 4rem; margin-bottom: 20px; opacity: 0.3;"></i>
-                        <h3 style="color: #666;">Logo Overlay - In Sviluppo</h3>
-                        <p>Questa funzionalità è in fase di implementazione.</p>
+                    <div class="upload-section">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px;">
+                            <!-- Video Upload -->
+                            <div>
+                                <h3 style="color: #667eea; margin-bottom: 15px;">
+                                    <i class="fas fa-video"></i> Video
+                                </h3>
+                                <div class="upload-area" id="logoVideoUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                    <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 15px;"></i>
+                                    <p style="margin: 0; color: #666;">Trascina video o clicca per selezionare</p>
+                                    <small style="color: #999;">MP4, AVI, MOV, MKV supportati</small>
+                                </div>
+                                <input type="file" id="logoVideo" accept="video/*" style="display: none;">
+                                <div id="logoVideoInfo" style="margin-top: 15px; padding: 15px; background: #f0f9ff; border-radius: 10px; display: none;">
+                                    <i class="fas fa-video" style="color: #667eea;"></i>
+                                    <span id="logoVideoName" style="margin-left: 10px; font-weight: 600;"></span>
+                                </div>
+                            </div>
+
+                            <!-- Logo Upload -->
+                            <div>
+                                <h3 style="color: #667eea; margin-bottom: 15px;">
+                                    <i class="fas fa-image"></i> Logo / Watermark
+                                </h3>
+                                <div class="upload-area" id="logoImageUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                    <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 15px;"></i>
+                                    <p style="margin: 0; color: #666;">Trascina logo o clicca per selezionare</p>
+                                    <small style="color: #999;">PNG consigliato (supporta trasparenza)</small>
+                                </div>
+                                <input type="file" id="logoImage" accept="image/*" style="display: none;">
+                                <div id="logoImageInfo" style="margin-top: 15px; padding: 15px; background: #f0f9ff; border-radius: 10px; display: none;">
+                                    <i class="fas fa-image" style="color: #667eea;"></i>
+                                    <span id="logoImageName" style="margin-left: 10px; font-weight: 600;"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Logo Settings -->
+                        <div style="margin-top: 30px; padding: 25px; background: #f8f9fa; border-radius: 15px;">
+                            <h3 style="color: #2c3e50; margin-bottom: 20px;">
+                                <i class="fas fa-sliders-h"></i> Impostazioni Logo
+                            </h3>
+
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                                <!-- Position -->
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        <i class="fas fa-map-marker-alt"></i> Posizione
+                                    </label>
+                                    <select id="logoPosition" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem;">
+                                        <option value="top-left">Alto Sinistra</option>
+                                        <option value="top-right">Alto Destra</option>
+                                        <option value="bottom-left">Basso Sinistra</option>
+                                        <option value="bottom-right" selected>Basso Destra</option>
+                                        <option value="center">Centro</option>
+                                    </select>
+                                </div>
+
+                                <!-- Margin -->
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        Margine: <span id="logoMarginValue" style="color: #667eea;">20</span> px
+                                    </label>
+                                    <input type="range" id="logoMargin" min="0" max="100" value="20"
+                                           style="width: 100%; accent-color: #667eea;">
+                                </div>
+
+                                <!-- Scale -->
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        Scala Logo: <span id="logoScaleValue" style="color: #667eea;">15</span>%
+                                    </label>
+                                    <input type="range" id="logoScale" min="5" max="50" value="15"
+                                           style="width: 100%; accent-color: #667eea;">
+                                </div>
+
+                                <!-- Opacity -->
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        Opacità: <span id="logoOpacityValue" style="color: #667eea;">100</span>%
+                                    </label>
+                                    <input type="range" id="logoOpacity" min="0" max="100" value="100"
+                                           style="width: 100%; accent-color: #667eea;">
+                                </div>
+
+                                <!-- Quality -->
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        <i class="fas fa-hd-video"></i> Qualità
+                                    </label>
+                                    <select id="logoQuality" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem;">
+                                        <option value="high" selected>Alta</option>
+                                        <option value="medium">Media</option>
+                                        <option value="low">Bassa</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Process Button -->
+                            <div style="text-align: center; margin-top: 30px;">
+                                <button onclick="processLogoOverlay()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px 40px; border-radius: 25px; font-size: 1.1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(102,126,234,0.3); transition: all 0.3s;">
+                                    <i class="fas fa-magic"></i> Applica Logo
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -715,10 +816,97 @@
                     </div>
                     <p class="section-description">Converti automaticamente l'audio del video in testo (Speech-to-Text)</p>
 
-                    <div style="text-align: center; padding: 60px 20px; color: #999;">
-                        <i class="fas fa-closed-captioning" style="font-size: 4rem; margin-bottom: 20px; opacity: 0.3;"></i>
-                        <h3 style="color: #666;">Trascrizione - In Sviluppo</h3>
-                        <p>Questa funzionalità è in fase di implementazione.</p>
+                    <div style="max-width: 800px; margin: 0 auto;">
+                        <!-- File Upload -->
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="color: #667eea; margin-bottom: 15px;">
+                                <i class="fas fa-video"></i> File Video/Audio
+                            </h3>
+                            <div class="upload-area" id="transcriptionFileUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer;">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 15px;"></i>
+                                <p style="margin: 0; color: #666;">Trascina file o clicca per selezionare</p>
+                                <small style="color: #999;">Video (MP4, AVI, MOV) o Audio (MP3, WAV, M4A)</small>
+                            </div>
+                            <input type="file" id="transcriptionFile" accept="video/*,audio/*" style="display: none;">
+                            <div id="transcriptionFileInfo" style="margin-top: 15px; padding: 15px; background: #f0f9ff; border-radius: 10px; display: none;">
+                                <i class="fas fa-file" style="color: #667eea;"></i>
+                                <span id="transcriptionFileName" style="margin-left: 10px; font-weight: 600;"></span>
+                            </div>
+                        </div>
+
+                        <!-- Settings -->
+                        <div style="background: #f8f9fa; padding: 25px; border-radius: 15px; margin-bottom: 30px;">
+                            <h3 style="color: #2c3e50; margin-bottom: 20px;">
+                                <i class="fas fa-sliders-h"></i> Opzioni Trascrizione
+                            </h3>
+
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                                <!-- Model Size -->
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        <i class="fas fa-brain"></i> Modello
+                                    </label>
+                                    <select id="transcriptionModel" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px;">
+                                        <option value="tiny">Tiny (veloce)</option>
+                                        <option value="base" selected>Base (bilanciato)</option>
+                                        <option value="small">Small (accurato)</option>
+                                        <option value="medium">Medium (molto accurato)</option>
+                                        <option value="large">Large (massima accuratezza)</option>
+                                    </select>
+                                </div>
+
+                                <!-- Language -->
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        <i class="fas fa-language"></i> Lingua
+                                    </label>
+                                    <select id="transcriptionLanguage" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px;">
+                                        <option value="">Auto-detect</option>
+                                        <option value="it">Italiano</option>
+                                        <option value="en">English</option>
+                                        <option value="es">Español</option>
+                                        <option value="fr">Français</option>
+                                        <option value="de">Deutsch</option>
+                                    </select>
+                                </div>
+
+                                <!-- Export Formats -->
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        <i class="fas fa-file-export"></i> Formati Export
+                                    </label>
+                                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                                        <label style="display: flex; align-items: center; gap: 5px;">
+                                            <input type="checkbox" id="formatJSON" checked style="width: 18px; height: 18px; accent-color: #667eea;">
+                                            <span>JSON</span>
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 5px;">
+                                            <input type="checkbox" id="formatSRT" checked style="width: 18px; height: 18px; accent-color: #667eea;">
+                                            <span>SRT</span>
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 5px;">
+                                            <input type="checkbox" id="formatTXT" style="width: 18px; height: 18px; accent-color: #667eea;">
+                                            <span>TXT</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Process Button -->
+                            <div style="text-align: center; margin-top: 30px;">
+                                <button onclick="processTranscription()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px 40px; border-radius: 25px; font-size: 1.1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(102,126,234,0.3);">
+                                    <i class="fas fa-closed-captioning"></i> Trascrivi
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Progress -->
+                        <div id="transcriptionProgress" style="margin-top: 30px; padding: 25px; background: #f0f9ff; border-radius: 15px; display: none;">
+                            <h4 style="color: #667eea; margin: 0 0 15px 0;">
+                                <i class="fas fa-spinner fa-spin"></i> Trascrizione in corso...
+                            </h4>
+                            <p id="transcriptionProgressText" style="margin: 0; color: #666; text-align: center;">Elaborazione audio...</p>
+                        </div>
                     </div>
                 </div>
 
@@ -730,10 +918,87 @@
                     </div>
                     <p class="section-description">Traduci video in multiple lingue con sintesi vocale AI</p>
 
-                    <div style="text-align: center; padding: 60px 20px; color: #999;">
-                        <i class="fas fa-language" style="font-size: 4rem; margin-bottom: 20px; opacity: 0.3;"></i>
-                        <h3 style="color: #666;">Traduzione - In Sviluppo</h3>
-                        <p>Questa funzionalità è in fase di implementazione.</p>
+                    <div style="max-width: 800px; margin: 0 auto;">
+                        <!-- File Upload -->
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="color: #667eea; margin-bottom: 15px;">
+                                <i class="fas fa-video"></i> Video da Tradurre
+                            </h3>
+                            <div class="upload-area" id="translationFileUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer;">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 15px;"></i>
+                                <p style="margin: 0; color: #666;">Trascina video o clicca per selezionare</p>
+                                <small style="color: #999;">MP4, AVI, MOV, MKV supportati</small>
+                            </div>
+                            <input type="file" id="translationFile" accept="video/*" style="display: none;">
+                            <div id="translationFileInfo" style="margin-top: 15px; padding: 15px; background: #f0f9ff; border-radius: 10px; display: none;">
+                                <i class="fas fa-video" style="color: #667eea;"></i>
+                                <span id="translationFileName" style="margin-left: 10px; font-weight: 600;"></span>
+                            </div>
+                        </div>
+
+                        <!-- Settings -->
+                        <div style="background: #f8f9fa; padding: 25px; border-radius: 15px; margin-bottom: 30px;">
+                            <h3 style="color: #2c3e50; margin-bottom: 20px;">
+                                <i class="fas fa-sliders-h"></i> Opzioni Traduzione
+                            </h3>
+
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                                <!-- Target Language -->
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        <i class="fas fa-language"></i> Lingua Target
+                                    </label>
+                                    <select id="translationTargetLang" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px;">
+                                        <option value="it">Italiano</option>
+                                        <option value="en">English</option>
+                                        <option value="es">Español</option>
+                                        <option value="fr">Français</option>
+                                        <option value="de">Deutsch</option>
+                                        <option value="pt">Português</option>
+                                        <option value="ru">Русский</option>
+                                        <option value="ja">日本語</option>
+                                        <option value="zh">中文</option>
+                                    </select>
+                                </div>
+
+                                <!-- Subtitle Position -->
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        <i class="fas fa-align-center"></i> Posizione Sottotitoli
+                                    </label>
+                                    <select id="translationSubtitlePos" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px;">
+                                        <option value="bottom" selected>Basso</option>
+                                        <option value="top">Alto</option>
+                                        <option value="center">Centro</option>
+                                    </select>
+                                </div>
+
+                                <!-- Voice Synthesis -->
+                                <div>
+                                    <label style="display: flex; align-items: center; gap: 10px; margin-top: 30px;">
+                                        <input type="checkbox" id="translationUseElevenLabs" style="width: 20px; height: 20px; accent-color: #667eea;">
+                                        <span style="font-weight: 600; color: #555;">
+                                            <i class="fas fa-microphone"></i> Usa ElevenLabs (voce AI premium)
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Process Button -->
+                            <div style="text-align: center; margin-top: 30px;">
+                                <button onclick="processTranslation()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px 40px; border-radius: 25px; font-size: 1.1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(102,126,234,0.3);">
+                                    <i class="fas fa-language"></i> Traduci Video
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Progress -->
+                        <div id="translationProgress" style="margin-top: 30px; padding: 25px; background: #f0f9ff; border-radius: 15px; display: none;">
+                            <h4 style="color: #667eea; margin: 0 0 15px 0;">
+                                <i class="fas fa-spinner fa-spin"></i> Traduzione in corso...
+                            </h4>
+                            <p id="translationProgressText" style="margin: 0; color: #666; text-align: center;">Elaborazione traduzione...</p>
+                        </div>
                     </div>
                 </div>
 
@@ -747,10 +1012,44 @@
                     </div>
                     <p class="section-description">Estrazione metadati video e ottimizzazione SEO</p>
 
-                    <div style="text-align: center; padding: 60px 20px; color: #999;">
-                        <i class="fas fa-tags" style="font-size: 4rem; margin-bottom: 20px; opacity: 0.3;"></i>
-                        <h3 style="color: #666;">Metadati & SEO - In Sviluppo</h3>
-                        <p>Questa funzionalità è in fase di implementazione.</p>
+                    <div style="max-width: 800px; margin: 0 auto;">
+                        <!-- File Upload -->
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="color: #667eea; margin-bottom: 15px;">
+                                <i class="fas fa-file-video"></i> File Video/Audio
+                            </h3>
+                            <div class="upload-area" id="metadataFileUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer;">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 15px;"></i>
+                                <p style="margin: 0; color: #666;">Trascina file o clicca per selezionare</p>
+                                <small style="color: #999;">Estrai informazioni tecniche e metadata</small>
+                            </div>
+                            <input type="file" id="metadataFile" accept="video/*,audio/*" style="display: none;">
+                            <div id="metadataFileInfo" style="margin-top: 15px; padding: 15px; background: #f0f9ff; border-radius: 10px; display: none;">
+                                <i class="fas fa-file" style="color: #667eea;"></i>
+                                <span id="metadataFileName" style="margin-left: 10px; font-weight: 600;"></span>
+                            </div>
+                        </div>
+
+                        <!-- Extract Button -->
+                        <div style="text-align: center; margin-bottom: 30px;">
+                            <button onclick="extractMetadata()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px 40px; border-radius: 25px; font-size: 1.1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(102,126,234,0.3);">
+                                <i class="fas fa-tags"></i> Estrai Metadati
+                            </button>
+                        </div>
+
+                        <!-- Results Display -->
+                        <div id="metadataResults" style="display: none; background: #f8f9fa; padding: 25px; border-radius: 15px;">
+                            <h3 style="color: #2c3e50; margin-bottom: 20px;">
+                                <i class="fas fa-info-circle"></i> Informazioni File
+                            </h3>
+                            <div id="metadataContent" style="font-family: monospace; white-space: pre-wrap; background: white; padding: 20px; border-radius: 10px; max-height: 500px; overflow-y: auto;"></div>
+
+                            <div style="text-align: center; margin-top: 20px;">
+                                <button onclick="downloadMetadataJSON()" style="background: #667eea; color: white; border: none; padding: 10px 25px; border-radius: 20px; cursor: pointer;">
+                                    <i class="fas fa-download"></i> Scarica JSON
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -760,12 +1059,104 @@
                         <i class="fas fa-photo-video"></i>
                         <h2>Generatore Copertina</h2>
                     </div>
-                    <p class="section-description">Crea thumbnail professionali con AI per YouTube e social media</p>
+                    <p class="section-description">Crea thumbnail professionali 1280x720 per YouTube e social media</p>
 
-                    <div style="text-align: center; padding: 60px 20px; color: #999;">
-                        <i class="fas fa-photo-video" style="font-size: 4rem; margin-bottom: 20px; opacity: 0.3;"></i>
-                        <h3 style="color: #666;">Generatore Copertina - In Sviluppo</h3>
-                        <p>Questa funzionalità è in fase di implementazione.</p>
+                    <div style="max-width: 800px; margin: 0 auto;">
+                        <!-- Image Upload -->
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="color: #667eea; margin-bottom: 15px;">
+                                <i class="fas fa-image"></i> Immagine Base
+                            </h3>
+                            <div class="upload-area" id="thumbnailImageUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer;">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 15px;"></i>
+                                <p style="margin: 0; color: #666;">Trascina immagine o clicca per selezionare</p>
+                                <small style="color: #999;">JPG, PNG supportati - Sarà ridimensionata a 1280x720</small>
+                            </div>
+                            <input type="file" id="thumbnailImage" accept="image/*" style="display: none;">
+                            <div id="thumbnailImageInfo" style="margin-top: 15px; padding: 15px; background: #f0f9ff; border-radius: 10px; display: none;">
+                                <i class="fas fa-image" style="color: #667eea;"></i>
+                                <span id="thumbnailImageName" style="margin-left: 10px; font-weight: 600;"></span>
+                            </div>
+                        </div>
+
+                        <!-- Text Overlay Settings -->
+                        <div style="background: #f8f9fa; padding: 25px; border-radius: 15px; margin-bottom: 30px;">
+                            <h3 style="color: #2c3e50; margin-bottom: 20px;">
+                                <i class="fas fa-text-height"></i> Testo Sovrapposto (Opzionale)
+                            </h3>
+
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                    Testo
+                                </label>
+                                <input type="text" id="thumbnailText" placeholder="Es: IL MIO VIDEO INCREDIBILE!"
+                                       style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem;">
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px;">
+                                <!-- Position -->
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        Posizione
+                                    </label>
+                                    <select id="thumbnailTextPosition" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px;">
+                                        <option value="top">Alto</option>
+                                        <option value="center" selected>Centro</option>
+                                        <option value="bottom">Basso</option>
+                                    </select>
+                                </div>
+
+                                <!-- Size -->
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        Dimensione: <span id="thumbnailTextSizeValue">72</span>px
+                                    </label>
+                                    <input type="range" id="thumbnailTextSize" min="24" max="120" value="72"
+                                           style="width: 100%; accent-color: #667eea;">
+                                </div>
+
+                                <!-- Color -->
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        Colore
+                                    </label>
+                                    <select id="thumbnailTextColor" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px;">
+                                        <option value="white" selected>Bianco</option>
+                                        <option value="black">Nero</option>
+                                        <option value="yellow">Giallo</option>
+                                        <option value="red">Rosso</option>
+                                        <option value="blue">Blu</option>
+                                    </select>
+                                </div>
+
+                                <!-- Style -->
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        Stile
+                                    </label>
+                                    <select id="thumbnailTextStyle" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px;">
+                                        <option value="bold" selected>Grassetto</option>
+                                        <option value="normal">Normale</option>
+                                        <option value="italic">Corsivo</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Process Button -->
+                            <div style="text-align: center; margin-top: 30px;">
+                                <button onclick="generateThumbnail()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px 40px; border-radius: 25px; font-size: 1.1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(102,126,234,0.3);">
+                                    <i class="fas fa-magic"></i> Genera Copertina
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Progress -->
+                        <div id="thumbnailProgress" style="margin-top: 30px; padding: 25px; background: #f0f9ff; border-radius: 15px; display: none;">
+                            <h4 style="color: #667eea; margin: 0 0 15px 0;">
+                                <i class="fas fa-spinner fa-spin"></i> Generazione in corso...
+                            </h4>
+                            <p id="thumbnailProgressText" style="margin: 0; color: #666; text-align: center;">Elaborazione immagine...</p>
+                        </div>
                     </div>
                 </div>
 
@@ -807,10 +1198,152 @@
                     </div>
                     <p class="section-description">Carica e ottimizza video direttamente su YouTube</p>
 
-                    <div style="text-align: center; padding: 60px 20px; color: #999;">
-                        <i class="fab fa-youtube" style="font-size: 4rem; margin-bottom: 20px; opacity: 0.3;"></i>
-                        <h3 style="color: #666;">YouTube Upload - In Sviluppo</h3>
-                        <p>Questa funzionalità è in fase di implementazione.</p>
+                    <div style="max-width: 900px; margin: 0 auto;">
+                        <!-- Auth Notice -->
+                        <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; border-radius: 10px; margin-bottom: 30px;">
+                            <strong><i class="fas fa-exclamation-triangle"></i> Autenticazione Richiesta:</strong>
+                            Prima di caricare video, devi autenticarti con YouTube OAuth.
+                        </div>
+
+                        <!-- Video Upload -->
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="color: #667eea; margin-bottom: 15px;">
+                                <i class="fas fa-video"></i> Video
+                            </h3>
+                            <div class="upload-area" id="youtubeVideoUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer;">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 15px;"></i>
+                                <p style="margin: 0; color: #666;">Trascina video o clicca per selezionare</p>
+                                <small style="color: #999;">MP4, AVI, MOV - Max 128GB</small>
+                            </div>
+                            <input type="file" id="youtubeVideo" accept="video/*" style="display: none;">
+                            <div id="youtubeVideoInfo" style="margin-top: 15px; padding: 15px; background: #f0f9ff; border-radius: 10px; display: none;">
+                                <i class="fas fa-video" style="color: #667eea;"></i>
+                                <span id="youtubeVideoName" style="margin-left: 10px; font-weight: 600;"></span>
+                            </div>
+                        </div>
+
+                        <!-- Thumbnail Upload (Optional) -->
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="color: #667eea; margin-bottom: 15px;">
+                                <i class="fas fa-image"></i> Thumbnail (Opzionale)
+                            </h3>
+                            <div class="upload-area" id="youtubeThumbnailUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 30px; text-align: center; cursor: pointer;">
+                                <i class="fas fa-image" style="font-size: 2rem; color: #667eea; margin-bottom: 10px;"></i>
+                                <p style="margin: 0; color: #666;">Thumbnail 1280x720</p>
+                            </div>
+                            <input type="file" id="youtubeThumbnail" accept="image/*" style="display: none;">
+                            <div id="youtubeThumbnailInfo" style="margin-top: 15px; padding: 15px; background: #f0f9ff; border-radius: 10px; display: none;">
+                                <i class="fas fa-image" style="color: #667eea;"></i>
+                                <span id="youtubeThumbnailName" style="margin-left: 10px; font-weight: 600;"></span>
+                            </div>
+                        </div>
+
+                        <!-- Metadata -->
+                        <div style="background: #f8f9fa; padding: 25px; border-radius: 15px; margin-bottom: 30px;">
+                            <h3 style="color: #2c3e50; margin-bottom: 20px;">
+                                <i class="fas fa-tags"></i> Informazioni Video
+                            </h3>
+
+                            <!-- Title -->
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                    Titolo <span style="color: #dc3545;">*</span>
+                                </label>
+                                <input type="text" id="youtubeTitle" placeholder="Max 100 caratteri" maxlength="100"
+                                       style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem;">
+                                <small style="color: #999;">Caratteri rimanenti: <span id="youtubeTitleCount">100</span></small>
+                            </div>
+
+                            <!-- Description -->
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                    Descrizione <span style="color: #dc3545;">*</span>
+                                </label>
+                                <textarea id="youtubeDescription" placeholder="Max 5000 caratteri" maxlength="5000" rows="6"
+                                          style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem; resize: vertical;"></textarea>
+                                <small style="color: #999;">Caratteri rimanenti: <span id="youtubeDescriptionCount">5000</span></small>
+                            </div>
+
+                            <!-- Tags -->
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                    Tags (separati da virgola)
+                                </label>
+                                <input type="text" id="youtubeTags" placeholder="es: tutorial, gaming, tech"
+                                       style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem;">
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                                <!-- Category -->
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        Categoria
+                                    </label>
+                                    <select id="youtubeCategory" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px;">
+                                        <option value="1">Film & Animation</option>
+                                        <option value="2">Autos & Vehicles</option>
+                                        <option value="10">Music</option>
+                                        <option value="15">Pets & Animals</option>
+                                        <option value="17">Sports</option>
+                                        <option value="19">Travel & Events</option>
+                                        <option value="20">Gaming</option>
+                                        <option value="22" selected>People & Blogs</option>
+                                        <option value="23">Comedy</option>
+                                        <option value="24">Entertainment</option>
+                                        <option value="25">News & Politics</option>
+                                        <option value="26">Howto & Style</option>
+                                        <option value="27">Education</option>
+                                        <option value="28">Science & Technology</option>
+                                    </select>
+                                </div>
+
+                                <!-- Privacy -->
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        Privacy
+                                    </label>
+                                    <select id="youtubePrivacy" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px;">
+                                        <option value="private" selected>Privato</option>
+                                        <option value="unlisted">Non in elenco</option>
+                                        <option value="public">Pubblico</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Checkboxes -->
+                            <div style="margin-top: 20px;">
+                                <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                    <input type="checkbox" id="youtubeNotifySubscribers" style="width: 20px; height: 20px; accent-color: #667eea;">
+                                    <span style="font-weight: 600; color: #555;">
+                                        <i class="fas fa-bell"></i> Notifica iscritti
+                                    </span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="checkbox" id="youtubeMadeForKids" style="width: 20px; height: 20px; accent-color: #667eea;">
+                                    <span style="font-weight: 600; color: #555;">
+                                        <i class="fas fa-child"></i> Contenuto per bambini
+                                    </span>
+                                </label>
+                            </div>
+
+                            <!-- Upload Button -->
+                            <div style="text-align: center; margin-top: 30px;">
+                                <button onclick="uploadToYouTube()" style="background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); color: white; border: none; padding: 15px 40px; border-radius: 25px; font-size: 1.1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(255,0,0,0.3);">
+                                    <i class="fab fa-youtube"></i> Carica su YouTube
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Progress -->
+                        <div id="youtubeProgress" style="margin-top: 30px; padding: 25px; background: #f0f9ff; border-radius: 15px; display: none;">
+                            <h4 style="color: #667eea; margin: 0 0 15px 0;">
+                                <i class="fas fa-spinner fa-spin"></i> Upload in corso...
+                            </h4>
+                            <div style="background: #ddd; border-radius: 10px; height: 12px; overflow: hidden; margin-bottom: 15px;">
+                                <div id="youtubeProgressBar" style="background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                            </div>
+                            <p id="youtubeProgressText" style="margin: 0; color: #666; text-align: center;">Inizializzazione...</p>
+                        </div>
                     </div>
                 </div>
 
@@ -1158,6 +1691,442 @@
                 }
             } catch (error) {
                 progressText.innerHTML = `<i class="fas fa-times-circle"></i> Errore di connessione`;
+                progressBar.style.background = '#dc3545';
+            }
+        }
+
+        // ==================== LOGO OVERLAY FUNCTIONS ====================
+
+        // Upload handlers
+        document.getElementById('logoVideoUpload').addEventListener('click', function() {
+            document.getElementById('logoVideo').click();
+        });
+
+        document.getElementById('logoImageUpload').addEventListener('click', function() {
+            document.getElementById('logoImage').click();
+        });
+
+        document.getElementById('logoVideo').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                document.getElementById('logoVideoName').textContent = e.target.files[0].name;
+                document.getElementById('logoVideoInfo').style.display = 'block';
+            }
+        });
+
+        document.getElementById('logoImage').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                document.getElementById('logoImageName').textContent = e.target.files[0].name;
+                document.getElementById('logoImageInfo').style.display = 'block';
+            }
+        });
+
+        // Slider updates
+        document.getElementById('logoMargin').addEventListener('input', function() {
+            document.getElementById('logoMarginValue').textContent = this.value;
+        });
+
+        document.getElementById('logoScale').addEventListener('input', function() {
+            document.getElementById('logoScaleValue').textContent = this.value;
+        });
+
+        document.getElementById('logoOpacity').addEventListener('input', function() {
+            document.getElementById('logoOpacityValue').textContent = this.value;
+        });
+
+        async function processLogoOverlay() {
+            const videoFile = document.getElementById('logoVideo').files[0];
+            const logoFile = document.getElementById('logoImage').files[0];
+
+            if (!videoFile || !logoFile) {
+                alert('Carica sia il video che il logo');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('video', videoFile);
+            formData.append('logo', logoFile);
+            formData.append('position', document.getElementById('logoPosition').value);
+            formData.append('margin', document.getElementById('logoMargin').value);
+            formData.append('logo_scale', parseFloat(document.getElementById('logoScale').value) / 100);
+            formData.append('opacity', parseFloat(document.getElementById('logoOpacity').value) / 100);
+            formData.append('quality', document.getElementById('logoQuality').value);
+            formData.append('output_name', 'logo_output.mp4');
+
+            try {
+                const response = await fetch('/api/v1/logo/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(`Job avviato! ID: ${data.job_id}\nMonitora il progresso in Dashboard.`);
+                } else {
+                    const error = await response.json();
+                    alert(`Errore: ${error.detail || 'Impossibile avviare job'}`);
+                }
+            } catch (error) {
+                alert('Errore di connessione: ' + error.message);
+            }
+        }
+
+        // ==================== TRANSCRIPTION FUNCTIONS ====================
+
+        document.getElementById('transcriptionFileUpload').addEventListener('click', function() {
+            document.getElementById('transcriptionFile').click();
+        });
+
+        document.getElementById('transcriptionFile').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                document.getElementById('transcriptionFileName').textContent = e.target.files[0].name;
+                document.getElementById('transcriptionFileInfo').style.display = 'block';
+            }
+        });
+
+        async function processTranscription() {
+            const file = document.getElementById('transcriptionFile').files[0];
+
+            if (!file) {
+                alert('Carica un file video o audio');
+                return;
+            }
+
+            const progress = document.getElementById('transcriptionProgress');
+            const progressText = document.getElementById('transcriptionProgressText');
+
+            progress.style.display = 'block';
+            progressText.textContent = 'Avvio trascrizione...';
+
+            // Collect export formats
+            const exportFormats = [];
+            if (document.getElementById('formatJSON').checked) exportFormats.push('json');
+            if (document.getElementById('formatSRT').checked) exportFormats.push('srt');
+            if (document.getElementById('formatTXT').checked) exportFormats.push('txt');
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('model_size', document.getElementById('transcriptionModel').value);
+            formData.append('language', document.getElementById('transcriptionLanguage').value);
+            formData.append('export_formats', exportFormats.join(','));
+
+            try {
+                const response = await fetch('/api/v1/transcription/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    progressText.innerHTML = `<i class="fas fa-check-circle"></i> Job avviato! ID: ${data.job_id}<br>Monitora il progresso nella sezione Jobs.`;
+                } else {
+                    const error = await response.json();
+                    progressText.innerHTML = `<i class="fas fa-times-circle"></i> Errore: ${error.detail || 'Impossibile avviare trascrizione'}`;
+                }
+            } catch (error) {
+                progressText.innerHTML = `<i class="fas fa-times-circle"></i> Errore di connessione: ${error.message}`;
+            }
+        }
+
+        // ==================== TRANSLATION FUNCTIONS ====================
+
+        document.getElementById('translationFileUpload').addEventListener('click', function() {
+            document.getElementById('translationFile').click();
+        });
+
+        document.getElementById('translationFile').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                document.getElementById('translationFileName').textContent = e.target.files[0].name;
+                document.getElementById('translationFileInfo').style.display = 'block';
+            }
+        });
+
+        async function processTranslation() {
+            const file = document.getElementById('translationFile').files[0];
+
+            if (!file) {
+                alert('Carica un file video');
+                return;
+            }
+
+            const progress = document.getElementById('translationProgress');
+            const progressText = document.getElementById('translationProgressText');
+
+            progress.style.display = 'block';
+            progressText.textContent = 'Avvio traduzione...';
+
+            const formData = new FormData();
+            formData.append('video', file);
+            formData.append('target_language', document.getElementById('translationTargetLang').value);
+            formData.append('subtitle_position', document.getElementById('translationSubtitlePos').value);
+            formData.append('use_elevenlabs', document.getElementById('translationUseElevenLabs').checked);
+            formData.append('output_name', 'translated_video.mp4');
+
+            try {
+                const response = await fetch('/api/v1/translation/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    progressText.innerHTML = `<i class="fas fa-check-circle"></i> Job avviato! ID: ${data.job_id}<br>Monitora il progresso nella sezione Jobs.`;
+                } else {
+                    const error = await response.json();
+                    progressText.innerHTML = `<i class="fas fa-times-circle"></i> Errore: ${error.detail || 'Impossibile avviare traduzione'}`;
+                }
+            } catch (error) {
+                progressText.innerHTML = `<i class="fas fa-times-circle"></i> Errore di connessione: ${error.message}`;
+            }
+        }
+
+        // ==================== METADATA EXTRACTION FUNCTIONS ====================
+
+        document.getElementById('metadataFileUpload').addEventListener('click', function() {
+            document.getElementById('metadataFile').click();
+        });
+
+        document.getElementById('metadataFile').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                document.getElementById('metadataFileName').textContent = e.target.files[0].name;
+                document.getElementById('metadataFileInfo').style.display = 'block';
+            }
+        });
+
+        let currentMetadataJSON = null;
+
+        async function extractMetadata() {
+            const file = document.getElementById('metadataFile').files[0];
+
+            if (!file) {
+                alert('Carica un file video o audio');
+                return;
+            }
+
+            const results = document.getElementById('metadataResults');
+            const content = document.getElementById('metadataContent');
+
+            results.style.display = 'block';
+            content.textContent = 'Estrazione metadati in corso...';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/api/v1/metadata/extract-upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    currentMetadataJSON = data;
+                    content.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    const error = await response.json();
+                    content.textContent = `Errore: ${error.detail || 'Impossibile estrarre metadati'}`;
+                }
+            } catch (error) {
+                content.textContent = `Errore di connessione: ${error.message}`;
+            }
+        }
+
+        function downloadMetadataJSON() {
+            if (!currentMetadataJSON) {
+                alert('Nessun metadata disponibile per il download');
+                return;
+            }
+
+            const blob = new Blob([JSON.stringify(currentMetadataJSON, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'metadata.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // ==================== THUMBNAIL GENERATION FUNCTIONS ====================
+
+        document.getElementById('thumbnailImageUpload').addEventListener('click', function() {
+            document.getElementById('thumbnailImage').click();
+        });
+
+        document.getElementById('thumbnailImage').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                document.getElementById('thumbnailImageName').textContent = e.target.files[0].name;
+                document.getElementById('thumbnailImageInfo').style.display = 'block';
+            }
+        });
+
+        document.getElementById('thumbnailTextSize').addEventListener('input', function() {
+            document.getElementById('thumbnailTextSizeValue').textContent = this.value;
+        });
+
+        async function generateThumbnail() {
+            const file = document.getElementById('thumbnailImage').files[0];
+
+            if (!file) {
+                alert('Carica un\'immagine base');
+                return;
+            }
+
+            const progress = document.getElementById('thumbnailProgress');
+            const progressText = document.getElementById('thumbnailProgressText');
+
+            progress.style.display = 'block';
+            progressText.textContent = 'Generazione copertina...';
+
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('output_name', 'thumbnail.jpg');
+
+            const text = document.getElementById('thumbnailText').value;
+            if (text) {
+                formData.append('text_overlay', text);
+                formData.append('text_position', document.getElementById('thumbnailTextPosition').value);
+                formData.append('text_size', document.getElementById('thumbnailTextSize').value);
+                formData.append('text_color', document.getElementById('thumbnailTextColor').value);
+                formData.append('text_style', document.getElementById('thumbnailTextStyle').value);
+            }
+
+            try {
+                const response = await fetch('/api/v1/thumbnail/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    progressText.innerHTML = `<i class="fas fa-check-circle"></i> Job avviato! ID: ${data.job_id}<br>Monitora il progresso nella sezione Jobs.`;
+                } else {
+                    const error = await response.json();
+                    progressText.innerHTML = `<i class="fas fa-times-circle"></i> Errore: ${error.detail || 'Impossibile generare thumbnail'}`;
+                }
+            } catch (error) {
+                progressText.innerHTML = `<i class="fas fa-times-circle"></i> Errore di connessione: ${error.message}`;
+            }
+        }
+
+        // ==================== YOUTUBE UPLOAD FUNCTIONS ====================
+
+        document.getElementById('youtubeVideoUpload').addEventListener('click', function() {
+            document.getElementById('youtubeVideo').click();
+        });
+
+        document.getElementById('youtubeThumbnailUpload').addEventListener('click', function() {
+            document.getElementById('youtubeThumbnail').click();
+        });
+
+        document.getElementById('youtubeVideo').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                document.getElementById('youtubeVideoName').textContent = e.target.files[0].name;
+                document.getElementById('youtubeVideoInfo').style.display = 'block';
+            }
+        });
+
+        document.getElementById('youtubeThumbnail').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                document.getElementById('youtubeThumbnailName').textContent = e.target.files[0].name;
+                document.getElementById('youtubeThumbnailInfo').style.display = 'block';
+            }
+        });
+
+        // Character counters
+        document.getElementById('youtubeTitle').addEventListener('input', function() {
+            const remaining = 100 - this.value.length;
+            document.getElementById('youtubeTitleCount').textContent = remaining;
+        });
+
+        document.getElementById('youtubeDescription').addEventListener('input', function() {
+            const remaining = 5000 - this.value.length;
+            document.getElementById('youtubeDescriptionCount').textContent = remaining;
+        });
+
+        async function uploadToYouTube() {
+            const videoFile = document.getElementById('youtubeVideo').files[0];
+            const title = document.getElementById('youtubeTitle').value;
+            const description = document.getElementById('youtubeDescription').value;
+
+            if (!videoFile) {
+                alert('Carica un video');
+                return;
+            }
+
+            if (!title || !description) {
+                alert('Titolo e descrizione sono obbligatori');
+                return;
+            }
+
+            const progress = document.getElementById('youtubeProgress');
+            const progressBar = document.getElementById('youtubeProgressBar');
+            const progressText = document.getElementById('youtubeProgressText');
+
+            progress.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressText.textContent = 'Inizializzazione upload...';
+
+            const formData = new FormData();
+            formData.append('video', videoFile);
+            formData.append('title', title);
+            formData.append('description', description);
+            formData.append('tags', document.getElementById('youtubeTags').value);
+            formData.append('category_id', document.getElementById('youtubeCategory').value);
+            formData.append('privacy_status', document.getElementById('youtubePrivacy').value);
+            formData.append('notify_subscribers', document.getElementById('youtubeNotifySubscribers').checked);
+            formData.append('made_for_kids', document.getElementById('youtubeMadeForKids').checked);
+
+            const thumbnailFile = document.getElementById('youtubeThumbnail').files[0];
+            if (thumbnailFile) {
+                formData.append('thumbnail', thumbnailFile);
+            }
+
+            try {
+                const response = await fetch('/api/v1/youtube/upload-file', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const jobId = data.job_id;
+
+                    // Poll for job status
+                    const pollInterval = setInterval(async () => {
+                        try {
+                            const statusResponse = await fetch(`/api/v1/youtube/jobs/${jobId}`);
+                            if (statusResponse.ok) {
+                                const status = await statusResponse.json();
+
+                                progressBar.style.width = status.progress + '%';
+                                progressText.textContent = status.message;
+
+                                if (status.status === 'completed') {
+                                    clearInterval(pollInterval);
+                                    if (status.video_url) {
+                                        progressText.innerHTML = `<i class="fas fa-check-circle"></i> Upload completato! <a href="${status.video_url}" target="_blank" style="color: #ff0000; text-decoration: underline; margin-left: 10px;">Vedi su YouTube</a>`;
+                                    } else {
+                                        progressText.innerHTML = `<i class="fas fa-check-circle"></i> Upload completato!`;
+                                    }
+                                } else if (status.status === 'failed') {
+                                    clearInterval(pollInterval);
+                                    progressText.innerHTML = `<i class="fas fa-times-circle"></i> Errore: ${status.error || 'Upload fallito'}`;
+                                    progressBar.style.background = '#dc3545';
+                                }
+                            }
+                        } catch (error) {
+                            clearInterval(pollInterval);
+                            progressText.innerHTML = `<i class="fas fa-times-circle"></i> Errore nel monitoraggio`;
+                        }
+                    }, 3000);
+                } else {
+                    const error = await response.json();
+                    progressText.innerHTML = `<i class="fas fa-times-circle"></i> ${error.detail || 'Errore nell\'upload'}`;
+                    progressBar.style.background = '#dc3545';
+                }
+            } catch (error) {
+                progressText.innerHTML = `<i class="fas fa-times-circle"></i> Errore di connessione: ${error.message}`;
                 progressBar.style.background = '#dc3545';
             }
         }
