@@ -40,7 +40,7 @@ openai==1.54.4
 requests==2.32.3
 
 # Whisper for audio transcription (metadata generation)
-openai-whisper==20231117
+openai-whisper==20250625  # Versione aggiornata per compatibilità numpy 2.x
 
 # Screen recording
 pyautogui==0.9.54

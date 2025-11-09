@@ -254,3 +254,16 @@ if __name__ == "__main__":
         reload=settings.debug,
         log_level="info" if settings.debug else "warning"
     )
+
+# Avviare il server
+#    uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+# Scaricare le modifiche da github sul pc
+# 1. Verifica di essere sul branch corretto
+#    git branch
+
+# 2. Se non sei sul branch corretto, passa a quello giusto
+#    git checkout claude/project-review-improvements-011CUpkeELM78WpjRDQLfS6q
+
+# 3. Scarica le modifiche
+#    git pull origin claude/project-review-improvements-011CUpkeELM78WpjRDQLfS6q
