@@ -1944,10 +1944,23 @@
                                 </label>
                             </div>
 
+                            <!-- Auto-save info -->
+                            <div style="background: #e8f4fd; border-left: 4px solid #3498db; padding: 15px; border-radius: 8px; margin-top: 25px;">
+                                <p style="margin: 0; color: #2c3e50; font-size: 0.95rem;">
+                                    <i class="fas fa-info-circle" style="color: #3498db;"></i>
+                                    <strong>Salvataggio Automatico:</strong> Tutte le tue impostazioni vengono salvate automaticamente mentre lavori.
+                                    Quando esci e ritorni, troverai tutto esattamente come lo hai lasciato.
+                                </p>
+                            </div>
+
+                            <!-- Reset to Default Button -->
                             <div style="text-align: center; margin-top: 30px;">
-                                <button style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-size: 1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(102,126,234,0.3);">
-                                    <i class="fas fa-save"></i> Salva Impostazioni
+                                <button onclick="resetSettingsToDefault()" style="background: #e74c3c; color: white; border: none; padding: 12px 30px; border-radius: 25px; font-size: 1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(231,76,60,0.3); transition: all 0.3s;">
+                                    <i class="fas fa-undo"></i> Ripristina Impostazioni Default
                                 </button>
+                                <p style="color: #999; font-size: 0.85rem; margin-top: 10px;">
+                                    Reimposta tutte le impostazioni, preferenze e stato dell'interfaccia ai valori iniziali
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -2083,6 +2096,11 @@
             if (window.innerWidth <= 768) {
                 document.getElementById('primaryTabs').classList.remove('mobile-hidden');
             }
+
+            // Track tab change for auto-save
+            if (typeof trackTabChange === 'function') {
+                trackTabChange(tabName, null);
+            }
         }
 
         // Show Sub Tab (Secondary Level)
@@ -2109,6 +2127,11 @@
             const pane = document.getElementById(`pane-${category}-${subTabName}`);
             if (pane) {
                 pane.classList.add('active');
+            }
+
+            // Track sub-tab change for auto-save
+            if (typeof trackTabChange === 'function') {
+                trackTabChange(category, subTabName);
             }
         }
 
@@ -3775,11 +3798,354 @@
             clearPipelineSteps();
         }
 
+        // ==================== USER SETTINGS AUTO-SAVE/RESTORE ====================
+
+        /**
+         * Sistema di persistenza automatica impostazioni utente
+         * - Auto-save su ogni modifica UI (debounced 1s)
+         * - Auto-restore al caricamento pagina
+         * - Supporto multi-utente via JWT token
+         * - Fallback localStorage se non autenticato
+         */
+
+        // State globale settings
+        let userSettings = {
+            ui_state: {
+                current_tab: 'dashboard',
+                current_subtab: null
+            },
+            chromakey: {},
+            logo: {},
+            translation: {},
+            transcription: {},
+            seo_metadata: {},
+            youtube: {},
+            video_download: {},
+            screen_recorder: {},
+            pipeline: {},
+            thumbnail: {}
+        };
+
+        // JWT token (recuperato da localStorage o session)
+        let authToken = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+
+        // Debounce timer per auto-save
+        let saveDebounceTimer = null;
+
+        /**
+         * Carica settings dal server (se autenticato) o localStorage
+         */
+        async function loadUserSettings() {
+            try {
+                if (authToken) {
+                    // User autenticato: carica da server
+                    const response = await fetch('/api/v1/user/settings', {
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        userSettings = data.settings;
+                        console.log('✅ Settings caricati da server');
+                        return true;
+                    } else {
+                        console.warn('⚠️ Impossibile caricare settings da server, uso localStorage');
+                    }
+                }
+
+                // Fallback: carica da localStorage
+                const localSettings = localStorage.getItem('aivideomaker_settings');
+                if (localSettings) {
+                    userSettings = JSON.parse(localSettings);
+                    console.log('✅ Settings caricati da localStorage');
+                    return true;
+                }
+
+                console.log('ℹ️ Nessun setting salvato, uso defaults');
+                return false;
+
+            } catch (error) {
+                console.error('❌ Errore caricamento settings:', error);
+                return false;
+            }
+        }
+
+        /**
+         * Salva settings (debounced per performance)
+         */
+        function saveUserSettings(immediate = false) {
+            // Debounce: aspetta 1 secondo di inattività prima di salvare
+            clearTimeout(saveDebounceTimer);
+
+            const doSave = async () => {
+                try {
+                    if (authToken) {
+                        // User autenticato: salva su server
+                        const response = await fetch('/api/v1/user/settings', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${authToken}`
+                            },
+                            body: JSON.stringify({ settings: userSettings })
+                        });
+
+                        if (response.ok) {
+                            console.log('✅ Settings salvati su server');
+                        } else {
+                            console.warn('⚠️ Errore salvataggio server, fallback localStorage');
+                            localStorage.setItem('aivideomaker_settings', JSON.stringify(userSettings));
+                        }
+                    } else {
+                        // Non autenticato: salva solo in localStorage
+                        localStorage.setItem('aivideomaker_settings', JSON.stringify(userSettings));
+                        console.log('✅ Settings salvati in localStorage');
+                    }
+                } catch (error) {
+                    console.error('❌ Errore salvataggio settings:', error);
+                    // Fallback: salva sempre in localStorage come backup
+                    localStorage.setItem('aivideomaker_settings', JSON.stringify(userSettings));
+                }
+            };
+
+            if (immediate) {
+                doSave();
+            } else {
+                saveDebounceTimer = setTimeout(doSave, 1000);
+            }
+        }
+
+        /**
+         * Ripristina settings a valori default
+         */
+        async function resetSettingsToDefault() {
+            const confirmed = confirm(
+                '⚠️ ATTENZIONE!\n\n' +
+                'Questa operazione ripristinerà TUTTE le impostazioni ai valori di default:\n' +
+                '• Stato interfaccia (tab corrente, video caricati)\n' +
+                '• Preferenze di ogni sezione (chromakey, traduzione, SEO, ecc.)\n' +
+                '• Configurazioni YouTube, Pipeline, ecc.\n\n' +
+                'Vuoi davvero continuare?'
+            );
+
+            if (!confirmed) return;
+
+            try {
+                if (authToken) {
+                    // User autenticato: reset su server
+                    const response = await fetch('/api/v1/user/settings', {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        userSettings = data.settings;
+                        console.log('✅ Settings ripristinati a default (server)');
+                    } else {
+                        throw new Error('Errore reset server');
+                    }
+                } else {
+                    // Non autenticato: reset localStorage
+                    localStorage.removeItem('aivideomaker_settings');
+                    userSettings = {
+                        ui_state: { current_tab: 'dashboard', current_subtab: null },
+                        chromakey: {}, logo: {}, translation: {}, transcription: {},
+                        seo_metadata: {}, youtube: {}, video_download: {},
+                        screen_recorder: {}, pipeline: {}, thumbnail: {}
+                    };
+                    console.log('✅ Settings ripristinati a default (localStorage)');
+                }
+
+                // Ricarica pagina per applicare defaults
+                alert('✅ Impostazioni ripristinate! La pagina verrà ricaricata.');
+                location.reload();
+
+            } catch (error) {
+                console.error('❌ Errore reset settings:', error);
+                alert('❌ Errore durante il ripristino. Riprova.');
+            }
+        }
+
+        /**
+         * Applica settings caricati all'UI
+         */
+        function restoreUIFromSettings() {
+            // Ripristina tab corrente
+            if (userSettings.ui_state?.current_tab) {
+                showPrimaryTab(userSettings.ui_state.current_tab);
+            }
+
+            if (userSettings.ui_state?.current_subtab) {
+                const currentTab = userSettings.ui_state.current_tab;
+                showSubTab(currentTab, userSettings.ui_state.current_subtab);
+            }
+
+            // Ripristina Chromakey settings
+            if (userSettings.chromakey) {
+                const ck = userSettings.chromakey;
+                if (ck.green_color) safeSetValue('chromakeyColor', ck.green_color);
+                if (ck.threshold) safeSetValue('chromakeyThreshold', ck.threshold);
+                if (ck.background_type) safeSetValue('chromakeyBgType', ck.background_type);
+                if (ck.background_color) safeSetValue('chromakeyBgColor', ck.background_color);
+            }
+
+            // Ripristina Translation settings
+            if (userSettings.translation) {
+                const tr = userSettings.translation;
+                if (tr.source_language) safeSetValue('sourceLang', tr.source_language);
+                if (tr.target_language) safeSetValue('targetLang', tr.target_language);
+                if (tr.voice_id) safeSetValue('voiceSelect', tr.voice_id);
+                if (tr.model) safeSetValue('elevenlabsModel', tr.model);
+                if (tr.preserve_original_audio !== undefined) {
+                    safeSetChecked('preserveOriginalAudio', tr.preserve_original_audio);
+                }
+            }
+
+            // Ripristina SEO Metadata settings
+            if (userSettings.seo_metadata) {
+                const seo = userSettings.seo_metadata;
+                if (seo.target_platform) safeSetValue('seoTargetPlatform', seo.target_platform);
+                if (seo.language) safeSetValue('seoLanguage', seo.language);
+                if (seo.num_hashtags) safeSetValue('seoHashtags', seo.num_hashtags);
+                if (seo.num_tags) safeSetValue('seoTags', seo.num_tags);
+                if (seo.generate_thumbnail !== undefined) {
+                    safeSetChecked('seoGenerateThumbnail', seo.generate_thumbnail);
+                }
+                if (seo.thumbnail_style) safeSetValue('seoThumbnailStyle', seo.thumbnail_style);
+            }
+
+            // Ripristina YouTube settings
+            if (userSettings.youtube) {
+                const yt = userSettings.youtube;
+                if (yt.category) safeSetValue('youtubeCategory', yt.category);
+                if (yt.privacy) safeSetValue('youtubePrivacy', yt.privacy);
+            }
+
+            // Ripristina Video Download settings
+            if (userSettings.video_download) {
+                const vd = userSettings.video_download;
+                if (vd.quality) safeSetValue('downloadQuality', vd.quality);
+                if (vd.format) safeSetValue('downloadFormat', vd.format);
+            }
+
+            // Ripristina Transcription settings
+            if (userSettings.transcription) {
+                const ts = userSettings.transcription;
+                if (ts.language) safeSetValue('transcriptionLanguage', ts.language);
+                if (ts.model_size) safeSetValue('transcriptionModel', ts.model_size);
+            }
+
+            console.log('✅ UI ripristinata da settings');
+        }
+
+        /**
+         * Helper: imposta valore input (safe - non crasha se elemento non esiste)
+         */
+        function safeSetValue(elementId, value) {
+            const el = document.getElementById(elementId);
+            if (el) el.value = value;
+        }
+
+        /**
+         * Helper: imposta checkbox (safe)
+         */
+        function safeSetChecked(elementId, checked) {
+            const el = document.getElementById(elementId);
+            if (el) el.checked = checked;
+        }
+
+        /**
+         * Aggiorna setting specifico e salva
+         */
+        function updateSetting(section, key, value) {
+            if (!userSettings[section]) {
+                userSettings[section] = {};
+            }
+            userSettings[section][key] = value;
+            saveUserSettings();
+        }
+
+        /**
+         * Traccia cambio tab corrente
+         */
+        function trackTabChange(tabName, subtabName = null) {
+            userSettings.ui_state.current_tab = tabName;
+            userSettings.ui_state.current_subtab = subtabName;
+            saveUserSettings();
+        }
+
+        /**
+         * Setup auto-save listeners su tutti i campi
+         */
+        function setupAutoSaveListeners() {
+            // Chromakey
+            safeAddListener('chromakeyColor', 'input', (e) => updateSetting('chromakey', 'green_color', e.target.value));
+            safeAddListener('chromakeyThreshold', 'input', (e) => updateSetting('chromakey', 'threshold', parseInt(e.target.value)));
+            safeAddListener('chromakeyBgType', 'change', (e) => updateSetting('chromakey', 'background_type', e.target.value));
+            safeAddListener('chromakeyBgColor', 'input', (e) => updateSetting('chromakey', 'background_color', e.target.value));
+
+            // Translation
+            safeAddListener('sourceLang', 'change', (e) => updateSetting('translation', 'source_language', e.target.value));
+            safeAddListener('targetLang', 'change', (e) => updateSetting('translation', 'target_language', e.target.value));
+            safeAddListener('voiceSelect', 'change', (e) => updateSetting('translation', 'voice_id', e.target.value));
+            safeAddListener('elevenlabsModel', 'change', (e) => updateSetting('translation', 'model', e.target.value));
+            safeAddListener('preserveOriginalAudio', 'change', (e) => updateSetting('translation', 'preserve_original_audio', e.target.checked));
+
+            // SEO Metadata
+            safeAddListener('seoTargetPlatform', 'change', (e) => updateSetting('seo_metadata', 'target_platform', e.target.value));
+            safeAddListener('seoLanguage', 'change', (e) => updateSetting('seo_metadata', 'language', e.target.value));
+            safeAddListener('seoHashtags', 'input', (e) => updateSetting('seo_metadata', 'num_hashtags', parseInt(e.target.value)));
+            safeAddListener('seoTags', 'input', (e) => updateSetting('seo_metadata', 'num_tags', parseInt(e.target.value)));
+            safeAddListener('seoGenerateThumbnail', 'change', (e) => updateSetting('seo_metadata', 'generate_thumbnail', e.target.checked));
+            safeAddListener('seoThumbnailStyle', 'change', (e) => updateSetting('seo_metadata', 'thumbnail_style', e.target.value));
+
+            // YouTube
+            safeAddListener('youtubeCategory', 'change', (e) => updateSetting('youtube', 'category', e.target.value));
+            safeAddListener('youtubePrivacy', 'change', (e) => updateSetting('youtube', 'privacy', e.target.value));
+
+            // Video Download
+            safeAddListener('downloadQuality', 'change', (e) => updateSetting('video_download', 'quality', e.target.value));
+            safeAddListener('downloadFormat', 'change', (e) => updateSetting('video_download', 'format', e.target.value));
+
+            // Transcription
+            safeAddListener('transcriptionLanguage', 'change', (e) => updateSetting('transcription', 'language', e.target.value));
+            safeAddListener('transcriptionModel', 'change', (e) => updateSetting('transcription', 'model_size', e.target.value));
+
+            console.log('✅ Auto-save listeners configurati');
+        }
+
+        /**
+         * Helper: aggiungi event listener (safe)
+         */
+        function safeAddListener(elementId, event, handler) {
+            const el = document.getElementById(elementId);
+            if (el) {
+                el.addEventListener(event, handler);
+            }
+        }
+
         // ==================== INITIALIZATION ====================
 
-        // Show dashboard on load
-        document.addEventListener('DOMContentLoaded', function() {
-            showPrimaryTab('dashboard');
+        // Page load: carica settings e ripristina UI
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Carica settings
+            await loadUserSettings();
+
+            // Ripristina UI da settings
+            restoreUIFromSettings();
+
+            // Setup auto-save listeners
+            setupAutoSaveListeners();
+
+            // Se non c'è tab salvato, mostra dashboard
+            if (!userSettings.ui_state?.current_tab) {
+                showPrimaryTab('dashboard');
+            }
         });
     </script>
 </body>
