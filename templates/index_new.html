@@ -375,7 +375,10 @@
             <!-- Sub-tabs for Metadata & SEO -->
             <div class="sub-tabs" id="subTabs-metadata">
                 <button class="sub-tab active" onclick="showSubTab('metadata', 'extraction')">
-                    <i class="fas fa-tags"></i> Metadati & SEO
+                    <i class="fas fa-info-circle"></i> Metadati Tecnici
+                </button>
+                <button class="sub-tab" onclick="showSubTab('metadata', 'seo')">
+                    <i class="fas fa-robot"></i> SEO AI
                 </button>
                 <button class="sub-tab" onclick="showSubTab('metadata', 'thumbnail')">
                     <i class="fas fa-photo-video"></i> Copertina
@@ -1288,6 +1291,224 @@
                                 <i class="fas fa-spinner fa-spin"></i> Generazione in corso...
                             </h4>
                             <p id="thumbnailProgressText" style="margin: 0; color: #666; text-align: center;">Elaborazione immagine...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Metadata > SEO AI -->
+                <div class="tab-pane" id="pane-metadata-seo">
+                    <div class="section-header">
+                        <i class="fas fa-robot"></i>
+                        <h2>SEO AI Generator</h2>
+                    </div>
+                    <p class="section-description">Genera automaticamente titolo, descrizione, hashtag e thumbnail ottimizzati con intelligenza artificiale</p>
+
+                    <div style="max-width: 900px; margin: 0 auto;">
+                        <!-- Video Upload -->
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="color: #667eea; margin-bottom: 15px;">
+                                <i class="fas fa-video"></i> Video da Analizzare
+                            </h3>
+                            <div class="upload-area" id="seoVideoUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer;">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 15px;"></i>
+                                <p style="margin: 0; color: #666;">Trascina video o clicca per selezionare</p>
+                                <small style="color: #999;">L'AI analizzerà il contenuto per generare metadata ottimizzati</small>
+                            </div>
+                            <input type="file" id="seoVideo" accept="video/*" style="display: none;">
+                            <div id="seoVideoInfo" style="margin-top: 15px; padding: 15px; background: #f0f9ff; border-radius: 10px; display: none;">
+                                <i class="fas fa-video" style="color: #667eea;"></i>
+                                <span id="seoVideoName" style="margin-left: 10px; font-weight: 600;"></span>
+                            </div>
+                        </div>
+
+                        <!-- Configuration -->
+                        <div style="background: #f8f9fa; padding: 25px; border-radius: 15px; margin-bottom: 30px;">
+                            <h3 style="color: #2c3e50; margin-bottom: 20px;">
+                                <i class="fas fa-sliders-h"></i> Configurazione SEO
+                            </h3>
+
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                                <!-- Target Platform -->
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        <i class="fas fa-bullseye"></i> Piattaforma Target
+                                    </label>
+                                    <select id="seoTargetPlatform" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px;">
+                                        <option value="youtube" selected>YouTube</option>
+                                        <option value="instagram">Instagram</option>
+                                        <option value="tiktok">TikTok</option>
+                                        <option value="facebook">Facebook</option>
+                                    </select>
+                                </div>
+
+                                <!-- Language -->
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        <i class="fas fa-language"></i> Lingua
+                                    </label>
+                                    <select id="seoLanguage" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px;">
+                                        <option value="it" selected>Italiano</option>
+                                        <option value="en">English</option>
+                                        <option value="es">Español</option>
+                                        <option value="fr">Français</option>
+                                        <option value="de">Deutsch</option>
+                                        <option value="pt">Português</option>
+                                    </select>
+                                </div>
+
+                                <!-- Number of Hashtags -->
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        Numero Hashtag: <span id="seoHashtagsValue" style="color: #667eea;">10</span>
+                                    </label>
+                                    <input type="range" id="seoHashtags" min="5" max="30" value="10" style="width: 100%; accent-color: #667eea;">
+                                </div>
+
+                                <!-- Number of Tags -->
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        Numero Tag: <span id="seoTagsValue" style="color: #667eea;">30</span>
+                                    </label>
+                                    <input type="range" id="seoTags" min="10" max="100" value="30" style="width: 100%; accent-color: #667eea;">
+                                </div>
+                            </div>
+
+                            <!-- Thumbnail Settings -->
+                            <div style="margin-top: 25px; padding-top: 25px; border-top: 2px solid #e0e0e0;">
+                                <h4 style="color: #2c3e50; margin-bottom: 15px;">
+                                    <i class="fas fa-image"></i> Impostazioni Thumbnail AI
+                                </h4>
+
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                                    <div>
+                                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                            <input type="checkbox" id="seoGenerateThumbnail" checked style="width: 20px; height: 20px; accent-color: #667eea;">
+                                            <span style="font-weight: 600; color: #555;">Genera Thumbnail Automatica</span>
+                                        </label>
+                                    </div>
+
+                                    <div>
+                                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                            Stile Thumbnail
+                                        </label>
+                                        <select id="seoThumbnailStyle" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px;">
+                                            <option value="modern" selected>Modern</option>
+                                            <option value="minimal">Minimal</option>
+                                            <option value="bold">Bold</option>
+                                            <option value="gradient">Gradient</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                            <input type="checkbox" id="seoThumbnailTextOverlay" checked style="width: 20px; height: 20px; accent-color: #667eea;">
+                                            <span style="font-weight: 600; color: #555;">Aggiungi Testo su Thumbnail</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Advanced Settings -->
+                            <div style="margin-top: 25px; padding-top: 25px; border-top: 2px solid #e0e0e0;">
+                                <h4 style="color: #2c3e50; margin-bottom: 15px;">
+                                    <i class="fas fa-cogs"></i> Impostazioni Avanzate
+                                </h4>
+
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                                    <div>
+                                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                            Frame da Analizzare: <span id="seoFramesValue" style="color: #667eea;">5</span>
+                                        </label>
+                                        <input type="range" id="seoFrames" min="1" max="10" value="5" style="width: 100%; accent-color: #667eea;">
+                                        <small style="color: #999;">Più frame = analisi più accurata (ma più lenta)</small>
+                                    </div>
+
+                                    <div>
+                                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-top: 20px;">
+                                            <input type="checkbox" id="seoAnalyzeAudio" checked style="width: 20px; height: 20px; accent-color: #667eea;">
+                                            <span style="font-weight: 600; color: #555;">Analizza Audio per Contesto</span>
+                                        </label>
+                                        <small style="color: #999; margin-left: 30px;">Estrae keywords dal parlato</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Generate Button -->
+                            <div style="text-align: center; margin-top: 30px;">
+                                <button onclick="generateSEOMetadata()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px 40px; border-radius: 25px; font-size: 1.1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(102,126,234,0.3);">
+                                    <i class="fas fa-robot"></i> Genera SEO con AI
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Results -->
+                        <div id="seoResults" style="display: none; background: #f8f9fa; padding: 25px; border-radius: 15px;">
+                            <h3 style="color: #2c3e50; margin-bottom: 20px;">
+                                <i class="fas fa-check-circle" style="color: #28a745;"></i> Metadata Generati
+                            </h3>
+
+                            <!-- Title -->
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                    <i class="fas fa-heading"></i> Titolo Ottimizzato
+                                </label>
+                                <div id="seoResultTitle" style="padding: 15px; background: white; border-radius: 10px; border: 2px solid #28a745; font-size: 1.1rem; font-weight: 600; color: #2c3e50;"></div>
+                            </div>
+
+                            <!-- Description -->
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                    <i class="fas fa-align-left"></i> Descrizione SEO
+                                </label>
+                                <div id="seoResultDescription" style="padding: 15px; background: white; border-radius: 10px; border: 2px solid #28a745; min-height: 100px; white-space: pre-wrap;"></div>
+                            </div>
+
+                            <!-- Hashtags -->
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                    <i class="fas fa-hashtag"></i> Hashtag
+                                </label>
+                                <div id="seoResultHashtags" style="padding: 15px; background: white; border-radius: 10px; border: 2px solid #28a745; display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                            </div>
+
+                            <!-- Tags -->
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                    <i class="fas fa-tags"></i> Tag
+                                </label>
+                                <div id="seoResultTags" style="padding: 15px; background: white; border-radius: 10px; border: 2px solid #28a745; display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                            </div>
+
+                            <!-- Thumbnail Preview -->
+                            <div id="seoResultThumbnailContainer" style="display: none; margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                    <i class="fas fa-image"></i> Thumbnail Generata
+                                </label>
+                                <div style="text-align: center;">
+                                    <img id="seoResultThumbnail" src="" alt="Thumbnail" style="max-width: 100%; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div style="display: flex; gap: 15px; justify-content: center; margin-top: 25px;">
+                                <button onclick="copySEOToClipboard()" style="background: #667eea; color: white; border: none; padding: 12px 25px; border-radius: 20px; cursor: pointer; font-weight: 600;">
+                                    <i class="fas fa-copy"></i> Copia Tutto
+                                </button>
+                                <button onclick="downloadSEOJSON()" style="background: #28a745; color: white; border: none; padding: 12px 25px; border-radius: 20px; cursor: pointer; font-weight: 600;">
+                                    <i class="fas fa-download"></i> Scarica JSON
+                                </button>
+                                <button onclick="useSEOForYouTube()" style="background: #ff0000; color: white; border: none; padding: 12px 25px; border-radius: 20px; cursor: pointer; font-weight: 600;">
+                                    <i class="fab fa-youtube"></i> Usa per YouTube Upload
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Progress -->
+                        <div id="seoProgress" style="margin-top: 30px; padding: 25px; background: #f0f9ff; border-radius: 15px; display: none;">
+                            <h4 style="color: #667eea; margin: 0 0 15px 0;">
+                                <i class="fas fa-spinner fa-spin"></i> AI sta analizzando il video...
+                            </h4>
+                            <p id="seoProgressText" style="margin: 0; color: #666; text-align: center;">Estrazione frame e analisi contenuto...</p>
                         </div>
                     </div>
                 </div>
@@ -2625,6 +2846,225 @@
                 }
             }
         });
+
+        // ==================== SEO AI FUNCTIONS ====================
+
+        let currentSEOData = null;
+
+        // Upload handlers
+        document.getElementById('seoVideoUpload').addEventListener('click', function() {
+            document.getElementById('seoVideo').click();
+        });
+
+        document.getElementById('seoVideo').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                document.getElementById('seoVideoName').textContent = e.target.files[0].name;
+                document.getElementById('seoVideoInfo').style.display = 'block';
+            }
+        });
+
+        // Slider updates
+        document.getElementById('seoHashtags').addEventListener('input', function() {
+            document.getElementById('seoHashtagsValue').textContent = this.value;
+        });
+
+        document.getElementById('seoTags').addEventListener('input', function() {
+            document.getElementById('seoTagsValue').textContent = this.value;
+        });
+
+        document.getElementById('seoFrames').addEventListener('input', function() {
+            document.getElementById('seoFramesValue').textContent = this.value;
+        });
+
+        async function generateSEOMetadata() {
+            const videoFile = document.getElementById('seoVideo').files[0];
+
+            if (!videoFile) {
+                alert('Carica un video da analizzare');
+                return;
+            }
+
+            const results = document.getElementById('seoResults');
+            const progress = document.getElementById('seoProgress');
+            const progressText = document.getElementById('seoProgressText');
+
+            results.style.display = 'none';
+            progress.style.display = 'block';
+            progressText.textContent = 'Upload video e avvio analisi AI...';
+
+            const formData = new FormData();
+            formData.append('video', videoFile);
+            formData.append('target_platform', document.getElementById('seoTargetPlatform').value);
+            formData.append('language', document.getElementById('seoLanguage').value);
+            formData.append('num_hashtags', document.getElementById('seoHashtags').value);
+            formData.append('num_tags', document.getElementById('seoTags').value);
+            formData.append('generate_thumbnail', document.getElementById('seoGenerateThumbnail').checked);
+            formData.append('thumbnail_style', document.getElementById('seoThumbnailStyle').value);
+            formData.append('thumbnail_text_overlay', document.getElementById('seoThumbnailTextOverlay').checked);
+            formData.append('num_frames_to_analyze', document.getElementById('seoFrames').value);
+            formData.append('analyze_audio', document.getElementById('seoAnalyzeAudio').checked);
+
+            try {
+                const response = await fetch('/api/v1/seo-metadata/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const jobId = data.job_id;
+
+                    progressText.textContent = 'AI sta elaborando il video...';
+
+                    // Poll for job status
+                    const pollInterval = setInterval(async () => {
+                        try {
+                            const statusResponse = await fetch(`/api/v1/seo-metadata/jobs/${jobId}`);
+                            if (statusResponse.ok) {
+                                const status = await statusResponse.json();
+
+                                if (status.status === 'completed') {
+                                    clearInterval(pollInterval);
+                                    displaySEOResults(status);
+                                    progress.style.display = 'none';
+                                    results.style.display = 'block';
+                                } else if (status.status === 'failed') {
+                                    clearInterval(pollInterval);
+                                    progress.style.display = 'none';
+                                    alert(`Errore: ${status.error || 'Elaborazione fallita'}`);
+                                } else {
+                                    // Update progress message
+                                    if (status.progress >= 20 && status.progress < 40) {
+                                        progressText.textContent = 'Estrazione frame chiave...';
+                                    } else if (status.progress >= 40 && status.progress < 60) {
+                                        progressText.textContent = 'Analisi contenuto con AI Vision...';
+                                    } else if (status.progress >= 60 && status.progress < 80) {
+                                        progressText.textContent = 'Generazione metadata SEO...';
+                                    } else if (status.progress >= 80) {
+                                        progressText.textContent = 'Creazione thumbnail...';
+                                    }
+                                }
+                            }
+                        } catch (error) {
+                            clearInterval(pollInterval);
+                            progress.style.display = 'none';
+                            alert('Errore nel monitoraggio del job: ' + error.message);
+                        }
+                    }, 3000);
+                } else {
+                    const error = await response.json();
+                    progress.style.display = 'none';
+                    alert(`Errore: ${error.detail || 'Impossibile avviare analisi'}`);
+                }
+            } catch (error) {
+                progress.style.display = 'none';
+                alert('Errore di connessione: ' + error.message);
+            }
+        }
+
+        function displaySEOResults(data) {
+            currentSEOData = data;
+
+            // Title
+            document.getElementById('seoResultTitle').textContent = data.title || 'Titolo non generato';
+
+            // Description
+            document.getElementById('seoResultDescription').textContent = data.description || 'Descrizione non generata';
+
+            // Hashtags
+            const hashtagsContainer = document.getElementById('seoResultHashtags');
+            hashtagsContainer.innerHTML = '';
+            if (data.hashtags && data.hashtags.length > 0) {
+                data.hashtags.forEach(tag => {
+                    const span = document.createElement('span');
+                    span.style.cssText = 'background: #667eea; color: white; padding: 6px 12px; border-radius: 15px; font-size: 0.9rem; font-weight: 600;';
+                    span.textContent = '#' + tag;
+                    hashtagsContainer.appendChild(span);
+                });
+            } else {
+                hashtagsContainer.innerHTML = '<span style="color: #999;">Nessun hashtag generato</span>';
+            }
+
+            // Tags
+            const tagsContainer = document.getElementById('seoResultTags');
+            tagsContainer.innerHTML = '';
+            if (data.tags && data.tags.length > 0) {
+                data.tags.forEach(tag => {
+                    const span = document.createElement('span');
+                    span.style.cssText = 'background: #f0f0f0; color: #2c3e50; padding: 6px 12px; border-radius: 15px; font-size: 0.85rem; border: 1px solid #ddd;';
+                    span.textContent = tag;
+                    tagsContainer.appendChild(span);
+                });
+            } else {
+                tagsContainer.innerHTML = '<span style="color: #999;">Nessun tag generato</span>';
+            }
+
+            // Thumbnail
+            if (data.thumbnail_path) {
+                document.getElementById('seoResultThumbnail').src = data.thumbnail_path;
+                document.getElementById('seoResultThumbnailContainer').style.display = 'block';
+            } else {
+                document.getElementById('seoResultThumbnailContainer').style.display = 'none';
+            }
+        }
+
+        function copySEOToClipboard() {
+            if (!currentSEOData) return;
+
+            const text = `TITOLO:\n${currentSEOData.title}\n\nDESCRIZIONE:\n${currentSEOData.description}\n\nHASHTAG:\n${currentSEOData.hashtags.map(t => '#' + t).join(' ')}\n\nTAG:\n${currentSEOData.tags.join(', ')}`;
+
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ Metadata copiati negli appunti!');
+            }).catch(err => {
+                alert('Errore copia: ' + err.message);
+            });
+        }
+
+        function downloadSEOJSON() {
+            if (!currentSEOData) return;
+
+            const blob = new Blob([JSON.stringify(currentSEOData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'seo_metadata.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function useSEOForYouTube() {
+            if (!currentSEOData) return;
+
+            // Passa a YouTube Upload tab
+            showPrimaryTab('automation');
+            showSubTab('automation', 'youtube');
+
+            // Popola i campi con i dati SEO
+            setTimeout(() => {
+                document.getElementById('youtubeTitle').value = currentSEOData.title || '';
+                document.getElementById('youtubeDescription').value = currentSEOData.description || '';
+
+                // Aggiungi hashtag alla descrizione
+                if (currentSEOData.hashtags && currentSEOData.hashtags.length > 0) {
+                    const hashtagsText = '\n\n' + currentSEOData.hashtags.map(t => '#' + t).join(' ');
+                    document.getElementById('youtubeDescription').value += hashtagsText;
+                }
+
+                // Imposta tags
+                if (currentSEOData.tags && currentSEOData.tags.length > 0) {
+                    document.getElementById('youtubeTags').value = currentSEOData.tags.join(', ');
+                }
+
+                // Aggiorna counter
+                document.getElementById('youtubeTitleCount').textContent = 100 - (currentSEOData.title || '').length;
+                const descLength = document.getElementById('youtubeDescription').value.length;
+                document.getElementById('youtubeDescriptionCount').textContent = 5000 - descLength;
+
+                alert('✅ Metadata SEO applicati a YouTube Upload!');
+            }, 300);
+        }
 
         // ==================== INITIALIZATION ====================
 
