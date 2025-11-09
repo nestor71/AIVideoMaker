@@ -247,6 +247,207 @@
             margin: -15px 0 25px 0;
             font-size: 1.05rem;
         }
+
+        /* ==================== MODAL SYSTEM ==================== */
+
+        /* Modal Overlay */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 10000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Modal Container */
+        .modal-container {
+            background: white;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease;
+            position: relative;
+        }
+
+        /* Modal Header */
+        .modal-header {
+            padding: 25px 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .modal-header.success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .modal-header.error {
+            background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
+            color: white;
+        }
+
+        .modal-header.warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .modal-header.info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .modal-header.confirm {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .modal-icon {
+            font-size: 2.5rem;
+            flex-shrink: 0;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        /* Modal Body */
+        .modal-body {
+            padding: 30px;
+            font-size: 1.05rem;
+            color: #2c3e50;
+            line-height: 1.6;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+
+        /* Modal Footer */
+        .modal-footer {
+            padding: 20px 30px;
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            border-top: 2px solid #f0f0f0;
+            background: #f8f9fa;
+        }
+
+        /* Modal Buttons */
+        .modal-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .modal-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102,126,234,0.4);
+        }
+
+        .modal-btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .modal-btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(56,239,125,0.4);
+        }
+
+        .modal-btn-danger {
+            background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
+            color: white;
+        }
+
+        .modal-btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(238,9,121,0.4);
+        }
+
+        .modal-btn-secondary {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .modal-btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .modal-container {
+                width: 95%;
+                border-radius: 15px;
+            }
+
+            .modal-header {
+                padding: 20px;
+            }
+
+            .modal-body {
+                padding: 20px;
+            }
+
+            .modal-footer {
+                padding: 15px 20px;
+                flex-direction: column;
+            }
+
+            .modal-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -2210,7 +2411,7 @@
         });
 
         function processChromakey() {
-            alert('Chromakey processing - funzione in sviluppo. Sarà collegata all\'API /chromakey/upload');
+            showInfo('Chromakey processing - funzione in sviluppo. Sarà collegata all\'API /chromakey/upload');
         }
 
         // ==================== VIDEO DOWNLOAD FUNCTIONS ====================
@@ -2219,7 +2420,7 @@
             const url = document.getElementById('downloadVideoUrl').value;
 
             if (!url) {
-                alert('Inserisci un URL video valido');
+                showWarning('Inserisci un URL video valido');
                 return;
             }
 
@@ -2265,7 +2466,7 @@
             const audioFormat = document.getElementById('downloadAudioFormat').value;
 
             if (!url) {
-                alert('Inserisci un URL video valido');
+                showWarning('Inserisci un URL video valido');
                 return;
             }
 
@@ -2374,7 +2575,7 @@
             const logoFile = document.getElementById('logoImage').files[0];
 
             if (!videoFile || !logoFile) {
-                alert('Carica sia il video che il logo');
+                showWarning('Carica sia il video che il logo');
                 return;
             }
 
@@ -2396,13 +2597,13 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    alert(`Job avviato! ID: ${data.job_id}\nMonitora il progresso in Dashboard.`);
+                    showSuccess(`Job avviato! ID: ${data.job_id}<br>Monitora il progresso in Dashboard.`);
                 } else {
                     const error = await response.json();
-                    alert(`Errore: ${error.detail || 'Impossibile avviare job'}`);
+                    showError(`Errore: ${error.detail || 'Impossibile avviare job'}`);
                 }
             } catch (error) {
-                alert('Errore di connessione: ' + error.message);
+                showError('Errore di connessione: ' + error.message);
             }
         }
 
@@ -2423,7 +2624,7 @@
             const file = document.getElementById('transcriptionFile').files[0];
 
             if (!file) {
-                alert('Carica un file video o audio');
+                showWarning('Carica un file video o audio');
                 return;
             }
 
@@ -2480,7 +2681,7 @@
             const file = document.getElementById('translationFile').files[0];
 
             if (!file) {
-                alert('Carica un file video');
+                showWarning('Carica un file video');
                 return;
             }
 
@@ -2534,7 +2735,7 @@
             const file = document.getElementById('metadataFile').files[0];
 
             if (!file) {
-                alert('Carica un file video o audio');
+                showWarning('Carica un file video o audio');
                 return;
             }
 
@@ -2568,7 +2769,7 @@
 
         function downloadMetadataJSON() {
             if (!currentMetadataJSON) {
-                alert('Nessun metadata disponibile per il download');
+                showWarning('Nessun metadata disponibile per il download');
                 return;
             }
 
@@ -2604,7 +2805,7 @@
             const file = document.getElementById('thumbnailImage').files[0];
 
             if (!file) {
-                alert('Carica un\'immagine base');
+                showWarning('Carica un'immagine base');
                 return;
             }
 
@@ -2686,12 +2887,12 @@
             const description = document.getElementById('youtubeDescription').value;
 
             if (!videoFile) {
-                alert('Carica un video');
+                showWarning('Carica un video');
                 return;
             }
 
             if (!title || !description) {
-                alert('Titolo e descrizione sono obbligatori');
+                showWarning('Titolo e descrizione sono obbligatori');
                 return;
             }
 
@@ -2818,7 +3019,7 @@
                         audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     } catch (err) {
                         console.warn('Microphone access denied:', err);
-                        alert('Impossibile accedere al microfono. Continuo con audio sistema.');
+                        showInfo('Impossibile accedere al microfono. Continuo con audio sistema.');
                     }
                 }
 
@@ -2898,9 +3099,9 @@
             } catch (err) {
                 console.error('Error starting recording:', err);
                 if (err.name === 'NotAllowedError') {
-                    alert('Permesso negato. Devi autorizzare la condivisione schermo.');
+                    showError('Permesso negato. Devi autorizzare la condivisione schermo.');
                 } else {
-                    alert('Errore nell\'avvio della registrazione: ' + err.message);
+                    showError('Errore nell'avvio della registrazione: ' + err.message);
                 }
             }
         }
@@ -2995,7 +3196,7 @@
 
         function saveRecording() {
             if (recordedChunks.length === 0) {
-                alert('Nessun dato registrato');
+                showWarning('Nessun dato registrato');
                 return;
             }
 
@@ -3092,19 +3293,22 @@
         }
 
         function deleteRecording(index) {
-            if (confirm('Eliminare questa registrazione?')) {
-                URL.revokeObjectURL(savedRecordings[index].url);
-                savedRecordings.splice(index, 1);
-                updateRecordingsList();
+            showConfirm(
+                'Sei sicuro di voler eliminare questa registrazione?',
+                () => {
+                    URL.revokeObjectURL(savedRecordings[index].url);
+                    savedRecordings.splice(index, 1);
+                    updateRecordingsList();
 
-                // Reset preview if it was playing this recording
-                const preview = document.getElementById('recorderPreview');
-                if (preview.src && !preview.srcObject) {
-                    preview.src = '';
-                    preview.controls = false;
-                    document.getElementById('recorderPreviewPlaceholder').style.display = 'flex';
+                    // Reset preview if it was playing this recording
+                    const preview = document.getElementById('recorderPreview');
+                    if (preview.src && !preview.srcObject) {
+                        preview.src = '';
+                        preview.controls = false;
+                        document.getElementById('recorderPreviewPlaceholder').style.display = 'flex';
+                    }
                 }
-            }
+            );
         }
 
         // Check browser support on load
@@ -3163,7 +3367,7 @@
             const videoFile = document.getElementById('seoVideo').files[0];
 
             if (!videoFile) {
-                alert('Carica un video da analizzare');
+                showWarning('Carica un video da analizzare');
                 return;
             }
 
@@ -3214,7 +3418,7 @@
                                 } else if (status.status === 'failed') {
                                     clearInterval(pollInterval);
                                     progress.style.display = 'none';
-                                    alert(`Errore: ${status.error || 'Elaborazione fallita'}`);
+                                    showError(`Errore: ${status.error || 'Elaborazione fallita'}`);
                                 } else {
                                     // Update progress message
                                     if (status.progress >= 20 && status.progress < 40) {
@@ -3231,17 +3435,17 @@
                         } catch (error) {
                             clearInterval(pollInterval);
                             progress.style.display = 'none';
-                            alert('Errore nel monitoraggio del job: ' + error.message);
+                            showError('Errore nel monitoraggio del job: ' + error.message);
                         }
                     }, 3000);
                 } else {
                     const error = await response.json();
                     progress.style.display = 'none';
-                    alert(`Errore: ${error.detail || 'Impossibile avviare analisi'}`);
+                    showError(`Errore: ${error.detail || 'Impossibile avviare analisi'}`);
                 }
             } catch (error) {
                 progress.style.display = 'none';
-                alert('Errore di connessione: ' + error.message);
+                showError('Errore di connessione: ' + error.message);
             }
         }
 
@@ -3297,9 +3501,9 @@
             const text = `TITOLO:\n${currentSEOData.title}\n\nDESCRIZIONE:\n${currentSEOData.description}\n\nHASHTAG:\n${currentSEOData.hashtags.map(t => '#' + t).join(' ')}\n\nTAG:\n${currentSEOData.tags.join(', ')}`;
 
             navigator.clipboard.writeText(text).then(() => {
-                alert('✅ Metadata copiati negli appunti!');
+                showSuccess('Metadata copiati negli appunti!');
             }).catch(err => {
-                alert('Errore copia: ' + err.message);
+                showError('Errore copia: ' + err.message);
             });
         }
 
@@ -3345,7 +3549,7 @@
                 const descLength = document.getElementById('youtubeDescription').value.length;
                 document.getElementById('youtubeDescriptionCount').textContent = 5000 - descLength;
 
-                alert('✅ Metadata SEO applicati a YouTube Upload!');
+                showSuccess('Metadata SEO applicati a YouTube Upload!');
             }, 300);
         }
 
@@ -3445,7 +3649,7 @@
                 });
 
             } catch (err) {
-                alert('Errore nell\'avvio della registrazione: ' + err.message);
+                showError('Errore nell'avvio della registrazione: ' + err.message);
             }
         }
 
@@ -3482,7 +3686,7 @@
             const url = document.getElementById('pipelineDownloadUrl').value.trim();
 
             if (!url) {
-                alert('Inserisci un URL valido');
+                showWarning('Inserisci un URL valido');
                 return;
             }
 
@@ -3921,54 +4125,53 @@
          * Ripristina settings a valori default
          */
         async function resetSettingsToDefault() {
-            const confirmed = confirm(
-                '⚠️ ATTENZIONE!\n\n' +
-                'Questa operazione ripristinerà TUTTE le impostazioni ai valori di default:\n' +
-                '• Stato interfaccia (tab corrente, video caricati)\n' +
-                '• Preferenze di ogni sezione (chromakey, traduzione, SEO, ecc.)\n' +
-                '• Configurazioni YouTube, Pipeline, ecc.\n\n' +
-                'Vuoi davvero continuare?'
-            );
+            showConfirm(
+                '<strong>Questa operazione ripristinerà TUTTE le impostazioni ai valori di default:</strong><br><br>' +
+                '• Stato interfaccia (tab corrente, video caricati)<br>' +
+                '• Preferenze di ogni sezione (chromakey, traduzione, SEO, ecc.)<br>' +
+                '• Configurazioni YouTube, Pipeline, ecc.<br><br>' +
+                'Vuoi davvero continuare?',
+                async () => {
+                    try {
+                        if (authToken) {
+                            // User autenticato: reset su server
+                            const response = await fetch('/api/v1/user/settings', {
+                                method: 'DELETE',
+                                headers: {
+                                    'Authorization': `Bearer ${authToken}`
+                                }
+                            });
 
-            if (!confirmed) return;
-
-            try {
-                if (authToken) {
-                    // User autenticato: reset su server
-                    const response = await fetch('/api/v1/user/settings', {
-                        method: 'DELETE',
-                        headers: {
-                            'Authorization': `Bearer ${authToken}`
+                            if (response.ok) {
+                                const data = await response.json();
+                                userSettings = data.settings;
+                                console.log('✅ Settings ripristinati a default (server)');
+                            } else {
+                                throw new Error('Errore reset server');
+                            }
+                        } else {
+                            // Non autenticato: reset localStorage
+                            localStorage.removeItem('aivideomaker_settings');
+                            userSettings = {
+                                ui_state: { current_tab: 'dashboard', current_subtab: null },
+                                chromakey: {}, logo: {}, translation: {}, transcription: {},
+                                seo_metadata: {}, youtube: {}, video_download: {},
+                                screen_recorder: {}, pipeline: {}, thumbnail: {}
+                            };
+                            console.log('✅ Settings ripristinati a default (localStorage)');
                         }
-                    });
 
-                    if (response.ok) {
-                        const data = await response.json();
-                        userSettings = data.settings;
-                        console.log('✅ Settings ripristinati a default (server)');
-                    } else {
-                        throw new Error('Errore reset server');
+                        // Ricarica pagina per applicare defaults
+                        showSuccess('Impostazioni ripristinate! La pagina verrà ricaricata.', () => {
+                            location.reload();
+                        });
+
+                    } catch (error) {
+                        console.error('❌ Errore reset settings:', error);
+                        showError('Errore durante il ripristino. Riprova.');
                     }
-                } else {
-                    // Non autenticato: reset localStorage
-                    localStorage.removeItem('aivideomaker_settings');
-                    userSettings = {
-                        ui_state: { current_tab: 'dashboard', current_subtab: null },
-                        chromakey: {}, logo: {}, translation: {}, transcription: {},
-                        seo_metadata: {}, youtube: {}, video_download: {},
-                        screen_recorder: {}, pipeline: {}, thumbnail: {}
-                    };
-                    console.log('✅ Settings ripristinati a default (localStorage)');
                 }
-
-                // Ricarica pagina per applicare defaults
-                alert('✅ Impostazioni ripristinate! La pagina verrà ricaricata.');
-                location.reload();
-
-            } catch (error) {
-                console.error('❌ Errore reset settings:', error);
-                alert('❌ Errore durante il ripristino. Riprova.');
-            }
+            );
         }
 
         /**
@@ -4129,6 +4332,154 @@
             }
         }
 
+        // ==================== MODAL SYSTEM ====================
+
+        /**
+         * Mostra modal generico
+         * @param {string} type - Tipo modal: 'success', 'error', 'warning', 'info', 'confirm'
+         * @param {string} title - Titolo modal
+         * @param {string} message - Messaggio (può contenere HTML)
+         * @param {Function} onConfirm - Callback per conferma (opzionale)
+         * @param {Function} onCancel - Callback per annulla (opzionale)
+         */
+        function showModal(type, title, message, onConfirm = null, onCancel = null) {
+            const overlay = document.getElementById('modal-overlay');
+            const header = document.getElementById('modal-header');
+            const icon = document.getElementById('modal-icon');
+            const titleEl = document.getElementById('modal-title');
+            const body = document.getElementById('modal-body');
+            const footer = document.getElementById('modal-footer');
+
+            // Reset classi
+            header.className = `modal-header ${type}`;
+
+            // Set icon e title
+            const icons = {
+                success: 'fas fa-check-circle',
+                error: 'fas fa-exclamation-circle',
+                warning: 'fas fa-exclamation-triangle',
+                info: 'fas fa-info-circle',
+                confirm: 'fas fa-question-circle'
+            };
+
+            icon.className = `modal-icon ${icons[type] || icons.info}`;
+            titleEl.textContent = title;
+
+            // Set message
+            body.innerHTML = message;
+
+            // Set buttons
+            footer.innerHTML = '';
+
+            if (type === 'confirm') {
+                // Confirm modal: due button (Annulla + Conferma)
+                const cancelBtn = document.createElement('button');
+                cancelBtn.className = 'modal-btn modal-btn-secondary';
+                cancelBtn.innerHTML = '<i class="fas fa-times"></i> Annulla';
+                cancelBtn.onclick = () => {
+                    hideModal();
+                    if (onCancel) onCancel();
+                };
+
+                const confirmBtn = document.createElement('button');
+                confirmBtn.className = 'modal-btn modal-btn-primary';
+                confirmBtn.innerHTML = '<i class="fas fa-check"></i> Conferma';
+                confirmBtn.onclick = () => {
+                    hideModal();
+                    if (onConfirm) onConfirm();
+                };
+
+                footer.appendChild(cancelBtn);
+                footer.appendChild(confirmBtn);
+            } else {
+                // Alert modal: solo un button (OK)
+                const okBtn = document.createElement('button');
+                okBtn.className = `modal-btn modal-btn-${type === 'success' ? 'success' : 'primary'}`;
+                okBtn.innerHTML = '<i class="fas fa-check"></i> OK';
+                okBtn.onclick = () => {
+                    hideModal();
+                    if (onConfirm) onConfirm();
+                };
+
+                footer.appendChild(okBtn);
+            }
+
+            // Mostra modal
+            overlay.classList.add('active');
+
+            // Focus sul primo button
+            setTimeout(() => {
+                const firstBtn = footer.querySelector('button');
+                if (firstBtn) firstBtn.focus();
+            }, 100);
+        }
+
+        /**
+         * Nascondi modal
+         */
+        function hideModal() {
+            const overlay = document.getElementById('modal-overlay');
+            overlay.classList.remove('active');
+        }
+
+        /**
+         * Mostra modal SUCCESS (verde)
+         * @param {string} message - Messaggio success
+         * @param {Function} callback - Callback dopo OK (opzionale)
+         */
+        function showSuccess(message, callback = null) {
+            showModal('success', '✅ Successo', message, callback);
+        }
+
+        /**
+         * Mostra modal ERROR (rosso)
+         * @param {string} message - Messaggio errore
+         * @param {Function} callback - Callback dopo OK (opzionale)
+         */
+        function showError(message, callback = null) {
+            showModal('error', '❌ Errore', message, callback);
+        }
+
+        /**
+         * Mostra modal WARNING (giallo/rosa)
+         * @param {string} message - Messaggio warning
+         * @param {Function} callback - Callback dopo OK (opzionale)
+         */
+        function showWarning(message, callback = null) {
+            showModal('warning', '⚠️ Attenzione', message, callback);
+        }
+
+        /**
+         * Mostra modal INFO (blu)
+         * @param {string} message - Messaggio informativo
+         * @param {Function} callback - Callback dopo OK (opzionale)
+         */
+        function showInfo(message, callback = null) {
+            showModal('info', 'ℹ️ Informazione', message, callback);
+        }
+
+        /**
+         * Mostra modal CONFIRM (conferma con 2 button)
+         * @param {string} message - Domanda da confermare
+         * @param {Function} onConfirm - Callback se conferma
+         * @param {Function} onCancel - Callback se annulla (opzionale)
+         */
+        function showConfirm(message, onConfirm, onCancel = null) {
+            showModal('confirm', '❓ Conferma', message, onConfirm, onCancel);
+        }
+
+        /**
+         * Chiudi modal con ESC
+         */
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const overlay = document.getElementById('modal-overlay');
+                if (overlay.classList.contains('active')) {
+                    hideModal();
+                }
+            }
+        });
+
         // ==================== INITIALIZATION ====================
 
         // Page load: carica settings e ripristina UI
@@ -4148,5 +4499,18 @@
             }
         });
     </script>
+
+    <!-- ==================== MODAL SYSTEM ==================== -->
+    <div id="modal-overlay" class="modal-overlay" onclick="if(event.target === this) hideModal();">
+        <div class="modal-container">
+            <div id="modal-header" class="modal-header">
+                <i id="modal-icon" class="modal-icon"></i>
+                <h3 id="modal-title" class="modal-title"></h3>
+            </div>
+            <div id="modal-body" class="modal-body"></div>
+            <div id="modal-footer" class="modal-footer"></div>
+        </div>
+    </div>
+
 </body>
 </html>
