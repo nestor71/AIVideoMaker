@@ -8,10 +8,13 @@ Gestione utenti, statistiche, configurazione
 from typing import List, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from pydantic import BaseModel, EmailStr, field_serializer
 from datetime import datetime
+import csv
+import io
 
 from app.core.database import get_db
 from app.core.security import require_admin, get_password_hash
@@ -93,6 +96,12 @@ class UserUpdateRequest(BaseModel):
     is_active: Optional[bool] = None
     is_admin: Optional[bool] = None
     password: Optional[str] = None
+
+    # Subscription fields
+    subscription_tier: Optional[str] = None
+    subscription_start: Optional[datetime] = None
+    subscription_end: Optional[datetime] = None
+    total_spent: Optional[float] = None
 
 
 class SystemStatsResponse(BaseModel):
@@ -327,6 +336,19 @@ async def update_user(
     if update_data.password is not None:
         user.hashed_password = get_password_hash(update_data.password)
 
+    # Update subscription fields
+    if update_data.subscription_tier is not None:
+        user.subscription_tier = update_data.subscription_tier
+
+    if update_data.subscription_start is not None:
+        user.subscription_start = update_data.subscription_start
+
+    if update_data.subscription_end is not None:
+        user.subscription_end = update_data.subscription_end
+
+    if update_data.total_spent is not None:
+        user.total_spent = update_data.total_spent
+
     user.updated_at = datetime.utcnow()
 
     db.commit()
@@ -449,3 +471,71 @@ async def get_system_stats(
         "total_pipelines": total_pipelines,
         "total_api_keys": total_api_keys
     }
+
+
+@router.get("/users/export/csv")
+async def export_users_csv(
+    admin_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Esporta tutti gli utenti in formato CSV
+
+    **Richiede privilegi admin.**
+
+    Returns:
+        CSV file con tutti gli utenti e statistiche
+
+    CSV Columns:
+        - ID, Username, Email, Full Name, Is Active, Is Admin
+        - Created At, Last Login, Subscription Tier, Subscription End
+        - Total Spent, Total Jobs, Total Pipelines, Total Actions
+    """
+    # Ottieni tutti gli utenti
+    users = db.query(User).all()
+
+    # Crea CSV in memoria
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # Header
+    writer.writerow([
+        'ID', 'Username', 'Email', 'Full Name', 'Is Active', 'Is Admin',
+        'Created At', 'Last Login', 'Subscription Tier', 'Subscription End',
+        'Total Spent (EUR)', 'Total Jobs', 'Total Pipelines', 'Total Actions'
+    ])
+
+    # Dati
+    for user in users:
+        total_jobs = db.query(Job).filter(Job.user_id == user.id).count()
+        total_pipelines = db.query(Pipeline).filter(Pipeline.user_id == user.id).count()
+        total_actions = db.query(UsageLog).filter(UsageLog.user_id == user.id).count()
+
+        writer.writerow([
+            str(user.id),
+            user.username,
+            user.email,
+            user.full_name or '',
+            'Yes' if user.is_active else 'No',
+            'Yes' if user.is_admin else 'No',
+            user.created_at.strftime('%Y-%m-%d %H:%M:%S') if user.created_at else '',
+            user.last_login_at.strftime('%Y-%m-%d %H:%M:%S') if user.last_login_at else 'Never',
+            user.subscription_tier,
+            user.subscription_end.strftime('%Y-%m-%d') if user.subscription_end else '',
+            float(user.total_spent) if user.total_spent else 0.0,
+            total_jobs,
+            total_pipelines,
+            total_actions
+        ])
+
+    # Reset stream position
+    output.seek(0)
+
+    # Return CSV as download
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f"attachment; filename=users_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+        }
+    )

@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from app.core.database import get_db
 from app.core.security import get_current_user
 from app.core.config import settings
+from app.core.usage_tracker import track_action
 from app.models.user import User
 from app.models.job import Job, JobType, JobStatus
 from app.services.chromakey_service import ChromakeyService, ChromakeyParams
@@ -191,6 +192,18 @@ async def process_chromakey(
     # Avvia task in background
     # Avvia task in background (session creata internamente)
     background_tasks.add_task(process_chromakey_task, str(job.id), request)
+
+    # Track action
+    track_action(
+        db=db,
+        user_id=current_user.id,
+        action_type='chromakey',
+        action_details={
+            'job_id': str(job.id),
+            'audio_mode': request.audio_mode,
+            'quality': request.quality
+        }
+    )
 
     return {
         "job_id": str(job.id),

@@ -448,6 +448,27 @@
             border-bottom: none;
         }
 
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .form-input:disabled {
+            background: #f5f5f5;
+            cursor: not-allowed;
+        }
+
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -558,7 +579,12 @@
 
         <!-- Users Table -->
         <div class="table-card">
-            <h2><i class="fas fa-users-cog"></i> Gestione Utenti</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0;"><i class="fas fa-users-cog"></i> Gestione Utenti</h2>
+                <button class="btn-action btn-view" onclick="exportCSV()" style="padding: 12px 25px;">
+                    <i class="fas fa-download"></i> Esporta CSV
+                </button>
+            </div>
 
             <div class="table-controls">
                 <div class="search-box">
@@ -595,7 +621,7 @@
     <!-- Modal Dettagli Utente -->
     <div id="user-modal" class="modal" onclick="if(event.target === this) closeUserModal()">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header" id="user-modal-header">
                 <h3><i class="fas fa-user-circle"></i> Dettagli Utente</h3>
                 <button class="modal-close" onclick="closeUserModal()">×</button>
             </div>
@@ -605,16 +631,261 @@
         </div>
     </div>
 
+    <!-- Modal Edit Utente -->
+    <div id="edit-modal" class="modal" onclick="if(event.target === this) closeEditModal()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-edit"></i> Modifica Utente</h3>
+                <button class="modal-close" onclick="closeEditModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-user-form" onsubmit="saveUserChanges(event)">
+                    <input type="hidden" id="edit-user-id">
+
+                    <div class="user-detail-grid">
+                        <div class="detail-item">
+                            <label for="edit-email">Email *</label>
+                            <input type="email" id="edit-email" class="form-input" required>
+                        </div>
+
+                        <div class="detail-item">
+                            <label for="edit-fullname">Nome Completo</label>
+                            <input type="text" id="edit-fullname" class="form-input">
+                        </div>
+
+                        <div class="detail-item">
+                            <label for="edit-tier">Tier Abbonamento</label>
+                            <select id="edit-tier" class="form-input">
+                                <option value="free">Free</option>
+                                <option value="basic">Basic</option>
+                                <option value="pro">Pro</option>
+                                <option value="enterprise">Enterprise</option>
+                            </select>
+                        </div>
+
+                        <div class="detail-item">
+                            <label for="edit-subscription-end">Scadenza Abbonamento</label>
+                            <input type="datetime-local" id="edit-subscription-end" class="form-input">
+                        </div>
+
+                        <div class="detail-item">
+                            <label for="edit-total-spent">Totale Speso (€)</label>
+                            <input type="number" id="edit-total-spent" class="form-input" step="0.01" min="0">
+                        </div>
+
+                        <div class="detail-item">
+                            <label for="edit-active">Stato Account</label>
+                            <select id="edit-active" class="form-input">
+                                <option value="true">✅ Attivo</option>
+                                <option value="false">❌ Disattivato</option>
+                            </select>
+                        </div>
+
+                        <div class="detail-item">
+                            <label for="edit-admin">Ruolo</label>
+                            <select id="edit-admin" class="form-input">
+                                <option value="false">👤 Utente</option>
+                                <option value="true">👑 Admin</option>
+                            </select>
+                        </div>
+
+                        <div class="detail-item">
+                            <label for="edit-password">Nuova Password (lascia vuoto per non cambiare)</label>
+                            <input type="password" id="edit-password" class="form-input" minlength="8">
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: flex-end;">
+                        <button type="button" class="btn-action btn-delete" onclick="closeEditModal()">
+                            <i class="fas fa-times"></i> Annulla
+                        </button>
+                        <button type="submit" class="btn-action btn-edit" style="padding: 12px 30px;">
+                            <i class="fas fa-save"></i> Salva Modifiche
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal System (Alert/Confirm) -->
+    <div id="modal-overlay" class="modal" onclick="if(event.target === this) hideModal();">
+        <div class="modal-content" style="max-width: 500px;">
+            <div id="modal-header" class="modal-header success">
+                <i id="modal-icon" class="fas fa-check-circle" style="font-size: 24px; margin-right: 10px;"></i>
+                <h3 id="modal-title" style="margin: 0;">Titolo</h3>
+            </div>
+            <div id="modal-body" class="modal-body" style="padding: 30px; font-size: 16px; color: #333;">
+                Messaggio
+            </div>
+            <div id="modal-footer" class="modal-footer" style="padding: 20px 30px; display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #e0e0e0;">
+                <!-- Buttons popolati via JS -->
+            </div>
+        </div>
+    </div>
+
     <script>
+        // ==================== MODAL SYSTEM ====================
+
+        function showModal(type, title, message, onConfirm = null, onCancel = null) {
+            const overlay = document.getElementById('modal-overlay');
+            const header = document.getElementById('modal-header');
+            const icon = document.getElementById('modal-icon');
+            const titleEl = document.getElementById('modal-title');
+            const body = document.getElementById('modal-body');
+            const footer = document.getElementById('modal-footer');
+
+            // Reset classes
+            header.className = `modal-header ${type}`;
+
+            // Set icon
+            const icons = {
+                success: 'fas fa-check-circle',
+                error: 'fas fa-exclamation-circle',
+                warning: 'fas fa-exclamation-triangle',
+                info: 'fas fa-info-circle',
+                confirm: 'fas fa-question-circle'
+            };
+
+            icon.className = icons[type] || icons.info;
+            titleEl.textContent = title;
+            body.innerHTML = message;
+
+            // Set buttons
+            footer.innerHTML = '';
+
+            if (type === 'confirm') {
+                const cancelBtn = document.createElement('button');
+                cancelBtn.className = 'btn-action btn-delete';
+                cancelBtn.innerHTML = '<i class="fas fa-times"></i> Annulla';
+                cancelBtn.onclick = () => {
+                    hideModal();
+                    if (onCancel) onCancel();
+                };
+
+                const confirmBtn = document.createElement('button');
+                confirmBtn.className = 'btn-action btn-edit';
+                confirmBtn.innerHTML = '<i class="fas fa-check"></i> Conferma';
+                confirmBtn.onclick = () => {
+                    hideModal();
+                    if (onConfirm) onConfirm();
+                };
+
+                footer.appendChild(cancelBtn);
+                footer.appendChild(confirmBtn);
+            } else {
+                const okBtn = document.createElement('button');
+                okBtn.className = `btn-action ${type === 'success' ? 'btn-view' : 'btn-delete'}`;
+                okBtn.innerHTML = '<i class="fas fa-check"></i> OK';
+                okBtn.onclick = () => {
+                    hideModal();
+                    if (onConfirm) onConfirm();
+                };
+
+                footer.appendChild(okBtn);
+            }
+
+            overlay.classList.add('active');
+
+            // Focus primo button
+            setTimeout(() => {
+                const firstBtn = footer.querySelector('button');
+                if (firstBtn) firstBtn.focus();
+            }, 100);
+        }
+
+        function hideModal() {
+            document.getElementById('modal-overlay').classList.remove('active');
+        }
+
+        function showSuccess(message, callback = null) {
+            showModal('success', '✅ Successo', message, callback);
+        }
+
+        function showError(message, callback = null) {
+            showModal('error', '❌ Errore', message, callback);
+        }
+
+        function showWarning(message, callback = null) {
+            showModal('warning', '⚠️ Attenzione', message, callback);
+        }
+
+        function showInfo(message, callback = null) {
+            showModal('info', 'ℹ️ Informazione', message, callback);
+        }
+
+        function showConfirm(message, onConfirm, onCancel = null) {
+            showModal('confirm', '❓ Conferma', message, onConfirm, onCancel);
+        }
+
+        // ESC key to close
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modals = document.querySelectorAll('.modal.active');
+                modals.forEach(modal => modal.classList.remove('active'));
+            }
+        });
+
         // ==================== VARIABLES ====================
         let allUsers = [];
         let currentFilter = 'all';
+        let currentAdminUser = null;
 
         // ==================== INITIALIZATION ====================
         document.addEventListener('DOMContentLoaded', function() {
-            loadSystemStats();
-            loadUsers();
+            checkAdminAuth();
         });
+
+        // ==================== AUTH CHECK ====================
+        async function checkAdminAuth() {
+            const token = localStorage.getItem('access_token');
+
+            if (!token) {
+                window.location.href = '/login?redirect=/admin&error=auth_required';
+                return;
+            }
+
+            try {
+                // Verifica che l'utente sia admin
+                const response = await fetch('/api/v1/auth/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Not authenticated');
+                }
+
+                const user = await response.json();
+
+                if (!user.is_admin) {
+                    window.location.href = '/?error=admin_required';
+                    return;
+                }
+
+                // User è admin, salva info
+                currentAdminUser = user;
+                updateUserInfo(user);
+
+                // Carica dashboard
+                loadSystemStats();
+                loadUsers();
+
+            } catch (error) {
+                console.error('Auth error:', error);
+                localStorage.removeItem('access_token');
+                window.location.href = '/login?redirect=/admin&error=session_expired';
+            }
+        }
+
+        function updateUserInfo(user) {
+            const avatar = document.querySelector('.user-avatar');
+            const username = avatar.nextElementSibling.querySelector('div:first-child');
+
+            avatar.textContent = user.username.charAt(0).toUpperCase();
+            username.textContent = user.username;
+        }
 
         // ==================== API CALLS ====================
         async function loadSystemStats() {
@@ -915,35 +1186,144 @@
             loadUserDetails(userId);
         }
 
-        function editUser(userId) {
-            alert('Funzionalità Edit in sviluppo. User ID: ' + userId);
-        }
-
-        async function deleteUser(userId, username) {
-            if (!confirm(`Sei sicuro di voler eliminare l'utente "${username}"?\n\nQuesta azione è IRREVERSIBILE e eliminerà:\n- L'utente\n- Tutti i suoi job\n- Tutte le sue pipeline\n- Tutte le sue API keys`)) {
-                return;
-            }
-
+        async function editUser(userId) {
             try {
                 const token = localStorage.getItem('access_token');
                 const response = await fetch(`/api/v1/admin/users/${userId}`, {
-                    method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
                 });
 
                 if (!response.ok) {
-                    throw new Error('Errore eliminazione');
+                    throw new Error('Utente non trovato');
                 }
 
-                alert('✅ Utente eliminato con successo!');
-                loadUsers(); // Reload table
+                const user = await response.json();
+                openEditModal(user);
 
             } catch (error) {
-                console.error('Errore eliminazione utente:', error);
-                alert('❌ Errore durante eliminazione utente');
+                console.error('Errore caricamento utente:', error);
+                showError('Errore caricamento dati utente');
             }
+        }
+
+        function openEditModal(user) {
+            // Popola form
+            document.getElementById('edit-user-id').value = user.id;
+            document.getElementById('edit-email').value = user.email;
+            document.getElementById('edit-fullname').value = user.full_name || '';
+            document.getElementById('edit-tier').value = user.subscription_tier;
+
+            // Format datetime per input datetime-local
+            if (user.subscription_end) {
+                const date = new Date(user.subscription_end);
+                const formatted = date.toISOString().slice(0, 16);
+                document.getElementById('edit-subscription-end').value = formatted;
+            } else {
+                document.getElementById('edit-subscription-end').value = '';
+            }
+
+            document.getElementById('edit-total-spent').value = user.total_spent || 0;
+            document.getElementById('edit-active').value = user.is_active.toString();
+            document.getElementById('edit-admin').value = user.is_admin.toString();
+            document.getElementById('edit-password').value = '';
+
+            // Mostra modal
+            document.getElementById('edit-modal').classList.add('active');
+        }
+
+        async function saveUserChanges(event) {
+            event.preventDefault();
+
+            const userId = document.getElementById('edit-user-id').value;
+            const password = document.getElementById('edit-password').value;
+
+            const updateData = {
+                email: document.getElementById('edit-email').value,
+                full_name: document.getElementById('edit-fullname').value || null,
+                is_active: document.getElementById('edit-active').value === 'true',
+                is_admin: document.getElementById('edit-admin').value === 'true'
+            };
+
+            // Aggiungi password solo se specificata
+            if (password) {
+                updateData.password = password;
+            }
+
+            // Update subscription info (non ancora in UserUpdateRequest ma lo aggiungo)
+            const subscriptionEnd = document.getElementById('edit-subscription-end').value;
+            if (subscriptionEnd) {
+                updateData.subscription_end = new Date(subscriptionEnd).toISOString();
+            }
+
+            try {
+                const token = localStorage.getItem('access_token');
+                const response = await fetch(`/api/v1/admin/users/${userId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Errore aggiornamento');
+                }
+
+                // Chiudi modal
+                closeEditModal();
+
+                // Ricarica lista utenti
+                await loadUsers();
+
+                // Mostra successo
+                showSuccess('Utente aggiornato con successo!');
+
+            } catch (error) {
+                console.error('Errore aggiornamento utente:', error);
+                showError(error.message);
+            }
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-modal').classList.remove('active');
+        }
+
+        async function deleteUser(userId, username) {
+            showConfirm(
+                `Sei sicuro di voler eliminare l'utente <strong>"${username}"</strong>?<br><br>` +
+                `<strong>Questa azione è IRREVERSIBILE</strong> e eliminerà:<br>` +
+                `• L'utente<br>` +
+                `• Tutti i suoi job<br>` +
+                `• Tutte le sue pipeline<br>` +
+                `• Tutte le sue API keys`,
+                async () => {
+                    try {
+                        const token = localStorage.getItem('access_token');
+                        const response = await fetch(`/api/v1/admin/users/${userId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Errore eliminazione');
+                        }
+
+                        showSuccess('Utente eliminato con successo!', () => {
+                            loadUsers(); // Reload table
+                        });
+
+                    } catch (error) {
+                        console.error('Errore eliminazione utente:', error);
+                        showError('Errore durante eliminazione utente');
+                    }
+                }
+            );
         }
 
         function closeUserModal() {
@@ -953,6 +1333,39 @@
         function logout() {
             localStorage.removeItem('access_token');
             window.location.href = '/login';
+        }
+
+        // ==================== EXPORT CSV ====================
+        async function exportCSV() {
+            try {
+                const token = localStorage.getItem('access_token');
+                const response = await fetch('/api/v1/admin/users/export/csv', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Errore export');
+                }
+
+                // Download file
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `users_export_${new Date().toISOString().slice(0,10)}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+
+                showSuccess('CSV esportato con successo!');
+
+            } catch (error) {
+                console.error('Errore export CSV:', error);
+                showError('Errore durante export CSV');
+            }
         }
 
         // ==================== UTILITIES ====================
@@ -965,10 +1378,6 @@
                 hour: '2-digit',
                 minute: '2-digit'
             });
-        }
-
-        function showError(message) {
-            alert('❌ ' + message);
         }
     </script>
 </body>
