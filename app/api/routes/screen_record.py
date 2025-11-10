@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from app.core.database import get_db
 from app.core.security import get_current_user
 from app.core.config import settings
+from app.core.usage_tracker import track_action
 from app.models.user import User
 from app.models.job import Job, JobType, JobStatus
 from app.services.screen_record_service import ScreenRecordService, ScreenRecordParams

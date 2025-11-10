@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 from app.core.database import get_db
 from app.core.security import get_current_user
 from app.core.config import settings
+from app.core.usage_tracker import track_action
 from app.models.user import User
 from app.models.job import Job, JobType, JobStatus
 from app.services.seo_metadata_service import SEOMetadataService, SEOMetadataParams
@@ -228,6 +229,9 @@ async def generate_seo_metadata(
 
     # Avvia task in background
     background_tasks.add_task(process_seo_task, str(job.id), request, db)
+
+    # Track action
+    track_action(db, current_user.id, "action", {"job_id": str(job.id)})
 
     return {
         "job_id": str(job.id),

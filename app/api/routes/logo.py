@@ -14,6 +14,7 @@ from pydantic import BaseModel
 from app.core.database import get_db
 from app.core.security import get_current_user
 from app.core.config import settings
+from app.core.usage_tracker import track_action
 from app.models.user import User
 from app.models.job import Job, JobType, JobStatus
 from app.services.logo_overlay_service import LogoOverlayService, LogoOverlayParams
@@ -211,6 +212,9 @@ async def overlay_logo(
 
     # Avvia task in background (session creata internamente)
     background_tasks.add_task(process_logo_task, str(job.id), request)
+
+    # Track action
+    track_action(db, current_user.id, "action", {"job_id": str(job.id)})
 
     return {
         "job_id": str(job.id),

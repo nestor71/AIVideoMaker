@@ -14,6 +14,7 @@ from datetime import datetime
 from app.core.database import get_db
 from app.core.security import get_current_user
 from app.core.config import settings
+from app.core.usage_tracker import track_action
 from app.models.user import User
 from app.models.job import Job, JobType, JobStatus
 from app.services.video_download_service import VideoDownloadService, VideoDownloadParams
@@ -229,6 +230,14 @@ async def download_video(
 
     # Avvia download in background
     background_tasks.add_task(process_download_task, str(job.id), request)
+
+    # Track action
+    track_action(
+        db=db,
+        user_id=current_user.id,
+        action_type='video_download',
+        action_details={'job_id': str(job.id), 'url': request.url, 'format': request.format_preference}
+    )
 
     return VideoDownloadResponse(
         job_id=str(job.id),
