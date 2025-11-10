@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - AIVideoMaker</title>
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* ==================== HEADER ==================== */
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .btn-logout {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-logout:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+        }
+
+        /* ==================== STATS CARDS ==================== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: white;
+        }
+
+        .stat-icon.blue {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .stat-icon.green {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .stat-icon.orange {
+            background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
+        }
+
+        .stat-icon.purple {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .stat-content h3 {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .stat-content p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* ==================== CHARTS SECTION ==================== */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .chart-card h2 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* ==================== USERS TABLE ==================== */
+        .table-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .table-card h2 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .table-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .filter-btn {
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            overflow-x: auto;
+            display: block;
+        }
+
+        .users-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .users-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .users-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 14px;
+        }
+
+        .users-table tbody tr {
+            transition: background 0.2s;
+        }
+
+        .users-table tbody tr:hover {
+            background: #f8f9ff;
+        }
+
+        .badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge.free {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .badge.basic {
+            background: #4facfe;
+            color: white;
+        }
+
+        .badge.pro {
+            background: #f093fb;
+            color: white;
+        }
+
+        .badge.enterprise {
+            background: #38ef7d;
+            color: white;
+        }
+
+        .badge.active {
+            background: #11998e;
+            color: white;
+        }
+
+        .badge.inactive {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .badge.admin {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-action {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+            margin-right: 5px;
+        }
+
+        .btn-view {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-edit {
+            background: #38ef7d;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* ==================== MODAL ==================== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 24px;
+        }
+
+        .modal-close {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .modal-close:hover {
+            background: rgba(255,255,255,0.3);
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .user-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .detail-item {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .detail-item label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .detail-item .value {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .features-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .features-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .features-list li:last-child {
+            border-bottom: none;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* ==================== RESPONSIVE ==================== */
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .users-table {
+                font-size: 12px;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                <i class="fas fa-shield-alt"></i>
+                Admin Dashboard
+            </h1>
+            <div class="user-info">
+                <div class="user-avatar">A</div>
+                <div>
+                    <div style="font-weight: 600;">Admin User</div>
+                    <div style="font-size: 12px; color: #666;">Amministratore</div>
+                </div>
+                <button class="btn-logout" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="stat-total-users">0</h3>
+                    <p>Utenti Totali</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="stat-active-users">0</h3>
+                    <p>Utenti Attivi</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon orange">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="stat-total-jobs">0</h3>
+                    <p>Job Totali</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon purple">
+                    <i class="fas fa-euro-sign"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="stat-total-revenue">€0</h3>
+                    <p>Ricavi Totali</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h2><i class="fas fa-chart-pie"></i> Distribuzione Abbonamenti</h2>
+                <canvas id="subscriptionChart"></canvas>
+            </div>
+
+            <div class="chart-card">
+                <h2><i class="fas fa-chart-bar"></i> Job per Stato</h2>
+                <canvas id="jobsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="table-card">
+            <h2><i class="fas fa-users-cog"></i> Gestione Utenti</h2>
+
+            <div class="table-controls">
+                <div class="search-box">
+                    <input type="text" id="search-users" placeholder="🔍 Cerca utenti..." onkeyup="filterUsers()">
+                </div>
+                <button class="filter-btn active" onclick="filterByStatus('all')">Tutti</button>
+                <button class="filter-btn" onclick="filterByStatus('active')">Attivi</button>
+                <button class="filter-btn" onclick="filterByStatus('inactive')">Inattivi</button>
+                <button class="filter-btn" onclick="filterByStatus('admin')">Admin</button>
+            </div>
+
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Registrato</th>
+                        <th>Ultimo Login</th>
+                        <th>Abbonamento</th>
+                        <th>Speso</th>
+                        <th>Job</th>
+                        <th>Azioni</th>
+                        <th>Stato</th>
+                        <th>Azioni</th>
+                    </tr>
+                </thead>
+                <tbody id="users-table-body">
+                    <!-- Popolato via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal Dettagli Utente -->
+    <div id="user-modal" class="modal" onclick="if(event.target === this) closeUserModal()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-circle"></i> Dettagli Utente</h3>
+                <button class="modal-close" onclick="closeUserModal()">×</button>
+            </div>
+            <div class="modal-body" id="user-modal-body">
+                <!-- Popolato via JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== VARIABLES ====================
+        let allUsers = [];
+        let currentFilter = 'all';
+
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSystemStats();
+            loadUsers();
+        });
+
+        // ==================== API CALLS ====================
+        async function loadSystemStats() {
+            try {
+                const token = localStorage.getItem('access_token');
+                const response = await fetch('/api/v1/admin/stats', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Non autorizzato');
+                }
+
+                const stats = await response.json();
+
+                // Update stats cards
+                document.getElementById('stat-total-users').textContent = stats.total_users;
+                document.getElementById('stat-active-users').textContent = stats.active_users;
+                document.getElementById('stat-total-jobs').textContent = stats.total_jobs;
+
+                // Update charts
+                updateSubscriptionChart(stats);
+                updateJobsChart(stats);
+
+            } catch (error) {
+                console.error('Errore caricamento stats:', error);
+                showError('Errore caricamento statistiche');
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                const token = localStorage.getItem('access_token');
+                const response = await fetch('/api/v1/admin/users?limit=1000', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Non autorizzato');
+                }
+
+                allUsers = await response.json();
+
+                // Calculate total revenue
+                const totalRevenue = allUsers.reduce((sum, user) => sum + user.total_spent, 0);
+                document.getElementById('stat-total-revenue').textContent = `€${totalRevenue.toFixed(2)}`;
+
+                renderUsers(allUsers);
+
+            } catch (error) {
+                console.error('Errore caricamento utenti:', error);
+                showError('Errore caricamento utenti');
+            }
+        }
+
+        async function loadUserDetails(userId) {
+            try {
+                const token = localStorage.getItem('access_token');
+                const response = await fetch(`/api/v1/admin/users/${userId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Utente non trovato');
+                }
+
+                const user = await response.json();
+                displayUserDetails(user);
+
+            } catch (error) {
+                console.error('Errore caricamento dettagli:', error);
+                showError('Errore caricamento dettagli utente');
+            }
+        }
+
+        // ==================== RENDER FUNCTIONS ====================
+        function renderUsers(users) {
+            const tbody = document.getElementById('users-table-body');
+            tbody.innerHTML = '';
+
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <strong>${user.username}</strong>
+                        ${user.is_admin ? '<span class="badge admin">ADMIN</span>' : ''}
+                    </td>
+                    <td>${user.email}</td>
+                    <td>${formatDate(user.created_at)}</td>
+                    <td>${user.last_login_at ? formatDate(user.last_login_at) : 'Mai'}</td>
+                    <td><span class="badge ${user.subscription_tier}">${user.subscription_tier.toUpperCase()}</span></td>
+                    <td><strong>€${user.total_spent.toFixed(2)}</strong></td>
+                    <td>
+                        ${user.total_jobs} job<br>
+                        <small>${user.total_actions} azioni</small>
+                    </td>
+                    <td>${user.is_active ? '<span class="badge active">Attivo</span>' : '<span class="badge inactive">Inattivo</span>'}</td>
+                    <td>
+                        <button class="btn-action btn-view" onclick="viewUser('${user.id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn-action btn-edit" onclick="editUser('${user.id}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-action btn-delete" onclick="deleteUser('${user.id}', '${user.username}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function displayUserDetails(user) {
+            const modalBody = document.getElementById('user-modal-body');
+
+            const featuresHtml = Object.entries(user.most_used_features)
+                .map(([feature, count]) => `<li><span>${feature}</span><strong>${count} volte</strong></li>`)
+                .join('');
+
+            modalBody.innerHTML = `
+                <div class="user-detail-grid">
+                    <div class="detail-item">
+                        <label>Username</label>
+                        <div class="value">${user.username}</div>
+                    </div>
+                    <div class="detail-item">
+                        <label>Email</label>
+                        <div class="value">${user.email}</div>
+                    </div>
+                    <div class="detail-item">
+                        <label>Nome Completo</label>
+                        <div class="value">${user.full_name || 'N/A'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <label>Stato</label>
+                        <div class="value">${user.is_active ? '✅ Attivo' : '❌ Inattivo'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <label>Ruolo</label>
+                        <div class="value">${user.is_admin ? '👑 Admin' : '👤 Utente'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <label>Registrato il</label>
+                        <div class="value">${formatDate(user.created_at)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <label>Ultimo Login</label>
+                        <div class="value">${user.last_login_at ? formatDate(user.last_login_at) : 'Mai'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <label>Abbonamento</label>
+                        <div class="value"><span class="badge ${user.subscription_tier}">${user.subscription_tier.toUpperCase()}</span></div>
+                    </div>
+                    <div class="detail-item">
+                        <label>Scadenza Abbonamento</label>
+                        <div class="value">${user.subscription_end ? formatDate(user.subscription_end) : 'N/A'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <label>Totale Speso</label>
+                        <div class="value"><strong>€${user.total_spent.toFixed(2)}</strong></div>
+                    </div>
+                    <div class="detail-item">
+                        <label>Job Totali</label>
+                        <div class="value">${user.total_jobs}</div>
+                    </div>
+                    <div class="detail-item">
+                        <label>Job Completati</label>
+                        <div class="value">${user.completed_jobs}</div>
+                    </div>
+                    <div class="detail-item">
+                        <label>Job Falliti</label>
+                        <div class="value">${user.failed_jobs}</div>
+                    </div>
+                    <div class="detail-item">
+                        <label>Pipeline Totali</label>
+                        <div class="value">${user.total_pipelines}</div>
+                    </div>
+                    <div class="detail-item">
+                        <label>API Keys</label>
+                        <div class="value">${user.total_api_keys}</div>
+                    </div>
+                    <div class="detail-item">
+                        <label>Azioni Totali</label>
+                        <div class="value">${user.total_actions}</div>
+                    </div>
+                </div>
+
+                <h3 style="margin: 30px 0 15px; color: #333;">
+                    <i class="fas fa-chart-line"></i> Funzionalità Più Utilizzate
+                </h3>
+                <ul class="features-list">
+                    ${featuresHtml || '<li><em>Nessuna funzionalità utilizzata</em></li>'}
+                </ul>
+            `;
+
+            document.getElementById('user-modal').classList.add('active');
+        }
+
+        // ==================== CHARTS ====================
+        function updateSubscriptionChart(stats) {
+            // Calcola distribuzione abbonamenti dai dati utenti
+            const ctx = document.getElementById('subscriptionChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Free', 'Basic', 'Pro', 'Enterprise'],
+                    datasets: [{
+                        data: [stats.total_users - stats.admin_users, 0, 0, stats.admin_users],
+                        backgroundColor: ['#e0e0e0', '#4facfe', '#f093fb', '#38ef7d']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateJobsChart(stats) {
+            const ctx = document.getElementById('jobsChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Completati', 'Falliti', 'In Elaborazione'],
+                    datasets: [{
+                        label: 'Job',
+                        data: [stats.completed_jobs, stats.failed_jobs, stats.processing_jobs],
+                        backgroundColor: ['#38ef7d', '#ff6b6b', '#4facfe']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // ==================== FILTERS ====================
+        function filterUsers() {
+            const searchTerm = document.getElementById('search-users').value.toLowerCase();
+            let filtered = allUsers;
+
+            // Apply status filter
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(user => {
+                    if (currentFilter === 'active') return user.is_active;
+                    if (currentFilter === 'inactive') return !user.is_active;
+                    if (currentFilter === 'admin') return user.is_admin;
+                    return true;
+                });
+            }
+
+            // Apply search filter
+            if (searchTerm) {
+                filtered = filtered.filter(user =>
+                    user.username.toLowerCase().includes(searchTerm) ||
+                    user.email.toLowerCase().includes(searchTerm)
+                );
+            }
+
+            renderUsers(filtered);
+        }
+
+        function filterByStatus(status) {
+            currentFilter = status;
+
+            // Update button states
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            filterUsers();
+        }
+
+        // ==================== USER ACTIONS ====================
+        function viewUser(userId) {
+            loadUserDetails(userId);
+        }
+
+        function editUser(userId) {
+            alert('Funzionalità Edit in sviluppo. User ID: ' + userId);
+        }
+
+        async function deleteUser(userId, username) {
+            if (!confirm(`Sei sicuro di voler eliminare l'utente "${username}"?\n\nQuesta azione è IRREVERSIBILE e eliminerà:\n- L'utente\n- Tutti i suoi job\n- Tutte le sue pipeline\n- Tutte le sue API keys`)) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('access_token');
+                const response = await fetch(`/api/v1/admin/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Errore eliminazione');
+                }
+
+                alert('✅ Utente eliminato con successo!');
+                loadUsers(); // Reload table
+
+            } catch (error) {
+                console.error('Errore eliminazione utente:', error);
+                alert('❌ Errore durante eliminazione utente');
+            }
+        }
+
+        function closeUserModal() {
+            document.getElementById('user-modal').classList.remove('active');
+        }
+
+        function logout() {
+            localStorage.removeItem('access_token');
+            window.location.href = '/login';
+        }
+
+        // ==================== UTILITIES ====================
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('it-IT', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function showError(message) {
+            alert('❌ ' + message);
+        }
+    </script>
+</body>
+</html>

@@ -3,7 +3,7 @@ User Model - Gestione utenti
 =============================
 """
 
-from sqlalchemy import Column, String, Boolean, DateTime
+from sqlalchemy import Column, String, Boolean, DateTime, Numeric
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
@@ -38,10 +38,17 @@ class User(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     last_login_at = Column(DateTime, nullable=True)
 
+    # Subscription (per future subscription system)
+    subscription_start = Column(DateTime, nullable=True)
+    subscription_end = Column(DateTime, nullable=True)
+    subscription_tier = Column(String, default='free', nullable=False)  # 'free', 'basic', 'pro', 'enterprise'
+    total_spent = Column(Numeric(10, 2), default=0.00, nullable=False)  # Importo totale speso in EUR
+
     # Relationships
     api_keys = relationship("APIKey", back_populates="user", cascade="all, delete-orphan")
     jobs = relationship("Job", back_populates="user", cascade="all, delete-orphan")
     pipelines = relationship("Pipeline", back_populates="user", cascade="all, delete-orphan")
+    usage_logs = relationship("UsageLog", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<User(id={self.id}, email={self.email}, username={self.username})>"

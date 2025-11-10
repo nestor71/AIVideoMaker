@@ -164,6 +164,12 @@ async def translation_page(request: Request):
     """Serve pagina dedicata traduzione video"""
     return templates.TemplateResponse("translation.html", {"request": request})
 
+
+@app.get("/admin")
+async def admin_dashboard(request: Request):
+    """Serve admin dashboard (protected route)"""
+    return templates.TemplateResponse("admin_dashboard.html", {"request": request})
+
 # ==================== API STATUS ROUTES ====================
 
 @app.get("/health")

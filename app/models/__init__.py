@@ -9,6 +9,7 @@ from app.models.job import Job, JobType, JobStatus
 from app.models.pipeline import Pipeline, PipelineStatus
 from app.models.file_metadata import FileMetadata
 from app.models.user_settings import UserSettings, DEFAULT_SETTINGS
+from app.models.usage_log import UsageLog
 
 __all__ = [
     "User",
@@ -21,4 +22,5 @@ __all__ = [
     "FileMetadata",
     "UserSettings",
     "DEFAULT_SETTINGS",
+    "UsageLog",
 ]

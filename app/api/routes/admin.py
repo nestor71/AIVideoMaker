@@ -19,6 +19,7 @@ from app.models.user import User
 from app.models.job import Job, JobStatus
 from app.models.pipeline import Pipeline
 from app.models.api_key import APIKey
+from app.models.usage_log import UsageLog
 
 router = APIRouter()
 
@@ -34,8 +35,13 @@ class UserListResponse(BaseModel):
     is_active: bool
     is_admin: bool
     created_at: datetime
+    last_login_at: Optional[datetime]
+    subscription_tier: str
+    subscription_end: Optional[datetime]
+    total_spent: float
     total_jobs: int
     total_pipelines: int
+    total_actions: int
 
     @field_serializer('id')
     def serialize_id(self, value: UUID) -> str:
@@ -55,6 +61,13 @@ class UserDetailResponse(BaseModel):
     is_admin: bool
     created_at: datetime
     updated_at: datetime
+    last_login_at: Optional[datetime]
+
+    # Subscription
+    subscription_tier: str
+    subscription_start: Optional[datetime]
+    subscription_end: Optional[datetime]
+    total_spent: float
 
     # Statistiche
     total_jobs: int
@@ -62,6 +75,8 @@ class UserDetailResponse(BaseModel):
     failed_jobs: int
     total_pipelines: int
     total_api_keys: int
+    total_actions: int
+    most_used_features: dict
 
     @field_serializer('id')
     def serialize_id(self, value: UUID) -> str:
@@ -134,6 +149,7 @@ async def list_all_users(
     for user in users:
         total_jobs = db.query(Job).filter(Job.user_id == user.id).count()
         total_pipelines = db.query(Pipeline).filter(Pipeline.user_id == user.id).count()
+        total_actions = db.query(UsageLog).filter(UsageLog.user_id == user.id).count()
 
         result.append({
             "id": user.id,
@@ -143,8 +159,13 @@ async def list_all_users(
             "is_active": user.is_active,
             "is_admin": user.is_admin,
             "created_at": user.created_at,
+            "last_login_at": user.last_login_at,
+            "subscription_tier": user.subscription_tier,
+            "subscription_end": user.subscription_end,
+            "total_spent": float(user.total_spent) if user.total_spent else 0.0,
             "total_jobs": total_jobs,
-            "total_pipelines": total_pipelines
+            "total_pipelines": total_pipelines,
+            "total_actions": total_actions
         })
 
     return result
@@ -186,6 +207,21 @@ async def get_user_details(
     ).count()
     total_pipelines = db.query(Pipeline).filter(Pipeline.user_id == user.id).count()
     total_api_keys = db.query(APIKey).filter(APIKey.user_id == user.id).count()
+    total_actions = db.query(UsageLog).filter(UsageLog.user_id == user.id).count()
+
+    # Funzionalità più utilizzate
+    usage_stats = db.query(
+        UsageLog.action_type,
+        func.count(UsageLog.id).label('count')
+    ).filter(
+        UsageLog.user_id == user.id
+    ).group_by(
+        UsageLog.action_type
+    ).order_by(
+        func.count(UsageLog.id).desc()
+    ).limit(10).all()
+
+    most_used_features = {action: count for action, count in usage_stats}
 
     return {
         "id": user.id,
@@ -196,11 +232,18 @@ async def get_user_details(
         "is_admin": user.is_admin,
         "created_at": user.created_at,
         "updated_at": user.updated_at,
+        "last_login_at": user.last_login_at,
+        "subscription_tier": user.subscription_tier,
+        "subscription_start": user.subscription_start,
+        "subscription_end": user.subscription_end,
+        "total_spent": float(user.total_spent) if user.total_spent else 0.0,
         "total_jobs": total_jobs,
         "completed_jobs": completed_jobs,
         "failed_jobs": failed_jobs,
         "total_pipelines": total_pipelines,
-        "total_api_keys": total_api_keys
+        "total_api_keys": total_api_keys,
+        "total_actions": total_actions,
+        "most_used_features": most_used_features
     }
 
 
