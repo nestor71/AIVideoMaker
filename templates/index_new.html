@@ -602,6 +602,333 @@
                 justify-content: center;
             }
         }
+
+        /* ==================== AUTH MODALS ==================== */
+
+        /* Auth Modal Container */
+        .auth-modal-container {
+            background: white;
+            border-radius: 20px;
+            max-width: 460px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease;
+            position: relative;
+        }
+
+        /* Auth Modal Header */
+        .auth-modal-header {
+            padding: 30px 30px 20px 30px;
+            text-align: center;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .auth-modal-header h2 {
+            margin: 0 0 8px 0;
+            font-size: 26px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .auth-modal-header p {
+            margin: 0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Close Button */
+        .auth-modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: transparent;
+            border: none;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .auth-modal-close:hover {
+            background: #f0f0f0;
+            color: #333;
+            transform: rotate(90deg);
+        }
+
+        /* Auth Modal Body */
+        .auth-modal-body {
+            padding: 30px;
+        }
+
+        /* Auth Form */
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .auth-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .auth-form-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .auth-form-group label i {
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        .auth-input {
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .auth-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .auth-input.error {
+            border-color: #ee0979;
+            animation: shake 0.3s ease;
+        }
+
+        .form-error {
+            font-size: 13px;
+            color: #ee0979;
+            display: none;
+            margin-top: -12px;
+            padding-left: 4px;
+        }
+
+        .form-error.show {
+            display: block;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
+        /* Password Strength Indicator */
+        .password-strength {
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: -12px;
+        }
+
+        .password-strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .password-strength-bar.weak {
+            width: 33%;
+            background: #ee0979;
+        }
+
+        .password-strength-bar.medium {
+            width: 66%;
+            background: #f7b731;
+        }
+
+        .password-strength-bar.strong {
+            width: 100%;
+            background: #5cb85c;
+        }
+
+        /* Submit Button */
+        .auth-submit-btn {
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .auth-submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .auth-submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .auth-submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .auth-submit-btn .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        .auth-submit-btn.loading .spinner {
+            display: block;
+        }
+
+        .auth-submit-btn.loading .btn-text {
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Divider */
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 10px 0;
+            color: #999;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e0e0e0;
+        }
+
+        /* Google Button */
+        .google-btn {
+            padding: 12px 24px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #333;
+        }
+
+        .google-btn:hover {
+            background: #f8f9fa;
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .google-btn img {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Switch Modal Link */
+        .auth-switch {
+            text-align: center;
+            padding: 20px 30px 25px 30px;
+            border-top: 2px solid #f0f0f0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .auth-switch a {
+            color: #667eea;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .auth-switch a:hover {
+            text-decoration: underline;
+        }
+
+        /* Remember Me Checkbox */
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .remember-me input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        /* Responsive for Auth Modals */
+        @media (max-width: 600px) {
+            .auth-modal-container {
+                width: 95%;
+                border-radius: 15px;
+            }
+
+            .auth-modal-header {
+                padding: 25px 20px 15px 20px;
+            }
+
+            .auth-modal-header h2 {
+                font-size: 22px;
+            }
+
+            .auth-modal-body {
+                padding: 25px 20px;
+            }
+
+            .auth-switch {
+                padding: 15px 20px 20px 20px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -2486,7 +2813,7 @@
             }
 
             // Handle content display based on tab type
-            if (tabName === 'dashboard' || tabName === 'settings' || tabName === 'download') {
+            if (tabName === 'dashboard' || tabName === 'download') {
                 // Single-pane tabs (no sub-tabs)
                 const pane = document.getElementById(`pane-${tabName}`);
                 if (pane) {
@@ -2494,7 +2821,7 @@
                 }
             } else {
                 // Multi-pane tabs (with sub-tabs) - show first sub-tab
-                const firstSubTab = subTabsContainer.querySelector('.sub-tab');
+                const firstSubTab = subTabsContainer ? subTabsContainer.querySelector('.sub-tab') : null;
                 if (firstSubTab) {
                     firstSubTab.click();
                 }
@@ -4786,16 +5113,288 @@
          * Mostra modal Login
          */
         function showLoginModal() {
-            showInfo('Modal Login in sviluppo. <br><br>Per ora usa: <strong>demo@aivideomaker.dev</strong> / <strong>demo123</strong>');
-            // TODO: Implementare modal login completo
+            const modal = document.getElementById('loginModal');
+            modal.classList.add('active');
+            // Reset form
+            document.getElementById('loginForm').reset();
+            clearFormErrors('login');
+        }
+
+        /**
+         * Chiudi modal Login
+         */
+        function closeLoginModal() {
+            const modal = document.getElementById('loginModal');
+            modal.classList.remove('active');
         }
 
         /**
          * Mostra modal Registrazione
          */
         function showRegisterModal() {
-            showInfo('Modal Registrazione in sviluppo. <br><br>Registrati via Google OAuth o crea account manualmente.');
-            // TODO: Implementare modal registrazione completo
+            const modal = document.getElementById('registerModal');
+            modal.classList.add('active');
+            // Reset form
+            document.getElementById('registerForm').reset();
+            clearFormErrors('register');
+            // Reset password strength
+            const strengthBar = document.getElementById('passwordStrengthBar');
+            strengthBar.className = 'password-strength-bar';
+        }
+
+        /**
+         * Chiudi modal Registrazione
+         */
+        function closeRegisterModal() {
+            const modal = document.getElementById('registerModal');
+            modal.classList.remove('active');
+        }
+
+        /**
+         * Switch da Login a Registrazione
+         */
+        function switchToRegister() {
+            closeLoginModal();
+            setTimeout(() => showRegisterModal(), 200);
+        }
+
+        /**
+         * Switch da Registrazione a Login
+         */
+        function switchToLogin() {
+            closeRegisterModal();
+            setTimeout(() => showLoginModal(), 200);
+        }
+
+        /**
+         * Pulisci errori form
+         */
+        function clearFormErrors(formType) {
+            const errors = document.querySelectorAll(`#${formType}Form .form-error`);
+            errors.forEach(error => {
+                error.classList.remove('show');
+                error.textContent = '';
+            });
+            const inputs = document.querySelectorAll(`#${formType}Form .auth-input`);
+            inputs.forEach(input => input.classList.remove('error'));
+        }
+
+        /**
+         * Mostra errore campo form
+         */
+        function showFieldError(fieldId, message) {
+            const input = document.getElementById(fieldId);
+            const error = document.getElementById(fieldId + 'Error');
+            input.classList.add('error');
+            error.textContent = message;
+            error.classList.add('show');
+        }
+
+        /**
+         * Controlla forza password
+         */
+        function checkPasswordStrength(password) {
+            const strengthBar = document.getElementById('passwordStrengthBar');
+
+            if (password.length === 0) {
+                strengthBar.className = 'password-strength-bar';
+                return;
+            }
+
+            let strength = 0;
+
+            // Criteri di validazione
+            if (password.length >= 8) strength++;
+            if (password.length >= 12) strength++;
+            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^a-zA-Z0-9]/.test(password)) strength++;
+
+            // Assegna classe
+            if (strength <= 2) {
+                strengthBar.className = 'password-strength-bar weak';
+            } else if (strength <= 3) {
+                strengthBar.className = 'password-strength-bar medium';
+            } else {
+                strengthBar.className = 'password-strength-bar strong';
+            }
+        }
+
+        /**
+         * Login con Google OAuth
+         */
+        function loginWithGoogle() {
+            // Redirect a endpoint Google OAuth
+            window.location.href = '/api/v1/auth/google/login';
+        }
+
+        /**
+         * Gestisci Registrazione
+         */
+        async function handleRegister(event) {
+            event.preventDefault();
+
+            const submitBtn = document.getElementById('registerSubmitBtn');
+            const email = document.getElementById('registerEmail').value.trim();
+            const username = document.getElementById('registerUsername').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const passwordConfirm = document.getElementById('registerPasswordConfirm').value;
+
+            // Validazione
+            clearFormErrors('register');
+            let hasError = false;
+
+            // Validazione email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showFieldError('registerEmail', 'Email non valida');
+                hasError = true;
+            }
+
+            // Validazione username
+            if (username.length < 3) {
+                showFieldError('registerUsername', 'Username deve essere almeno 3 caratteri');
+                hasError = true;
+            }
+
+            // Validazione password
+            if (password.length < 8) {
+                showFieldError('registerPassword', 'Password deve essere almeno 8 caratteri');
+                hasError = true;
+            }
+
+            // Validazione conferma password
+            if (password !== passwordConfirm) {
+                showFieldError('registerPasswordConfirm', 'Le password non corrispondono');
+                hasError = true;
+            }
+
+            if (hasError) return;
+
+            // Avvia loading
+            submitBtn.classList.add('loading');
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/v1/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        username: username,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Successo - salva token
+                    localStorage.setItem('auth_token', data.access_token);
+
+                    // Chiudi modal e aggiorna UI
+                    closeRegisterModal();
+                    await checkAuthStatus();
+                    showSuccess('Registrazione completata con successo! Benvenuto ' + username + '!');
+                } else {
+                    // Errore dal server
+                    if (data.detail) {
+                        if (data.detail.toLowerCase().includes('email')) {
+                            showFieldError('registerEmail', data.detail);
+                        } else if (data.detail.toLowerCase().includes('username')) {
+                            showFieldError('registerUsername', data.detail);
+                        } else {
+                            showError(data.detail);
+                        }
+                    } else {
+                        showError('Errore durante la registrazione. Riprova.');
+                    }
+                }
+            } catch (error) {
+                console.error('Errore registrazione:', error);
+                showError('Errore di connessione. Verifica la tua connessione internet.');
+            } finally {
+                // Stop loading
+                submitBtn.classList.remove('loading');
+                submitBtn.disabled = false;
+            }
+        }
+
+        /**
+         * Gestisci Login
+         */
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            const submitBtn = document.getElementById('loginSubmitBtn');
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+
+            // Validazione base
+            clearFormErrors('login');
+            let hasError = false;
+
+            if (!email) {
+                showFieldError('loginEmail', 'Email richiesta');
+                hasError = true;
+            }
+
+            if (!password) {
+                showFieldError('loginPassword', 'Password richiesta');
+                hasError = true;
+            }
+
+            if (hasError) return;
+
+            // Avvia loading
+            submitBtn.classList.add('loading');
+            submitBtn.disabled = true;
+
+            try {
+                // API endpoint richiede form-data per OAuth2
+                const formData = new URLSearchParams();
+                formData.append('username', email);  // OAuth2 usa 'username' per email
+                formData.append('password', password);
+
+                const response = await fetch('/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Successo - salva token
+                    const storage = rememberMe ? localStorage : sessionStorage;
+                    storage.setItem('auth_token', data.access_token);
+
+                    // Chiudi modal e aggiorna UI
+                    closeLoginModal();
+                    await checkAuthStatus();
+                    showSuccess('Login effettuato con successo! Bentornato!');
+                } else {
+                    // Errore dal server
+                    if (data.detail) {
+                        showError(data.detail);
+                    } else {
+                        showFieldError('loginEmail', 'Email o password non valide');
+                        showFieldError('loginPassword', 'Email o password non valide');
+                    }
+                }
+            } catch (error) {
+                console.error('Errore login:', error);
+                showError('Errore di connessione. Verifica la tua connessione internet.');
+            } finally {
+                // Stop loading
+                submitBtn.classList.remove('loading');
+                submitBtn.disabled = false;
+            }
         }
 
         /**
@@ -4857,6 +5456,216 @@
             </div>
             <div id="modal-body" class="modal-body"></div>
             <div id="modal-footer" class="modal-footer"></div>
+        </div>
+    </div>
+
+    <!-- ==================== AUTH MODALS ==================== -->
+
+    <!-- Modal Registrazione -->
+    <div id="registerModal" class="modal-overlay" onclick="if(event.target === this) closeRegisterModal();">
+        <div class="auth-modal-container">
+            <!-- Close Button -->
+            <button class="auth-modal-close" onclick="closeRegisterModal()">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <!-- Header -->
+            <div class="auth-modal-header">
+                <h2><i class="fas fa-user-plus"></i> Crea il tuo Account</h2>
+                <p>Unisciti alla community di AIVideoMaker</p>
+            </div>
+
+            <!-- Body -->
+            <div class="auth-modal-body">
+                <!-- Google OAuth Button -->
+                <button class="google-btn" onclick="loginWithGoogle()">
+                    <svg width="20" height="20" viewBox="0 0 48 48">
+                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                    </svg>
+                    Registrati con Google
+                </button>
+
+                <div class="auth-divider">OPPURE</div>
+
+                <!-- Registration Form -->
+                <form class="auth-form" id="registerForm" onsubmit="handleRegister(event)">
+                    <!-- Email -->
+                    <div class="auth-form-group">
+                        <label for="registerEmail">
+                            <i class="fas fa-envelope"></i>
+                            Email
+                        </label>
+                        <input
+                            type="email"
+                            id="registerEmail"
+                            class="auth-input"
+                            placeholder="nome@esempio.com"
+                            required
+                        >
+                        <span class="form-error" id="registerEmailError"></span>
+                    </div>
+
+                    <!-- Username -->
+                    <div class="auth-form-group">
+                        <label for="registerUsername">
+                            <i class="fas fa-user"></i>
+                            Username
+                        </label>
+                        <input
+                            type="text"
+                            id="registerUsername"
+                            class="auth-input"
+                            placeholder="Il tuo username"
+                            required
+                            minlength="3"
+                        >
+                        <span class="form-error" id="registerUsernameError"></span>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="auth-form-group">
+                        <label for="registerPassword">
+                            <i class="fas fa-lock"></i>
+                            Password
+                        </label>
+                        <input
+                            type="password"
+                            id="registerPassword"
+                            class="auth-input"
+                            placeholder="Minimo 8 caratteri"
+                            required
+                            minlength="8"
+                            oninput="checkPasswordStrength(this.value)"
+                        >
+                        <div class="password-strength">
+                            <div class="password-strength-bar" id="passwordStrengthBar"></div>
+                        </div>
+                        <span class="form-error" id="registerPasswordError"></span>
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div class="auth-form-group">
+                        <label for="registerPasswordConfirm">
+                            <i class="fas fa-lock"></i>
+                            Conferma Password
+                        </label>
+                        <input
+                            type="password"
+                            id="registerPasswordConfirm"
+                            class="auth-input"
+                            placeholder="Ripeti la password"
+                            required
+                        >
+                        <span class="form-error" id="registerPasswordConfirmError"></span>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="auth-submit-btn" id="registerSubmitBtn">
+                        <div class="spinner"></div>
+                        <span class="btn-text">
+                            <i class="fas fa-user-plus"></i>
+                            Crea Account
+                        </span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Footer - Switch to Login -->
+            <div class="auth-switch">
+                Hai già un account?
+                <a onclick="switchToLogin()">Accedi ora</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Login -->
+    <div id="loginModal" class="modal-overlay" onclick="if(event.target === this) closeLoginModal();">
+        <div class="auth-modal-container">
+            <!-- Close Button -->
+            <button class="auth-modal-close" onclick="closeLoginModal()">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <!-- Header -->
+            <div class="auth-modal-header">
+                <h2><i class="fas fa-sign-in-alt"></i> Bentornato!</h2>
+                <p>Accedi al tuo account AIVideoMaker</p>
+            </div>
+
+            <!-- Body -->
+            <div class="auth-modal-body">
+                <!-- Google OAuth Button -->
+                <button class="google-btn" onclick="loginWithGoogle()">
+                    <svg width="20" height="20" viewBox="0 0 48 48">
+                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                    </svg>
+                    Accedi con Google
+                </button>
+
+                <div class="auth-divider">OPPURE</div>
+
+                <!-- Login Form -->
+                <form class="auth-form" id="loginForm" onsubmit="handleLogin(event)">
+                    <!-- Email -->
+                    <div class="auth-form-group">
+                        <label for="loginEmail">
+                            <i class="fas fa-envelope"></i>
+                            Email
+                        </label>
+                        <input
+                            type="email"
+                            id="loginEmail"
+                            class="auth-input"
+                            placeholder="nome@esempio.com"
+                            required
+                        >
+                        <span class="form-error" id="loginEmailError"></span>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="auth-form-group">
+                        <label for="loginPassword">
+                            <i class="fas fa-lock"></i>
+                            Password
+                        </label>
+                        <input
+                            type="password"
+                            id="loginPassword"
+                            class="auth-input"
+                            placeholder="La tua password"
+                            required
+                        >
+                        <span class="form-error" id="loginPasswordError"></span>
+                    </div>
+
+                    <!-- Remember Me -->
+                    <label class="remember-me">
+                        <input type="checkbox" id="rememberMe">
+                        <span>Ricordami</span>
+                    </label>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="auth-submit-btn" id="loginSubmitBtn">
+                        <div class="spinner"></div>
+                        <span class="btn-text">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Accedi
+                        </span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Footer - Switch to Register -->
+            <div class="auth-switch">
+                Non hai un account?
+                <a onclick="switchToRegister()">Registrati ora</a>
+            </div>
         </div>
     </div>
 

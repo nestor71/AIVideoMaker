@@ -267,3 +267,6 @@ if __name__ == "__main__":
 
 # 3. Scarica le modifiche
 #    git pull origin claude/project-review-improvements-011CUpkeELM78WpjRDQLfS6q
+
+# 4. Carica le modifiche su Github
+#   git push origin claude/project-review-improvements-011CUpkeELM78WpjRDQLfS6q
