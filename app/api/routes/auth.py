@@ -25,6 +25,7 @@ from app.core.security import (
     generate_api_key
 )
 from app.core.config import settings
+from app.core.limiter import limiter
 from app.models.user import User
 from app.models.api_key import APIKey
 
@@ -98,9 +99,16 @@ class APIKeyCreate(BaseModel):
 # ==================== Routes ====================
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def register(user_data: UserRegister, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+async def register(
+    request: Request,
+    user_data: UserRegister,
+    db: Session = Depends(get_db)
+):
     """
     Registra nuovo utente
+
+    RATE LIMIT: 5 richieste/minuto per IP
 
     - **username**: Username univoco
     - **email**: Email univoca
@@ -140,9 +148,16 @@ async def register(user_data: UserRegister, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=Token)
-async def login(credentials: UserLogin, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+async def login(
+    request: Request,
+    credentials: UserLogin,
+    db: Session = Depends(get_db)
+):
     """
     Login e generazione JWT token
+
+    RATE LIMIT: 5 richieste/minuto per IP
 
     - **email**: Email utente
     - **password**: Password

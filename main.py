@@ -15,16 +15,22 @@ Author: AIVideoMaker Team
 
 import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
+from sqlalchemy.orm import Session
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
-from app.core.database import init_db
+from app.core.database import init_db, get_db
 from app.core.rate_limit import RateLimitMiddleware
+from app.core.security import require_admin
+from app.core.limiter import limiter
+from app.models.user import User
 
 # Setup logging
 logging.basicConfig(
@@ -97,7 +103,56 @@ app = FastAPI(
     redoc_url="/redoc" if settings.debug else None,  # ReDoc
 )
 
+# ==================== RATE LIMITING (SlowAPI) ====================
+
+# Configurazione SlowAPI per rate limiting granulare
+# Limiter configurato in app.core.limiter
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 # ==================== MIDDLEWARE ====================
+
+# HTTPS Redirect (solo in production)
+if settings.environment == "production":
+    from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
+    app.add_middleware(HTTPSRedirectMiddleware)
+    logger.info("✅ HTTPS enforcement abilitato")
+
+# Security Headers
+from starlette.middleware.base import BaseHTTPMiddleware
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Aggiunge security headers a tutte le risposte"""
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+
+        # HSTS: Force HTTPS for 1 year
+        if settings.environment == "production":
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+
+        # Prevent clickjacking
+        response.headers["X-Frame-Options"] = "DENY"
+
+        # Prevent MIME sniffing
+        response.headers["X-Content-Type-Options"] = "nosniff"
+
+        # XSS Protection (legacy but still good)
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+
+        # Referrer policy
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+
+        # Content Security Policy (basic - adjust based on needs)
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "img-src 'self' data: https:; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+            "style-src 'self' 'unsafe-inline';"
+        )
+
+        return response
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 # Rate Limiting (eseguito per primo)
 app.add_middleware(
@@ -166,8 +221,17 @@ async def translation_page(request: Request):
 
 
 @app.get("/admin")
-async def admin_dashboard(request: Request):
-    """Serve admin dashboard (protected route)"""
+async def admin_dashboard(
+    request: Request,
+    admin_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Serve admin dashboard - PROTECTED ROUTE
+
+    Richiede autenticazione admin con JWT token.
+    Redirect automatico a /login se non autenticato.
+    """
     return templates.TemplateResponse("admin_dashboard.html", {"request": request})
 
 # ==================== API STATUS ROUTES ====================

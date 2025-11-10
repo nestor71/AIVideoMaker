@@ -17,6 +17,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, status
 from pydantic import BaseModel
 
 from app.core.config import settings
+from app.core.file_validator import get_safe_filename
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -72,7 +73,9 @@ async def upload_file(file: UploadFile = File(...)):
     temp_file = None
 
     try:
-        logger.info(f"📤 Inizio upload file: {file.filename}")
+        # Sanitizza filename per prevenire path traversal
+        safe_filename = get_safe_filename(file.filename)
+        logger.info(f"📤 Inizio upload file: {safe_filename}")
 
         # Leggi file in memoria temporanea per validazione
         temp_file = tempfile.NamedTemporaryFile(delete=False)
@@ -108,14 +111,14 @@ async def upload_file(file: UploadFile = File(...)):
             )
 
         # Salva file: se è una registrazione usa nome originale, altrimenti UUID
-        if file.filename.startswith('recording_'):
+        if safe_filename.startswith('recording_'):
             # Registrazione: usa nome originale
-            final_filename = file.filename
-            file_id = Path(file.filename).stem  # ID = nome senza estensione
+            final_filename = safe_filename
+            file_id = Path(safe_filename).stem  # ID = nome senza estensione
         else:
             # Upload normale: usa UUID
             file_id = str(uuid.uuid4())
-            file_extension = Path(file.filename).suffix.lower()
+            file_extension = Path(safe_filename).suffix.lower()
             final_filename = f"{file_id}{file_extension}"
 
         file_path = settings.upload_dir / final_filename
@@ -126,11 +129,11 @@ async def upload_file(file: UploadFile = File(...)):
 
         shutil.move(temp_file.name, file_path)
 
-        logger.info(f"✅ Upload completato: {file.filename} ({file_size / 1024 / 1024:.2f}MB) -> {final_filename}")
+        logger.info(f"✅ Upload completato: {safe_filename} ({file_size / 1024 / 1024:.2f}MB) -> {final_filename}")
 
         return FileUploadResponse(
             file_id=file_id,
-            filename=file.filename,
+            filename=safe_filename,  # Ritorna nome sanitizzato
             path=str(file_path),
             size=file_size,
             mime_type=detected_mime

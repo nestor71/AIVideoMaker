@@ -10,6 +10,7 @@ from app.models.pipeline import Pipeline, PipelineStatus
 from app.models.file_metadata import FileMetadata
 from app.models.user_settings import UserSettings, DEFAULT_SETTINGS
 from app.models.usage_log import UsageLog
+from app.models.admin_audit_log import AdminAuditLog
 
 __all__ = [
     "User",
@@ -23,4 +24,5 @@ __all__ = [
     "UserSettings",
     "DEFAULT_SETTINGS",
     "UsageLog",
+    "AdminAuditLog",
 ]

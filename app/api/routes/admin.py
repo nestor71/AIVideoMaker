@@ -7,7 +7,7 @@ Gestione utenti, statistiche, configurazione
 
 from typing import List, Optional
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -18,6 +18,8 @@ import io
 
 from app.core.database import get_db
 from app.core.security import require_admin, get_password_hash
+from app.core.limiter import limiter
+from app.core.admin_audit import log_admin_action
 from app.models.user import User
 from app.models.job import Job, JobStatus
 from app.models.pipeline import Pipeline
@@ -120,7 +122,9 @@ class SystemStatsResponse(BaseModel):
 # ==================== Routes ====================
 
 @router.get("/users", response_model=List[UserListResponse])
+@limiter.limit("30/minute")
 async def list_all_users(
+    request: Request,
     skip: int = 0,
     limit: int = 100,
     is_active: Optional[bool] = None,
@@ -132,6 +136,7 @@ async def list_all_users(
     Lista TUTTI gli utenti del sistema
 
     **Richiede privilegi admin.**
+    **RATE LIMIT: 30 richieste/minuto per IP**
 
     Query parameters:
     - **skip**: Numero utenti da saltare (pagination, default: 0)
@@ -181,7 +186,9 @@ async def list_all_users(
 
 
 @router.get("/users/{user_id}", response_model=UserDetailResponse)
+@limiter.limit("30/minute")
 async def get_user_details(
+    request: Request,
     user_id: str,
     admin_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
@@ -190,6 +197,7 @@ async def get_user_details(
     Ottieni dettagli completi di un utente
 
     **Richiede privilegi admin.**
+    **RATE LIMIT: 30 richieste/minuto per IP**
 
     - **user_id**: ID dell'utente da consultare
 
@@ -257,7 +265,9 @@ async def get_user_details(
 
 
 @router.patch("/users/{user_id}", response_model=UserDetailResponse)
+@limiter.limit("30/minute")
 async def update_user(
+    request: Request,
     user_id: str,
     update_data: UserUpdateRequest,
     admin_user: User = Depends(require_admin),
@@ -267,6 +277,7 @@ async def update_user(
     Modifica utente
 
     **Richiede privilegi admin.**
+    **RATE LIMIT: 30 richieste/minuto per IP**
 
     - **user_id**: ID dell'utente da modificare
 
@@ -351,15 +362,43 @@ async def update_user(
 
     user.updated_at = datetime.utcnow()
 
+    # Log audit action
+    changes_dict = {}
+    if update_data.email is not None:
+        changes_dict['email'] = update_data.email
+    if update_data.full_name is not None:
+        changes_dict['full_name'] = update_data.full_name
+    if update_data.is_active is not None:
+        changes_dict['is_active'] = update_data.is_active
+    if update_data.is_admin is not None:
+        changes_dict['is_admin'] = update_data.is_admin
+    if update_data.subscription_tier is not None:
+        changes_dict['subscription_tier'] = update_data.subscription_tier
+    if update_data.password is not None:
+        changes_dict['password'] = '***CHANGED***'
+
+    log_admin_action(
+        db=db,
+        admin_user=admin_user,
+        action='user.update',
+        target_type='user',
+        target_id=user.id,
+        target_identifier=user.username,
+        details={'changes': changes_dict},
+        request=request
+    )
+
     db.commit()
     db.refresh(user)
 
     # Ritorna dettagli aggiornati
-    return await get_user_details(str(user.id), admin_user, db)
+    return await get_user_details(request, str(user.id), admin_user, db)
 
 
 @router.delete("/users/{user_id}", status_code=status.HTTP_200_OK)
+@limiter.limit("30/minute")
 async def delete_user(
+    request: Request,
     user_id: str,
     admin_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
@@ -368,6 +407,7 @@ async def delete_user(
     Elimina utente
 
     **Richiede privilegi admin.**
+    **RATE LIMIT: 30 richieste/minuto per IP**
 
     - **user_id**: ID dell'utente da eliminare
 
@@ -417,6 +457,25 @@ async def delete_user(
     pipelines_count = db.query(Pipeline).filter(Pipeline.user_id == user.id).count()
     api_keys_count = db.query(APIKey).filter(APIKey.user_id == user.id).count()
 
+    # Log audit PRIMA di eliminare
+    log_admin_action(
+        db=db,
+        admin_user=admin_user,
+        action='user.delete',
+        target_type='user',
+        target_id=user.id,
+        target_identifier=user.username,
+        details={
+            'deleted_resources': {
+                'jobs': jobs_count,
+                'pipelines': pipelines_count,
+                'api_keys': api_keys_count
+            },
+            'user_email': user.email
+        },
+        request=request
+    )
+
     # Elimina (cascade delete gestito da SQLAlchemy relationships)
     db.delete(user)
     db.commit()
@@ -433,7 +492,9 @@ async def delete_user(
 
 
 @router.get("/stats", response_model=SystemStatsResponse)
+@limiter.limit("30/minute")
 async def get_system_stats(
+    request: Request,
     admin_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
@@ -441,6 +502,7 @@ async def get_system_stats(
     Ottieni statistiche sistema
 
     **Richiede privilegi admin.**
+    **RATE LIMIT: 30 richieste/minuto per IP**
 
     Returns:
     - Conteggi utenti (totali, attivi, admin)
@@ -474,7 +536,9 @@ async def get_system_stats(
 
 
 @router.get("/users/export/csv")
+@limiter.limit("30/minute")
 async def export_users_csv(
+    request: Request,
     admin_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
@@ -482,6 +546,7 @@ async def export_users_csv(
     Esporta tutti gli utenti in formato CSV
 
     **Richiede privilegi admin.**
+    **RATE LIMIT: 30 richieste/minuto per IP**
 
     Returns:
         CSV file con tutti gli utenti e statistiche
