@@ -23,7 +23,7 @@ python-dotenv==1.0.0
 
 # Computer Vision
 opencv-python==4.12.0.88
-numpy==1.26.4  # Compatibile con Torch/Whisper (numpy 2.x non supportato)
+numpy>=2.0,<2.3  # Compatibile con opencv-python 4.12.x
 
 # Validation
 pydantic==2.9.2
@@ -40,7 +40,7 @@ openai==1.54.4
 requests==2.32.3
 
 # Whisper for audio transcription (metadata generation)
-openai-whisper==20231117
+openai-whisper==20250625  # Versione aggiornata per compatibilità numpy 2.x
 
 # Screen recording
 pyautogui==0.9.54
