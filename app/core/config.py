@@ -28,7 +28,9 @@ class Settings(BaseSettings):
 
     # ==================== SECURITY ====================
     secret_key: str = Field(..., description="Secret key per JWT (MUST BE RANDOM)")
-    access_token_expire_minutes: int = Field(default=60 * 24, description="Token expiry (minuti)")
+    access_token_expire_minutes: int = Field(default=60, description="Access token expiry (minuti) - 1 ora")
+    refresh_token_expire_days: int = Field(default=30, description="Refresh token expiry (giorni) - 30 giorni")
+    admin_token_expire_minutes: int = Field(default=15, description="Admin token expiry (minuti) - 15 minuti")
     algorithm: str = Field(default="HS256", description="JWT algorithm")
 
     # Google OAuth 2.0
@@ -50,8 +52,8 @@ class Settings(BaseSettings):
 
     # ==================== DATABASE ====================
     database_url: str = Field(
-        default="postgresql://aivideomaker:password@localhost:5432/aivideomaker",
-        description="PostgreSQL connection string"
+        ...,
+        description="PostgreSQL connection string (REQUIRED - must be set in .env)"
     )
     database_echo: bool = Field(default=False, description="Log SQL queries")
 

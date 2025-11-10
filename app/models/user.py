@@ -49,6 +49,7 @@ class User(Base):
     jobs = relationship("Job", back_populates="user", cascade="all, delete-orphan")
     pipelines = relationship("Pipeline", back_populates="user", cascade="all, delete-orphan")
     usage_logs = relationship("UsageLog", back_populates="user", cascade="all, delete-orphan")
+    refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<User(id={self.id}, email={self.email}, username={self.username})>"

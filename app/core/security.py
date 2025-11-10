@@ -9,10 +9,11 @@ from typing import Optional, Any
 from uuid import UUID
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from fastapi import Depends, HTTPException, status, Security
+from fastapi import Depends, HTTPException, status, Security, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, APIKeyHeader
 from sqlalchemy.orm import Session
 import secrets
+import hashlib
 
 from app.core.config import settings
 from app.core.database import get_db
@@ -246,3 +247,167 @@ def require_admin(current_user = Depends(get_current_active_user)) -> Any:
             detail="Admin privileges required"
         )
     return current_user
+
+
+def generate_refresh_token() -> str:
+    """
+    Genera refresh token sicuro (64 caratteri hex = 256 bit)
+
+    Returns:
+        str: Refresh token
+    """
+    return secrets.token_hex(32)
+
+
+def hash_refresh_token(token: str) -> str:
+    """
+    Hash refresh token con SHA256 per storage sicuro nel database.
+
+    Args:
+        token: Refresh token in chiaro
+
+    Returns:
+        str: Hash SHA256 del token
+    """
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+def create_refresh_token(
+    user_id: UUID,
+    db: Session,
+    request: Optional[Request] = None
+) -> str:
+    """
+    Crea nuovo refresh token per utente.
+
+    Args:
+        user_id: ID utente
+        db: Database session
+        request: Request FastAPI (opzionale, per metadata)
+
+    Returns:
+        str: Refresh token (da inviare al client)
+    """
+    from app.models.refresh_token import RefreshToken
+
+    # Genera token
+    token = generate_refresh_token()
+    token_hash = hash_refresh_token(token)
+
+    # Calcola scadenza
+    expires_at = datetime.utcnow() + timedelta(days=settings.refresh_token_expire_days)
+
+    # Metadata da request
+    device_info = None
+    ip_address = None
+    user_agent = None
+
+    if request:
+        user_agent = request.headers.get("user-agent", "")[:500]
+        # Gestisci proxy headers per IP reale
+        ip_address = request.headers.get("x-forwarded-for", request.client.host if request.client else None)
+        if ip_address and "," in ip_address:
+            ip_address = ip_address.split(",")[0].strip()
+
+    # Crea record database
+    db_token = RefreshToken(
+        token_hash=token_hash,
+        user_id=user_id,
+        expires_at=expires_at,
+        device_info=device_info,
+        ip_address=ip_address,
+        user_agent=user_agent
+    )
+
+    db.add(db_token)
+    db.commit()
+
+    return token
+
+
+def verify_refresh_token(token: str, db: Session) -> Optional[UUID]:
+    """
+    Verifica refresh token e ritorna user_id se valido.
+
+    Args:
+        token: Refresh token da verificare
+        db: Database session
+
+    Returns:
+        UUID: User ID se token valido, None altrimenti
+    """
+    from app.models.refresh_token import RefreshToken
+
+    token_hash = hash_refresh_token(token)
+
+    # Query database
+    db_token = db.query(RefreshToken).filter(
+        RefreshToken.token_hash == token_hash
+    ).first()
+
+    if not db_token:
+        return None
+
+    # Verifica validità
+    if not db_token.is_valid:
+        return None
+
+    # Aggiorna last_used_at
+    db_token.last_used_at = datetime.utcnow()
+    db.commit()
+
+    return db_token.user_id
+
+
+def revoke_refresh_token(token: str, db: Session) -> bool:
+    """
+    Revoca refresh token.
+
+    Args:
+        token: Refresh token da revocare
+        db: Database session
+
+    Returns:
+        bool: True se revocato, False se non trovato
+    """
+    from app.models.refresh_token import RefreshToken
+
+    token_hash = hash_refresh_token(token)
+
+    db_token = db.query(RefreshToken).filter(
+        RefreshToken.token_hash == token_hash
+    ).first()
+
+    if not db_token:
+        return False
+
+    db_token.is_revoked = True
+    db_token.revoked_at = datetime.utcnow()
+    db.commit()
+
+    return True
+
+
+def revoke_all_user_tokens(user_id: UUID, db: Session) -> int:
+    """
+    Revoca tutti i refresh token di un utente.
+
+    Args:
+        user_id: ID utente
+        db: Database session
+
+    Returns:
+        int: Numero di token revocati
+    """
+    from app.models.refresh_token import RefreshToken
+
+    count = db.query(RefreshToken).filter(
+        RefreshToken.user_id == user_id,
+        RefreshToken.is_revoked == False
+    ).update({
+        "is_revoked": True,
+        "revoked_at": datetime.utcnow()
+    })
+
+    db.commit()
+    return count

@@ -13,11 +13,15 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-from fastapi import APIRouter, UploadFile, File, HTTPException, status
+from fastapi import APIRouter, UploadFile, File, HTTPException, status, Depends, Request
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.file_validator import get_safe_filename
+from app.core.security import get_current_user
+from app.core.database import get_db
+from app.core.limiter import limiter
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -44,6 +48,42 @@ ALLOWED_IMAGE_MIMES = [
 ]
 
 
+def validate_path_in_directory(requested_path: str, allowed_dir: Path) -> Path:
+    """
+    Valida che il path richiesto sia dentro la directory consentita.
+    Previene path traversal attacks (../../etc/passwd).
+
+    Args:
+        requested_path: Path richiesto dall'utente
+        allowed_dir: Directory consentita
+
+    Returns:
+        Path: Path assoluto validato
+
+    Raises:
+        HTTPException: Se path non valido o fuori directory consentita
+    """
+    try:
+        # Converti a Path e risolvi symlinks/..
+        requested = Path(requested_path).resolve()
+        allowed = allowed_dir.resolve()
+
+        # Verifica che il path sia dentro allowed_dir
+        if not str(requested).startswith(str(allowed)):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Accesso al path non autorizzato"
+            )
+
+        return requested
+    except Exception as e:
+        logger.error(f"Path validation error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Path non valido"
+        )
+
+
 class FileUploadResponse(BaseModel):
     """Schema risposta upload file"""
     file_id: str
@@ -54,19 +94,33 @@ class FileUploadResponse(BaseModel):
 
 
 @router.post("/upload", response_model=FileUploadResponse)
-async def upload_file(file: UploadFile = File(...)):
+@limiter.limit("10/hour")
+async def upload_file(
+    request: Request,
+    file: UploadFile = File(...),
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """
     Upload generico file video o immagine
 
+    **AUTENTICAZIONE RICHIESTA**
+    **RATE LIMIT**: 10 upload/ora per utente
+
     Args:
+        request: Request FastAPI (per rate limiting)
         file: File da caricare
+        current_user: Utente autenticato
+        db: Database session
 
     Returns:
         FileUploadResponse con dettagli file
 
     Raises:
+        401: Non autenticato
         413: File troppo grande
         400: Tipo MIME non supportato
+        429: Troppi upload (rate limit)
         500: Errore interno
     """
     file_size = 0
@@ -152,32 +206,47 @@ async def upload_file(file: UploadFile = File(...)):
 
 
 @router.get("/file-info")
-async def get_file_info(path: str):
+async def get_file_info(
+    path: str,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """
     Ottieni informazioni su un file caricato
 
+    **AUTENTICAZIONE RICHIESTA**
+    **PATH VALIDATION**: Il path deve essere dentro la directory uploads
+
     Args:
-        path: Percorso file
+        path: Percorso file (relativo o assoluto)
+        current_user: Utente autenticato
+        db: Database session
 
     Returns:
         Informazioni file
+
+    Raises:
+        401: Non autenticato
+        403: Path non autorizzato (fuori uploads directory)
+        404: File non trovato
     """
     try:
-        file_path = Path(path)
+        # Valida che il path sia dentro la directory consentita
+        validated_path = validate_path_in_directory(path, settings.upload_dir)
 
-        if not file_path.exists():
+        if not validated_path.exists():
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="File non trovato"
             )
 
-        file_size = file_path.stat().st_size
+        file_size = validated_path.stat().st_size
         mime = magic.Magic(mime=True)
-        detected_mime = mime.from_file(str(file_path))
+        detected_mime = mime.from_file(str(validated_path))
 
         return {
-            "filename": file_path.name,
-            "path": str(file_path),
+            "filename": validated_path.name,
+            "path": str(validated_path),
             "size": file_size,
             "mime_type": detected_mime,
             "exists": True

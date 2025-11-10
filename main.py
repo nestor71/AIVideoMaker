@@ -154,6 +154,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(SecurityHeadersMiddleware)
 
+# CSRF Protection
+from app.core.csrf import CSRFProtectionMiddleware
+app.add_middleware(CSRFProtectionMiddleware, secret_key=settings.secret_key)
+logger.info("✅ CSRF protection abilitato")
+
 # Rate Limiting (eseguito per primo)
 app.add_middleware(
     RateLimitMiddleware,

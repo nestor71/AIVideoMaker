@@ -22,7 +22,11 @@ from app.core.security import (
     verify_password,
     get_password_hash,
     get_current_user,
-    generate_api_key
+    generate_api_key,
+    create_refresh_token,
+    verify_refresh_token,
+    revoke_refresh_token,
+    revoke_all_user_tokens
 )
 from app.core.config import settings
 from app.core.limiter import limiter
@@ -52,6 +56,7 @@ class UserLogin(BaseModel):
 class Token(BaseModel):
     """Schema per token JWT"""
     access_token: str
+    refresh_token: str
     token_type: str = "bearer"
     expires_in: int
 
@@ -132,17 +137,34 @@ async def register(
                 detail="Email già in uso"
             )
 
-    # Crea nuovo utente
+    # Crea nuovo utente (is_verified = False di default)
     new_user = User(
         username=user_data.username,
         email=user_data.email,
         full_name=user_data.full_name,
-        hashed_password=get_password_hash(user_data.password)
+        hashed_password=get_password_hash(user_data.password),
+        is_verified=False  # Richiede verifica email
     )
 
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+
+    # Genera token di verifica (JWT valido 24 ore)
+    verification_token = create_access_token(
+        data={"sub": str(new_user.id), "type": "email_verification"},
+        expires_delta=timedelta(hours=24)
+    )
+
+    # TODO: Inviare email di verifica
+    # verification_link = f"{settings.frontend_url}/verify-email?token={verification_token}"
+    # await send_email(new_user.email, "Verifica Email", verification_link)
+
+    # Per ora log in console (in produzione inviare email vera)
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"📧 Email verification token per {new_user.email}: {verification_token}")
+    logger.info(f"   Link verifica: http://localhost:8000/api/v1/auth/verify-email?token={verification_token}")
 
     return new_user
 
@@ -155,14 +177,16 @@ async def login(
     db: Session = Depends(get_db)
 ):
     """
-    Login e generazione JWT token
+    Login e generazione JWT token + Refresh Token
 
     RATE LIMIT: 5 richieste/minuto per IP
 
     - **email**: Email utente
     - **password**: Password
 
-    Returns JWT token valido per 30 giorni
+    Returns:
+    - **access_token**: JWT valido per 1 ora
+    - **refresh_token**: Token per rinnovare access_token (valido 30 giorni)
     """
     # Trova utente
     user = db.query(User).filter(User.email == credentials.email).first()
@@ -187,16 +211,24 @@ async def login(
             detail="Utente disabilitato"
         )
 
-    # Crea JWT token
+    # Aggiorna last_login
+    user.last_login_at = datetime.utcnow()
+    db.commit()
+
+    # Crea access token (1 ora)
     access_token = create_access_token(
         data={"sub": str(user.id)},
-        expires_delta=timedelta(days=30)
+        expires_delta=timedelta(minutes=settings.access_token_expire_minutes)
     )
+
+    # Crea refresh token (30 giorni)
+    refresh_token = create_refresh_token(user.id, db, request)
 
     return {
         "access_token": access_token,
+        "refresh_token": refresh_token,
         "token_type": "bearer",
-        "expires_in": 30 * 24 * 60 * 60  # 30 giorni in secondi
+        "expires_in": settings.access_token_expire_minutes * 60  # in secondi
     }
 
 
@@ -256,16 +288,20 @@ async def quick_token(
             detail="Utente disabilitato"
         )
 
-    # Crea JWT token (30 giorni)
+    # Crea JWT token (1 ora per test - in produzione disabilitare questo endpoint!)
     access_token = create_access_token(
         data={"sub": str(user.id)},
-        expires_delta=timedelta(days=30)
+        expires_delta=timedelta(minutes=settings.access_token_expire_minutes)
     )
+
+    # Crea anche refresh token
+    refresh_token = create_refresh_token(user.id, db)
 
     return {
         "access_token": access_token,
+        "refresh_token": refresh_token,
         "token_type": "bearer",
-        "expires_in": 30 * 24 * 60 * 60  # 30 giorni in secondi
+        "expires_in": settings.access_token_expire_minutes * 60  # in secondi
     }
 
 
@@ -572,11 +608,20 @@ async def google_callback(
         db.commit()
         db.refresh(user)
 
-    # Genera JWT token per l'app
+    # Genera JWT token per l'app (1 ora)
     jwt_token = create_access_token(
         data={"sub": str(user.id)},
-        expires_delta=timedelta(days=30)
+        expires_delta=timedelta(minutes=settings.access_token_expire_minutes)
     )
+
+    # Genera refresh token
+    refresh_token_val = create_refresh_token(user.id, db)
+
+    # FIX XSS: Escape HTML e usa JSON sicuro invece di template string
+    import json
+    safe_token = json.dumps(jwt_token)
+    safe_refresh = json.dumps(refresh_token_val)
+    safe_username = json.dumps(user.full_name or user.username)
 
     # Redirect a pagina con token (auto-login)
     return HTMLResponse(
@@ -585,8 +630,9 @@ async def google_callback(
             <head>
                 <title>Login Completato</title>
                 <script>
-                    // Salva token in localStorage
-                    localStorage.setItem('auth_token', '{jwt_token}');
+                    // Salva token in localStorage (JSON.parse rimuove XSS risk)
+                    localStorage.setItem('auth_token', {safe_token});
+                    localStorage.setItem('refresh_token', {safe_refresh});
 
                     // Redirect a homepage
                     window.location.href = '/';
@@ -594,11 +640,432 @@ async def google_callback(
             </head>
             <body>
                 <h1>✅ Login completato!</h1>
-                <p>Benvenuto, {user.full_name or user.username}!</p>
+                <p>Benvenuto, <span id="username"></span>!</p>
                 <p>Reindirizzamento in corso...</p>
                 <p>Se non vieni reindirizzato, <a href="/">clicca qui</a>.</p>
+                <script>
+                    document.getElementById('username').textContent = {safe_username};
+                </script>
             </body>
         </html>
         """,
         status_code=200
     )
+
+
+# ==================== Refresh Token Management ====================
+
+class RefreshTokenRequest(BaseModel):
+    """Schema per refresh token request"""
+    refresh_token: str
+
+
+@router.post("/refresh", response_model=Token)
+@limiter.limit("10/minute")
+async def refresh_access_token(
+    request: Request,
+    token_data: RefreshTokenRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Rinnova access token usando refresh token
+
+    RATE LIMIT: 10 richieste/minuto per IP
+
+    - **refresh_token**: Refresh token valido
+
+    Returns:
+    - **access_token**: Nuovo JWT valido per 1 ora
+    - **refresh_token**: Nuovo refresh token (rotation per sicurezza)
+    """
+    # Verifica refresh token
+    user_id = verify_refresh_token(token_data.refresh_token, db)
+
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token invalido o scaduto"
+        )
+
+    # Trova utente
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Utente non trovato o disabilitato"
+        )
+
+    # Revoca vecchio refresh token (refresh token rotation)
+    revoke_refresh_token(token_data.refresh_token, db)
+
+    # Crea nuovo access token
+    access_token = create_access_token(
+        data={"sub": str(user.id)},
+        expires_delta=timedelta(minutes=settings.access_token_expire_minutes)
+    )
+
+    # Crea nuovo refresh token
+    new_refresh_token = create_refresh_token(user.id, db, request)
+
+    return {
+        "access_token": access_token,
+        "refresh_token": new_refresh_token,
+        "token_type": "bearer",
+        "expires_in": settings.access_token_expire_minutes * 60
+    }
+
+
+@router.post("/logout", status_code=status.HTTP_200_OK)
+async def logout(
+    token_data: RefreshTokenRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Logout: revoca refresh token corrente
+
+    Richiede JWT token valido
+
+    - **refresh_token**: Refresh token da revocare
+
+    Returns:
+    - Messaggio di conferma
+    """
+    # Revoca refresh token
+    revoked = revoke_refresh_token(token_data.refresh_token, db)
+
+    if not revoked:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Refresh token non trovato"
+        )
+
+    return {"message": "Logout effettuato con successo"}
+
+
+@router.post("/revoke-all", status_code=status.HTTP_200_OK)
+async def revoke_all_tokens(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Revoca tutti i refresh token dell'utente corrente
+
+    Utile per:
+    - Logout da tutti i dispositivi
+    - Cambio password (forzare re-login ovunque)
+    - Sicurezza: sospetta compromissione account
+
+    Richiede JWT token valido
+
+    Returns:
+    - Numero di token revocati
+    """
+    count = revoke_all_user_tokens(current_user.id, db)
+
+    return {
+        "message": f"Revocati {count} refresh token",
+        "revoked_count": count
+    }
+
+
+# ==================== Password Management ====================
+
+class ForgotPasswordRequest(BaseModel):
+    """Schema per richiesta reset password"""
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    """Schema per reset password"""
+    token: str
+    new_password: str
+
+
+class ChangePasswordRequest(BaseModel):
+    """Schema per cambio password (utente loggato)"""
+    current_password: str
+    new_password: str
+
+
+@router.post("/forgot-password", status_code=status.HTTP_200_OK)
+@limiter.limit("3/hour")
+async def forgot_password(
+    request: Request,
+    data: ForgotPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Richiesta reset password
+
+    RATE LIMIT: 3 richieste/ora per IP
+
+    Invia email con link reset password (token valido 15 minuti)
+
+    - **email**: Email utente
+
+    Returns:
+    - Messaggio di conferma (sempre, anche se email non esiste - per sicurezza)
+    """
+    # Trova utente (silently fail se non esiste - no information disclosure)
+    user = db.query(User).filter(User.email == data.email).first()
+
+    if user and user.is_active:
+        # Crea reset token (JWT con scadenza 15 minuti)
+        reset_token = create_access_token(
+            data={"sub": str(user.id), "type": "password_reset"},
+            expires_delta=timedelta(minutes=15)
+        )
+
+        # TODO: Inviare email con reset link
+        # reset_link = f"{settings.frontend_url}/reset-password?token={reset_token}"
+        # await send_email(user.email, "Reset Password", reset_link)
+
+        # Per ora log in console (in produzione inviare email vera)
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"🔑 Password reset token per {user.email}: {reset_token}")
+        logger.info(f"   Link reset: http://localhost:8000/reset-password?token={reset_token}")
+
+    # SEMPRE ritorna successo (anche se email non esiste) - previene user enumeration
+    return {
+        "message": "Se l'email esiste, riceverai un link per reset password"
+    }
+
+
+@router.post("/reset-password", status_code=status.HTTP_200_OK)
+@limiter.limit("5/hour")
+async def reset_password(
+    request: Request,
+    data: ResetPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Reset password con token
+
+    RATE LIMIT: 5 richieste/ora per IP
+
+    - **token**: Reset token da email
+    - **new_password**: Nuova password
+
+    Returns:
+    - Messaggio di conferma
+    """
+    # Decodifica token
+    from app.core.security import decode_access_token
+
+    payload = decode_access_token(data.token)
+
+    if not payload or payload.get("type") != "password_reset":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Token reset invalido o scaduto"
+        )
+
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Token reset invalido"
+        )
+
+    # Trova utente
+    from uuid import UUID as UUIDType
+    user = db.query(User).filter(User.id == UUIDType(user_id)).first()
+
+    if not user or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Utente non trovato o disabilitato"
+        )
+
+    # Valida nuova password (lunghezza minima)
+    if len(data.new_password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password deve essere almeno 8 caratteri"
+        )
+
+    # Aggiorna password
+    user.hashed_password = get_password_hash(data.new_password)
+    user.updated_at = datetime.utcnow()
+    db.commit()
+
+    # Revoca tutti i refresh token per sicurezza (forza re-login ovunque)
+    revoke_all_user_tokens(user.id, db)
+
+    return {"message": "Password aggiornata con successo"}
+
+
+@router.post("/change-password", status_code=status.HTTP_200_OK)
+async def change_password(
+    data: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Cambio password per utente loggato
+
+    Richiede JWT token valido
+
+    - **current_password**: Password attuale
+    - **new_password**: Nuova password
+
+    Returns:
+    - Messaggio di conferma
+    """
+    # Verifica password attuale
+    if not verify_password(data.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password attuale non corretta"
+        )
+
+    # Valida nuova password
+    if len(data.new_password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Nuova password deve essere almeno 8 caratteri"
+        )
+
+    # Non permettere stessa password
+    if verify_password(data.new_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Nuova password deve essere diversa dalla precedente"
+        )
+
+    # Aggiorna password
+    current_user.hashed_password = get_password_hash(data.new_password)
+    current_user.updated_at = datetime.utcnow()
+    db.commit()
+
+    # Revoca tutti i refresh token eccetto quello corrente (opzionale)
+    # Per semplicità revoco tutti - utente dovrà ri-loggarsi
+    revoke_all_user_tokens(current_user.id, db)
+
+    return {"message": "Password cambiata con successo. Effettua nuovamente il login."}
+
+
+# ==================== Email Verification ====================
+
+class VerifyEmailRequest(BaseModel):
+    """Schema per verifica email"""
+    token: str
+
+
+@router.post("/verify-email", status_code=status.HTTP_200_OK)
+@router.get("/verify-email", status_code=status.HTTP_200_OK)
+async def verify_email(
+    token: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Verifica email con token
+
+    - **token**: Token di verifica email da email
+
+    Returns:
+    - Messaggio di conferma
+    """
+    # Decodifica token
+    from app.core.security import decode_access_token
+
+    payload = decode_access_token(token)
+
+    if not payload or payload.get("type") != "email_verification":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Token verifica invalido o scaduto"
+        )
+
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Token verifica invalido"
+        )
+
+    # Trova utente
+    from uuid import UUID as UUIDType
+    user = db.query(User).filter(User.id == UUIDType(user_id)).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Utente non trovato"
+        )
+
+    # Verifica se già verificato
+    if user.is_verified:
+        return {"message": "Email già verificata"}
+
+    # Marca come verificato
+    user.is_verified = True
+    user.updated_at = datetime.utcnow()
+    db.commit()
+
+    return {"message": "Email verificata con successo!"}
+
+
+@router.post("/resend-verification", status_code=status.HTTP_200_OK)
+@limiter.limit("3/hour")
+async def resend_verification_email(
+    request: Request,
+    data: ForgotPasswordRequest,  # Riusa stesso schema (ha email)
+    db: Session = Depends(get_db)
+):
+    """
+    Ri-invia email di verifica
+
+    RATE LIMIT: 3 richieste/ora per IP
+
+    - **email**: Email utente
+
+    Returns:
+    - Messaggio di conferma (sempre, anche se email non esiste)
+    """
+    # Trova utente
+    user = db.query(User).filter(User.email == data.email).first()
+
+    if user and user.is_active and not user.is_verified:
+        # Genera nuovo token
+        verification_token = create_access_token(
+            data={"sub": str(user.id), "type": "email_verification"},
+            expires_delta=timedelta(hours=24)
+        )
+
+        # TODO: Inviare email
+        # await send_email(user.email, "Verifica Email", verification_link)
+
+        # Per ora log
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"📧 Re-invio verification per {user.email}: {verification_token}")
+        logger.info(f"   Link: http://localhost:8000/api/v1/auth/verify-email?token={verification_token}")
+
+    # SEMPRE ritorna successo - previene user enumeration
+    return {"message": "Se l'email esiste e non è verificata, riceverai un nuovo link"}
+
+
+# ==================== CSRF Token ====================
+
+@router.get("/csrf-token", status_code=status.HTTP_200_OK)
+async def get_csrf_token():
+    """
+    Genera nuovo CSRF token
+
+    Usare questo token nell'header X-CSRF-Token per richieste POST/PUT/DELETE/PATCH
+
+    Returns:
+    - CSRF token
+    """
+    from app.core.csrf import generate_csrf_token
+
+    token = generate_csrf_token()
+
+    return {
+        "csrf_token": token,
+        "usage": "Invia questo token nell'header: X-CSRF-Token: <token>"
+    }
