@@ -28,7 +28,7 @@ class TranscriptionRequest(BaseModel):
     """Schema per richiesta trascrizione"""
     media_path: str
     output_name: Optional[str] = "transcription.json"
-    model_size: str = "base"  # tiny, base, small, medium, large
+    whisper_model: str = "base"  # tiny, base, small, medium, large
     language: Optional[str] = None  # None = auto-detect
     export_formats: Optional[List[str]] = ["json"]  # json, srt, vtt, txt
 
@@ -90,7 +90,7 @@ def process_transcription_task(job_id: str, params: TranscriptionRequest, db: Se
         transcription_params = TranscriptionParams(
             media_path=Path(params.media_path),
             output_path=settings.output_dir / params.output_name,
-            model_size=params.model_size,
+            model_size=params.whisper_model,
             language=params.language,
             export_formats=params.export_formats
         )
@@ -129,7 +129,7 @@ async def transcribe_media(
 
     - **media_path**: Path file video/audio
     - **output_name**: Nome file output (default: transcription.json)
-    - **model_size**: Modello Whisper ("tiny", "base", "small", "medium", "large")
+    - **whisper_model**: Modello Whisper ("tiny", "base", "small", "medium", "large")
     - **language**: Codice lingua (None = auto-detect)
     - **export_formats**: Formati export ["json", "srt", "vtt", "txt"]
 
@@ -149,7 +149,7 @@ async def transcribe_media(
     Richiede JWT token. Elaborazione asincrona in background.
     """
     # Valida model
-    if request.model_size not in TranscriptionService.AVAILABLE_MODELS:
+    if request.whisper_model not in TranscriptionService.AVAILABLE_MODELS:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Modello non valido. Disponibili: {TranscriptionService.AVAILABLE_MODELS}"
@@ -175,7 +175,7 @@ async def transcribe_media(
 @router.post("/upload", response_model=TranscriptionResponse, status_code=status.HTTP_202_ACCEPTED)
 async def upload_and_transcribe(
     file: UploadFile = File(..., description="File video/audio"),
-    model_size: str = Form("base"),
+    whisper_model: str = Form("base"),
     language: Optional[str] = Form(None),
     export_formats: str = Form("json,srt"),  # Comma-separated
     background_tasks: BackgroundTasks = None,
@@ -201,7 +201,7 @@ async def upload_and_transcribe(
     request = TranscriptionRequest(
         media_path=str(file_path),
         output_name=f"transcription_{file.stem}.json",
-        model_size=model_size,
+        whisper_model=whisper_model,
         language=language,
         export_formats=formats
     )

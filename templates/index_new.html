@@ -1209,16 +1209,30 @@
                                 <h3 style="color: #667eea; margin-bottom: 15px;">
                                     <i class="fas fa-user"></i> Video Foreground (Green Screen)
                                 </h3>
-                                <div class="upload-area" id="chromakeyForegroundUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s;">
-                                    <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 15px;"></i>
-                                    <p style="margin: 0; color: #666;">Trascina video o clicca per selezionare</p>
-                                    <small style="color: #999;">MP4, AVI, MOV, MKV supportati</small>
+                                <div class="upload-area" id="chromakeyForegroundUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;">
+                                    <!-- Placeholder (mostrato quando non c'è video) -->
+                                    <div id="chromakeyForegroundPlaceholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 150px; pointer-events: none;">
+                                        <i class="fas fa-cloud-upload-alt" style="font-size: 4rem; color: #667eea; margin-bottom: 15px;"></i>
+                                        <p style="margin: 0; color: #666; margin-bottom: 8px; font-size: 1.1rem;"><strong>Trascina video qui</strong></p>
+                                        <p style="margin: 0; color: #999; font-size: 0.95rem; margin-bottom: 12px;">oppure clicca per selezionare</p>
+                                        <small style="color: #999;">MP4, AVI, MOV, MKV supportati</small>
+                                    </div>
+                                    <!-- Preview video (mostrato quando c'è video) -->
+                                    <div id="chromakeyForegroundPreviewContainer" style="display: none; pointer-events: none; position: relative;">
+                                        <!-- Pulsante elimina video -->
+                                        <button onclick="clearVideoPreview('chromakeyForeground', event)" style="position: absolute; top: 10px; right: 10px; background: rgba(255,0,0,0.8); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; z-index: 10; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: background 0.3s;" onmouseover="this.style.background='rgba(255,0,0,1)'" onmouseout="this.style.background='rgba(255,0,0,0.8)'">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        <video id="chromakeyForegroundPreview" controls controlsList="nodownload" volume="1.0" style="width: 100%; max-height: 400px; border-radius: 8px; pointer-events: auto;"></video>
+                                        <div style="margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.95); border-radius: 10px;">
+                                            <div style="display: flex; align-items: center;">
+                                                <i class="fas fa-video" style="color: #667eea;"></i>
+                                                <span id="chromakeyForegroundName" style="margin-left: 10px; font-weight: 600; color: #333;"></span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <input type="file" id="chromakeyForeground" accept="video/*" style="display: none;">
-                                <div id="chromakeyForegroundInfo" style="margin-top: 15px; padding: 15px; background: #f0f9ff; border-radius: 10px; display: none;">
-                                    <i class="fas fa-video" style="color: #667eea;"></i>
-                                    <span id="chromakeyForegroundName" style="margin-left: 10px; font-weight: 600;"></span>
-                                </div>
                             </div>
 
                             <!-- Background Upload -->
@@ -1226,16 +1240,30 @@
                                 <h3 style="color: #667eea; margin-bottom: 15px;">
                                     <i class="fas fa-image"></i> Video Background
                                 </h3>
-                                <div class="upload-area" id="chromakeyBackgroundUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s;">
-                                    <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 15px;"></i>
-                                    <p style="margin: 0; color: #666;">Trascina video o clicca per selezionare</p>
-                                    <small style="color: #999;">MP4, AVI, MOV, MKV supportati</small>
+                                <div class="upload-area" id="chromakeyBackgroundUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;">
+                                    <!-- Placeholder (mostrato quando non c'è video) -->
+                                    <div id="chromakeyBackgroundPlaceholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 150px; pointer-events: none;">
+                                        <i class="fas fa-cloud-upload-alt" style="font-size: 4rem; color: #667eea; margin-bottom: 15px;"></i>
+                                        <p style="margin: 0; color: #666; margin-bottom: 8px; font-size: 1.1rem;"><strong>Trascina video qui</strong></p>
+                                        <p style="margin: 0; color: #999; font-size: 0.95rem; margin-bottom: 12px;">oppure clicca per selezionare</p>
+                                        <small style="color: #999;">MP4, AVI, MOV, MKV supportati</small>
+                                    </div>
+                                    <!-- Preview video (mostrato quando c'è video) -->
+                                    <div id="chromakeyBackgroundPreviewContainer" style="display: none; pointer-events: none; position: relative;">
+                                        <!-- Pulsante elimina video -->
+                                        <button onclick="clearVideoPreview('chromakeyBackground')" style="position: absolute; top: 10px; right: 10px; background: rgba(255,0,0,0.8); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; z-index: 10; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: background 0.3s;" onmouseover="this.style.background='rgba(255,0,0,1)'" onmouseout="this.style.background='rgba(255,0,0,0.8)'">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        <video id="chromakeyBackgroundPreview" controls controlsList="nodownload" style="width: 100%; max-height: 400px; border-radius: 8px; pointer-events: auto;"></video>
+                                        <div style="margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.95); border-radius: 10px;">
+                                            <div style="display: flex; align-items: center;">
+                                                <i class="fas fa-video" style="color: #667eea;"></i>
+                                                <span id="chromakeyBackgroundName" style="margin-left: 10px; font-weight: 600; color: #333;"></span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <input type="file" id="chromakeyBackground" accept="video/*" style="display: none;">
-                                <div id="chromakeyBackgroundInfo" style="margin-top: 15px; padding: 15px; background: #f0f9ff; border-radius: 10px; display: none;">
-                                    <i class="fas fa-video" style="color: #667eea;"></i>
-                                    <span id="chromakeyBackgroundName" style="margin-left: 10px; font-weight: 600;"></span>
-                                </div>
                             </div>
                         </div>
 
@@ -1326,9 +1354,10 @@
                                 <h3 style="color: #667eea; margin-bottom: 15px;">
                                     <i class="fas fa-video"></i> Video
                                 </h3>
-                                <div class="upload-area" id="logoVideoUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s;">
-                                    <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 15px;"></i>
-                                    <p style="margin: 0; color: #666;">Trascina video o clicca per selezionare</p>
+                                <div class="upload-area" id="logoVideoUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px; transition: all 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px;">
+                                    <i class="fas fa-cloud-upload-alt" style="font-size: 4rem; color: #667eea; margin-bottom: 15px;"></i>
+                                    <p style="margin: 0; color: #666; margin-bottom: 8px; font-size: 1.1rem;"><strong>Trascina video qui</strong></p>
+                                    <p style="margin: 0; color: #999; font-size: 0.95rem; margin-bottom: 12px;">oppure clicca per selezionare</p>
                                     <small style="color: #999;">MP4, AVI, MOV, MKV supportati</small>
                                 </div>
                                 <input type="file" id="logoVideo" accept="video/*" style="display: none;">
@@ -1343,9 +1372,10 @@
                                 <h3 style="color: #667eea; margin-bottom: 15px;">
                                     <i class="fas fa-image"></i> Logo / Watermark
                                 </h3>
-                                <div class="upload-area" id="logoImageUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s;">
-                                    <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 15px;"></i>
-                                    <p style="margin: 0; color: #666;">Trascina logo o clicca per selezionare</p>
+                                <div class="upload-area" id="logoImageUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px; transition: all 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px;">
+                                    <i class="fas fa-cloud-upload-alt" style="font-size: 4rem; color: #667eea; margin-bottom: 15px;"></i>
+                                    <p style="margin: 0; color: #666; margin-bottom: 8px; font-size: 1.1rem;"><strong>Trascina immagine qui</strong></p>
+                                    <p style="margin: 0; color: #999; font-size: 0.95rem; margin-bottom: 12px;">oppure clicca per selezionare</p>
                                     <small style="color: #999;">PNG consigliato (supporta trasparenza)</small>
                                 </div>
                                 <input type="file" id="logoImage" accept="image/*" style="display: none;">
@@ -1681,10 +1711,11 @@
                             <h3 style="color: #667eea; margin-bottom: 15px;">
                                 <i class="fas fa-video"></i> File Video/Audio
                             </h3>
-                            <div class="upload-area" id="transcriptionFileUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer;">
-                                <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 15px;"></i>
-                                <p style="margin: 0; color: #666;">Trascina file o clicca per selezionare</p>
-                                <small style="color: #999;">Video (MP4, AVI, MOV) o Audio (MP3, WAV, M4A)</small>
+                            <div class="upload-area" id="transcriptionFileUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px;">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 4rem; color: #667eea; margin-bottom: 15px;"></i>
+                                <p style="margin: 0; color: #666; margin-bottom: 5px;"><strong>Trascina file qui</strong></p>
+                                <p style="margin: 0; color: #999; font-size: 0.9rem;">oppure clicca per selezionare</p>
+                                <small style="color: #999; display: block; margin-top: 10px;">Video (MP4, AVI, MOV) o Audio (MP3, WAV, M4A)</small>
                             </div>
                             <input type="file" id="transcriptionFile" accept="video/*,audio/*" style="display: none;">
                             <div id="transcriptionFileInfo" style="margin-top: 15px; padding: 15px; background: #f0f9ff; border-radius: 10px; display: none;">
@@ -1783,10 +1814,11 @@
                             <h3 style="color: #667eea; margin-bottom: 15px;">
                                 <i class="fas fa-video"></i> Video da Tradurre
                             </h3>
-                            <div class="upload-area" id="translationFileUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer;">
-                                <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 15px;"></i>
-                                <p style="margin: 0; color: #666;">Trascina video o clicca per selezionare</p>
-                                <small style="color: #999;">MP4, AVI, MOV, MKV supportati</small>
+                            <div class="upload-area" id="translationFileUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px;">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 4rem; color: #667eea; margin-bottom: 15px;"></i>
+                                <p style="margin: 0; color: #666; margin-bottom: 5px;"><strong>Trascina video qui</strong></p>
+                                <p style="margin: 0; color: #999; font-size: 0.9rem;">oppure clicca per selezionare</p>
+                                <small style="color: #999; display: block; margin-top: 10px;">MP4, AVI, MOV, MKV supportati</small>
                             </div>
                             <input type="file" id="translationFile" accept="video/*" style="display: none;">
                             <div id="translationFileInfo" style="margin-top: 15px; padding: 15px; background: #f0f9ff; border-radius: 10px; display: none;">
@@ -1877,10 +1909,11 @@
                             <h3 style="color: #667eea; margin-bottom: 15px;">
                                 <i class="fas fa-image"></i> Immagine Base
                             </h3>
-                            <div class="upload-area" id="thumbnailImageUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer;">
-                                <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 15px;"></i>
-                                <p style="margin: 0; color: #666;">Trascina immagine o clicca per selezionare</p>
-                                <small style="color: #999;">JPG, PNG supportati - Sarà ridimensionata a 1280x720</small>
+                            <div class="upload-area" id="thumbnailImageUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px;">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 4rem; color: #667eea; margin-bottom: 15px;"></i>
+                                <p style="margin: 0; color: #666; margin-bottom: 5px;"><strong>Trascina immagine qui</strong></p>
+                                <p style="margin: 0; color: #999; font-size: 0.9rem;">oppure clicca per selezionare</p>
+                                <small style="color: #999; display: block; margin-top: 10px;">JPG, PNG supportati - Sarà ridimensionata a 1280x720</small>
                             </div>
                             <input type="file" id="thumbnailImage" accept="image/*" style="display: none;">
                             <div id="thumbnailImageInfo" style="margin-top: 15px; padding: 15px; background: #f0f9ff; border-radius: 10px; display: none;">
@@ -1984,10 +2017,11 @@
                             <h3 style="color: #667eea; margin-bottom: 15px;">
                                 <i class="fas fa-video"></i> Video da Analizzare
                             </h3>
-                            <div class="upload-area" id="seoVideoUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer;">
-                                <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 15px;"></i>
-                                <p style="margin: 0; color: #666;">Trascina video o clicca per selezionare</p>
-                                <small style="color: #999;">L'AI analizzerà il contenuto per generare metadata ottimizzati</small>
+                            <div class="upload-area" id="seoVideoUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px;">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 4rem; color: #667eea; margin-bottom: 15px;"></i>
+                                <p style="margin: 0; color: #666; margin-bottom: 5px;"><strong>Trascina video qui</strong></p>
+                                <p style="margin: 0; color: #999; font-size: 0.9rem;">oppure clicca per selezionare</p>
+                                <small style="color: #999; display: block; margin-top: 10px;">L'AI analizzerà il contenuto per generare metadata ottimizzati</small>
                             </div>
                             <input type="file" id="seoVideo" accept="video/*" style="display: none;">
                             <div id="seoVideoInfo" style="margin-top: 15px; padding: 15px; background: #f0f9ff; border-radius: 10px; display: none;">
@@ -2258,9 +2292,10 @@
 
                                 <!-- Upload Form -->
                                 <div id="pipelineUploadForm" style="display: none; background: white; padding: 20px; border-radius: 10px;">
-                                    <div class="upload-area" onclick="document.getElementById('pipelineVideoFile').click()" style="border: 2px dashed #ccc; border-radius: 10px; padding: 40px; text-align: center; cursor: pointer;">
-                                        <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 10px;"></i>
-                                        <p style="margin: 0; color: #666;">Trascina video o clicca per selezionare</p>
+                                    <div class="upload-area" onclick="document.getElementById('pipelineVideoFile').click()" style="border: 2px dashed #ccc; border-radius: 10px; padding: 40px; text-align: center; cursor: pointer; position: relative;">
+                                        <i class="fas fa-cloud-upload-alt" style="font-size: 4rem; color: #667eea; margin-bottom: 15px;"></i>
+                                        <p style="margin: 0; color: #666; margin-bottom: 5px;"><strong>Trascina video qui</strong></p>
+                                        <p style="margin: 0; color: #999; font-size: 0.9rem;">oppure clicca per selezionare</p>
                                     </div>
                                     <input type="file" id="pipelineVideoFile" accept="video/*" style="display: none;" onchange="handlePipelineVideoUpload(event)">
                                     <div id="pipelineVideoInfo" style="margin-top: 15px; display: none; padding: 15px; background: #f0f9ff; border-radius: 10px;">
@@ -2482,10 +2517,11 @@
                             <h3 style="color: #667eea; margin-bottom: 15px;">
                                 <i class="fas fa-video"></i> Video
                             </h3>
-                            <div class="upload-area" id="youtubeVideoUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer;">
-                                <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 15px;"></i>
-                                <p style="margin: 0; color: #666;">Trascina video o clicca per selezionare</p>
-                                <small style="color: #999;">MP4, AVI, MOV - Max 128GB</small>
+                            <div class="upload-area" id="youtubeVideoUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px;">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 4rem; color: #667eea; margin-bottom: 15px;"></i>
+                                <p style="margin: 0; color: #666; margin-bottom: 5px;"><strong>Trascina video qui</strong></p>
+                                <p style="margin: 0; color: #999; font-size: 0.9rem;">oppure clicca per selezionare</p>
+                                <small style="color: #999; display: block; margin-top: 10px;">MP4, AVI, MOV - Max 128GB</small>
                             </div>
                             <input type="file" id="youtubeVideo" accept="video/*" style="display: none;">
                             <div id="youtubeVideoInfo" style="margin-top: 15px; padding: 15px; background: #f0f9ff; border-radius: 10px; display: none;">
@@ -2500,8 +2536,10 @@
                                 <i class="fas fa-image"></i> Thumbnail (Opzionale)
                             </h3>
                             <div class="upload-area" id="youtubeThumbnailUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 30px; text-align: center; cursor: pointer;">
-                                <i class="fas fa-image" style="font-size: 2rem; color: #667eea; margin-bottom: 10px;"></i>
-                                <p style="margin: 0; color: #666;">Thumbnail 1280x720</p>
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 3.5rem; color: #667eea; margin-bottom: 12px;"></i>
+                                <p style="margin: 0; color: #666; margin-bottom: 5px;"><strong>Trascina thumbnail qui</strong></p>
+                                <p style="margin: 0; color: #999; font-size: 0.9rem;">oppure clicca per selezionare</p>
+                                <small style="color: #999; display: block; margin-top: 8px;">1280x720 consigliato</small>
                             </div>
                             <input type="file" id="youtubeThumbnail" accept="image/*" style="display: none;">
                             <div id="youtubeThumbnailInfo" style="margin-top: 15px; padding: 15px; background: #f0f9ff; border-radius: 10px; display: none;">
@@ -2709,9 +2747,10 @@
                             <!-- File Upload -->
                             <div style="margin-bottom: 20px;">
                                 <div class="upload-area" id="metadataFileUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 30px; text-align: center; cursor: pointer;">
-                                    <i class="fas fa-cloud-upload-alt" style="font-size: 2.5rem; color: #667eea; margin-bottom: 10px;"></i>
-                                    <p style="margin: 0; color: #666;">Trascina file video/audio o clicca per selezionare</p>
-                                    <small style="color: #999;">Supporta tutti i formati video e audio</small>
+                                    <i class="fas fa-cloud-upload-alt" style="font-size: 3.5rem; color: #667eea; margin-bottom: 12px;"></i>
+                                    <p style="margin: 0; color: #666; margin-bottom: 5px;"><strong>Trascina file qui</strong></p>
+                                    <p style="margin: 0; color: #999; font-size: 0.9rem;">oppure clicca per selezionare</p>
+                                    <small style="color: #999; display: block; margin-top: 8px;">Supporta tutti i formati video e audio</small>
                                 </div>
                                 <input type="file" id="metadataFile" accept="video/*,audio/*" style="display: none;">
                                 <div id="metadataFileInfo" style="margin-top: 15px; padding: 15px; background: #f0f9ff; border-radius: 10px; display: none;">
@@ -2931,18 +2970,76 @@
         });
 
         document.getElementById('chromakeyForeground').addEventListener('change', function(e) {
+            console.log('📁 Change event su chromakeyForeground, files:', e.target.files.length);
             if (e.target.files.length > 0) {
-                const fileName = e.target.files[0].name;
-                document.getElementById('chromakeyForegroundName').textContent = fileName;
-                document.getElementById('chromakeyForegroundInfo').style.display = 'block';
+                const file = e.target.files[0];
+                const fileName = file.name;
+                const fileSize = (file.size / (1024 * 1024)).toFixed(2); // MB
+                console.log('✅ File selezionato:', fileName);
+
+                // Mostra preview video
+                const preview = document.getElementById('chromakeyForegroundPreview');
+                const previewContainer = document.getElementById('chromakeyForegroundPreviewContainer');
+                const placeholder = document.getElementById('chromakeyForegroundPlaceholder');
+                const url = URL.createObjectURL(file);
+                preview.src = url;
+
+                // Quando il video è caricato, ottieni dimensioni e durata
+                preview.onloadedmetadata = function() {
+                    const duration = Math.floor(preview.duration);
+                    const minutes = Math.floor(duration / 60);
+                    const seconds = duration % 60;
+                    const durationStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                    const resolution = `${preview.videoWidth}x${preview.videoHeight}`;
+
+                    // Aggiorna il testo con tutte le info
+                    document.getElementById('chromakeyForegroundName').innerHTML = `
+                        <strong>${fileName}</strong><br>
+                        <small style="color: #666;">
+                            📏 ${resolution} • ⏱️ ${durationStr} • 💾 ${fileSize} MB
+                        </small>
+                    `;
+
+                    // Nascondi placeholder e mostra preview
+                    placeholder.style.display = 'none';
+                    previewContainer.style.display = 'block';
+                };
             }
         });
 
         document.getElementById('chromakeyBackground').addEventListener('change', function(e) {
             if (e.target.files.length > 0) {
-                const fileName = e.target.files[0].name;
-                document.getElementById('chromakeyBackgroundName').textContent = fileName;
-                document.getElementById('chromakeyBackgroundInfo').style.display = 'block';
+                const file = e.target.files[0];
+                const fileName = file.name;
+                const fileSize = (file.size / (1024 * 1024)).toFixed(2); // MB
+
+                // Mostra preview video
+                const preview = document.getElementById('chromakeyBackgroundPreview');
+                const previewContainer = document.getElementById('chromakeyBackgroundPreviewContainer');
+                const placeholder = document.getElementById('chromakeyBackgroundPlaceholder');
+                const url = URL.createObjectURL(file);
+                preview.src = url;
+
+                // Quando il video è caricato, ottieni dimensioni e durata
+                preview.onloadedmetadata = function() {
+                    const duration = Math.floor(preview.duration);
+                    const minutes = Math.floor(duration / 60);
+                    const seconds = duration % 60;
+                    const durationStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                    const resolution = `${preview.videoWidth}x${preview.videoHeight}`;
+
+                    // Aggiorna il testo con tutte le info
+                    document.getElementById('chromakeyBackgroundName').innerHTML = `
+                        <strong>${fileName}</strong><br>
+                        <small style="color: #666;">
+                            📏 ${resolution} • ⏱️ ${durationStr} • 💾 ${fileSize} MB
+                        </small>
+                    `;
+
+                    // Nascondi placeholder e mostra preview
+                    placeholder.style.display = 'none';
+                    previewContainer.style.display = 'block';
+                };
             }
         });
 
@@ -3178,7 +3275,7 @@
 
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('model_size', document.getElementById('transcriptionModel').value);
+            formData.append('whisper_model', document.getElementById('transcriptionModel').value);
             formData.append('language', document.getElementById('transcriptionLanguage').value);
             formData.append('export_formats', exportFormats.join(','));
 
@@ -4776,7 +4873,7 @@
             if (userSettings.transcription) {
                 const ts = userSettings.transcription;
                 if (ts.language) safeSetValue('transcriptionLanguage', ts.language);
-                if (ts.model_size) safeSetValue('transcriptionModel', ts.model_size);
+                if (ts.whisper_model) safeSetValue('transcriptionModel', ts.whisper_model);
             }
 
             console.log('✅ UI ripristinata da settings');
@@ -4853,7 +4950,7 @@
 
             // Transcription
             safeAddListener('transcriptionLanguage', 'change', (e) => updateSetting('transcription', 'language', e.target.value));
-            safeAddListener('transcriptionModel', 'change', (e) => updateSetting('transcription', 'model_size', e.target.value));
+            safeAddListener('transcriptionModel', 'change', (e) => updateSetting('transcription', 'whisper_model', e.target.value));
 
             console.log('✅ Auto-save listeners configurati');
         }
@@ -5426,6 +5523,225 @@
             );
         }
 
+        // ==================== VIDEO PREVIEW FUNCTIONS ====================
+
+        /**
+         * Pulisce l'anteprima video e ripristina lo stato iniziale
+         */
+        function clearVideoPreview(inputId, event) {
+            // Ferma la propagazione per evitare di aprire il file dialog
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+
+            const previewElement = document.getElementById(inputId + 'Preview');
+            const previewContainer = document.getElementById(inputId + 'PreviewContainer');
+            const placeholder = document.getElementById(inputId + 'Placeholder');
+            const inputElement = document.getElementById(inputId);
+
+            if (previewElement && previewContainer && placeholder && inputElement) {
+                // Ferma il video e pulisci il src
+                previewElement.pause();
+                previewElement.src = '';
+                previewElement.load();
+
+                // Pulisci l'input file
+                inputElement.value = '';
+
+                // Mostra placeholder e nascondi preview
+                previewContainer.style.display = 'none';
+                placeholder.style.display = 'flex';
+
+                console.log(`🗑️ Video rimosso per ${inputId}`);
+            }
+        }
+
+        // ==================== DRAG & DROP SETUP ====================
+
+        /**
+         * Gestisce file droppato direttamente (fallback quando DataTransfer non funziona)
+         */
+        function handleDroppedFile(file, inputId) {
+            console.log(`🔄 Handling dropped file for ${inputId}:`, file.name);
+
+            const fileName = file.name;
+            const fileSize = (file.size / (1024 * 1024)).toFixed(2);
+
+            // Trova gli elementi basati sull'inputId
+            const nameElement = document.getElementById(inputId + 'Name');
+            const previewElement = document.getElementById(inputId + 'Preview');
+            const previewContainer = document.getElementById(inputId + 'PreviewContainer');
+            const placeholder = document.getElementById(inputId + 'Placeholder');
+
+            if (!nameElement || !previewElement || !previewContainer || !placeholder) {
+                console.error(`❌ Elementi non trovati per ${inputId}`);
+                return;
+            }
+
+            // Mostra preview se è un video
+            if (file.type.startsWith('video/')) {
+                const url = URL.createObjectURL(file);
+                previewElement.src = url;
+
+                previewElement.onloadedmetadata = function() {
+                    const duration = Math.floor(previewElement.duration);
+                    const minutes = Math.floor(duration / 60);
+                    const seconds = duration % 60;
+                    const durationStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                    const resolution = `${previewElement.videoWidth}x${previewElement.videoHeight}`;
+
+                    nameElement.innerHTML = `
+                        <strong>${fileName}</strong><br>
+                        <small style="color: #666;">
+                            📏 ${resolution} • ⏱️ ${durationStr} • 💾 ${fileSize} MB
+                        </small>
+                    `;
+
+                    // Nascondi placeholder e mostra preview
+                    placeholder.style.display = 'none';
+                    previewContainer.style.display = 'block';
+                };
+
+                // NON revocare il blob URL finché il video è in uso
+            } else {
+                // Per file non video
+                nameElement.innerHTML = `
+                    <strong>${fileName}</strong><br>
+                    <small style="color: #666;">💾 ${fileSize} MB</small>
+                `;
+                placeholder.style.display = 'none';
+                previewContainer.style.display = 'block';
+            }
+        }
+
+        /**
+         * Configura drag & drop per tutte le aree upload
+         */
+        function setupDragAndDrop() {
+            console.log('🔧 Configurazione drag & drop...');
+
+            const uploadAreas = [
+                { area: 'chromakeyForegroundUpload', input: 'chromakeyForeground' },
+                { area: 'chromakeyBackgroundUpload', input: 'chromakeyBackground' },
+                { area: 'logoVideoUpload', input: 'logoVideo' },
+                { area: 'logoImageUpload', input: 'logoImage' },
+                { area: 'transcriptionFileUpload', input: 'transcriptionFile' },
+                { area: 'translationFileUpload', input: 'translationFile' },
+                { area: 'thumbnailImageUpload', input: 'thumbnailImage' },
+                { area: 'seoVideoUpload', input: 'seoVideo' },
+                { area: 'youtubeVideoUpload', input: 'youtubeVideo' },
+                { area: 'youtubeThumbnailUpload', input: 'youtubeThumbnail' },
+                { area: 'metadataFileUpload', input: 'metadataFile' }
+            ];
+
+            uploadAreas.forEach(({ area, input }) => {
+                const areaElement = document.getElementById(area);
+                const inputElement = document.getElementById(input);
+
+                if (!areaElement || !inputElement) {
+                    console.warn(`⚠️ Elemento non trovato: ${area} o ${input}`);
+                    return;
+                }
+
+                console.log(`✅ Configurato: ${area}`);
+
+                // Previeni comportamento default del browser
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    areaElement.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }, false);
+                });
+
+                // Highlight durante drag
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    areaElement.addEventListener(eventName, () => {
+                        console.log(`📥 Drag over: ${area}`);
+                        areaElement.style.borderColor = '#667eea';
+                        areaElement.style.backgroundColor = '#f0f4ff';
+                    });
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    areaElement.addEventListener(eventName, () => {
+                        areaElement.style.borderColor = '#ccc';
+                        areaElement.style.backgroundColor = 'transparent';
+                    });
+                });
+
+                // Gestisci drop
+                areaElement.addEventListener('drop', (e) => {
+                    const dt = e.dataTransfer;
+                    const files = dt.files;
+
+                    console.log(`🎯 Drop su ${area}, file:`, files.length);
+
+                    if (files.length > 0) {
+                        const file = files[0];
+
+                        // Assegna i file all'input
+                        try {
+                            const dataTransfer = new DataTransfer();
+                            dataTransfer.items.add(file);
+                            inputElement.files = dataTransfer.files;
+                            console.log(`✅ File assegnati a ${input}:`, inputElement.files.length);
+
+                            // Trigger change event manualmente
+                            const changeEvent = new Event('change', { bubbles: true });
+                            inputElement.dispatchEvent(changeEvent);
+                            console.log(`📤 Event 'change' dispatched per ${input}`);
+                        } catch (err) {
+                            console.error(`❌ Errore DataTransfer per ${input}:`, err);
+
+                            // Fallback: gestisci direttamente il file senza passare per input.files
+                            console.log(`⚠️ Usando fallback per ${input}`);
+                            handleDroppedFile(file, input);
+                        }
+                    }
+                });
+            });
+
+            // Setup speciale per pipeline upload (ha già onclick inline)
+            const pipelineUploadArea = document.querySelector('#pipelineUploadForm .upload-area');
+            const pipelineInput = document.getElementById('pipelineVideoFile');
+
+            if (pipelineUploadArea && pipelineInput) {
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    pipelineUploadArea.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }, false);
+                });
+
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    pipelineUploadArea.addEventListener(eventName, () => {
+                        pipelineUploadArea.style.borderColor = '#667eea';
+                        pipelineUploadArea.style.backgroundColor = '#f0f4ff';
+                    });
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    pipelineUploadArea.addEventListener(eventName, () => {
+                        pipelineUploadArea.style.borderColor = '#ccc';
+                        pipelineUploadArea.style.backgroundColor = 'transparent';
+                    });
+                });
+
+                pipelineUploadArea.addEventListener('drop', (e) => {
+                    const dt = e.dataTransfer;
+                    const files = dt.files;
+
+                    if (files.length > 0) {
+                        const dataTransfer = new DataTransfer();
+                        Array.from(files).forEach(file => dataTransfer.items.add(file));
+                        pipelineInput.files = dataTransfer.files;
+                        handlePipelineVideoUpload({ target: pipelineInput });
+                    }
+                });
+            }
+        }
+
         // ==================== INITIALIZATION ====================
 
         // Page load: carica settings e ripristina UI
@@ -5441,6 +5757,9 @@
 
             // Setup auto-save listeners
             setupAutoSaveListeners();
+
+            // Setup drag & drop
+            setupDragAndDrop();
 
             // Se non c'è tab salvato, mostra dashboard
             if (!userSettings.ui_state?.current_tab) {

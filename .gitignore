@@ -88,12 +88,20 @@ test.db
 __pycache__/
 *.pyc
 .env
+.env.production
+.env.*.local
 
 # Database files
 *.db
 
 # Backup files
 backup/
+
+# Credentials e secrets
+client_secrets.json
+*.key
+*.pem
+credentials/
 
 # Test files (non committare file di test pesanti)
 test_files/
