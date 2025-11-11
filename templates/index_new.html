@@ -4790,28 +4790,8 @@
             );
         }
 
-        // Check browser support on load
-        document.addEventListener('DOMContentLoaded', function() {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
-                const recorderPane = document.getElementById('pane-video-recorder');
-                if (recorderPane) {
-                    recorderPane.innerHTML = `
-                        <div class="section-header">
-                            <i class="fas fa-record-vinyl"></i>
-                            <h2>Screen Recorder</h2>
-                        </div>
-                        <div style="text-align: center; padding: 60px 20px; background: #fff3cd; border-radius: 15px; margin: 20px;">
-                            <i class="fas fa-exclamation-triangle" style="font-size: 4rem; color: #ffc107; margin-bottom: 20px;"></i>
-                            <h3 style="color: #856404;">Browser Non Supportato</h3>
-                            <p style="color: #856404;">
-                                Il tuo browser non supporta la registrazione schermo.<br>
-                                Usa Chrome, Edge, Firefox o Opera aggiornati.
-                            </p>
-                        </div>
-                    `;
-                }
-            }
-        });
+        // Note: Browser support check removed - let the user try and show error only if recording fails
+        // This prevents false positives on Chrome/Edge when served over HTTPS
 
         // ==================== SEO AI FUNCTIONS ====================
 
