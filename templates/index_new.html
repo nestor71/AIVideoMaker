@@ -1069,10 +1069,10 @@
             <!-- Sub-tabs for Video Editing -->
             <div class="sub-tabs" id="subTabs-video">
                 <button class="sub-tab active" onclick="showSubTab('video', 'chromakey')">
-                    <i class="fas fa-magic"></i> Chromakey
+                    <i class="fas fa-hand-pointer"></i> CTA
                 </button>
                 <button class="sub-tab" onclick="showSubTab('video', 'logo')">
-                    <i class="fas fa-image"></i> Logo Overlay
+                    <i class="fas fa-image"></i> Sovrapposizione Logo
                 </button>
                 <button class="sub-tab" onclick="showSubTab('video', 'recorder')">
                     <i class="fas fa-record-vinyl"></i> Recorder
@@ -1197,10 +1197,10 @@
                 <!-- Video > Chromakey -->
                 <div class="tab-pane" id="pane-video-chromakey">
                     <div class="section-header">
-                        <i class="fas fa-magic"></i>
-                        <h2>Chromakey (Green Screen)</h2>
+                        <i class="fas fa-hand-pointer"></i>
+                        <h2>CTA (Call to Action)</h2>
                     </div>
-                    <p class="section-description">Rimozione professionale green screen e compositing video</p>
+                    <p class="section-description">Aggiungi video CTA in sovrapposizione con chromakey e controllo temporale</p>
 
                     <div class="upload-section">
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px;">
@@ -1398,32 +1398,45 @@
                     </div>
                 </div>
 
-                <!-- Video > Logo Overlay -->
+                <!-- Video > Sovrapposizione Logo -->
                 <div class="tab-pane" id="pane-video-logo">
                     <div class="section-header">
                         <i class="fas fa-image"></i>
-                        <h2>Logo Overlay</h2>
+                        <h2>Sovrapposizione Logo</h2>
                     </div>
-                    <p class="section-description">Aggiungi logo, watermark e branding ai tuoi video</p>
+                    <p class="section-description">Aggiungi logo, watermark e branding ai tuoi video con posizionamento interattivo</p>
 
                     <div class="upload-section">
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px;">
                             <!-- Video Upload -->
                             <div>
                                 <h3 style="color: #667eea; margin-bottom: 15px;">
-                                    <i class="fas fa-video"></i> Video
+                                    <i class="fas fa-video"></i> Video Principale
                                 </h3>
-                                <div class="upload-area" id="logoVideoUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px; transition: all 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px;">
-                                    <i class="fas fa-cloud-upload-alt" style="font-size: 4rem; color: #667eea; margin-bottom: 15px;"></i>
-                                    <p style="margin: 0; color: #666; margin-bottom: 8px; font-size: 1.1rem;"><strong>Trascina video qui</strong></p>
-                                    <p style="margin: 0; color: #999; font-size: 0.95rem; margin-bottom: 12px;">oppure clicca per selezionare</p>
-                                    <small style="color: #999;">MP4, AVI, MOV, MKV supportati</small>
+                                <div class="upload-area" id="logoVideoUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;">
+                                    <!-- Placeholder (mostrato quando non c'è video) -->
+                                    <div id="logoVideoPlaceholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 150px; pointer-events: none;">
+                                        <i class="fas fa-cloud-upload-alt" style="font-size: 4rem; color: #667eea; margin-bottom: 15px;"></i>
+                                        <p style="margin: 0; color: #666; margin-bottom: 8px; font-size: 1.1rem;"><strong>Trascina video qui</strong></p>
+                                        <p style="margin: 0; color: #999; font-size: 0.95rem; margin-bottom: 12px;">oppure clicca per selezionare</p>
+                                        <small style="color: #999;">MP4, AVI, MOV, MKV supportati</small>
+                                    </div>
+                                    <!-- Preview video (mostrato quando c'è video) -->
+                                    <div id="logoVideoPreviewContainer" style="display: none; pointer-events: none; position: relative;">
+                                        <!-- Pulsante elimina video -->
+                                        <button onclick="clearVideoPreview('logoVideo', event)" style="position: absolute; top: 10px; right: 10px; background: rgba(255,0,0,0.8); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; z-index: 10; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: background 0.3s;" onmouseover="this.style.background='rgba(255,0,0,1)'" onmouseout="this.style.background='rgba(255,0,0,0.8)'">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        <video id="logoVideoPreview" controls controlsList="nodownload" style="width: 100%; max-height: 400px; border-radius: 8px; pointer-events: auto;"></video>
+                                        <div style="margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.95); border-radius: 10px;">
+                                            <div style="display: flex; align-items: center;">
+                                                <i class="fas fa-video" style="color: #667eea;"></i>
+                                                <span id="logoVideoName" style="margin-left: 10px; font-weight: 600; color: #333;"></span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <input type="file" id="logoVideo" accept="video/*" style="display: none;">
-                                <div id="logoVideoInfo" style="margin-top: 15px; padding: 15px; background: #f0f9ff; border-radius: 10px; display: none;">
-                                    <i class="fas fa-video" style="color: #667eea;"></i>
-                                    <span id="logoVideoName" style="margin-left: 10px; font-weight: 600;"></span>
-                                </div>
                             </div>
 
                             <!-- Logo Upload -->
@@ -1431,17 +1444,67 @@
                                 <h3 style="color: #667eea; margin-bottom: 15px;">
                                     <i class="fas fa-image"></i> Logo / Watermark
                                 </h3>
-                                <div class="upload-area" id="logoImageUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px; transition: all 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px;">
-                                    <i class="fas fa-cloud-upload-alt" style="font-size: 4rem; color: #667eea; margin-bottom: 15px;"></i>
-                                    <p style="margin: 0; color: #666; margin-bottom: 8px; font-size: 1.1rem;"><strong>Trascina immagine qui</strong></p>
-                                    <p style="margin: 0; color: #999; font-size: 0.95rem; margin-bottom: 12px;">oppure clicca per selezionare</p>
-                                    <small style="color: #999;">PNG consigliato (supporta trasparenza)</small>
+                                <div class="upload-area" id="logoImageUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;">
+                                    <!-- Placeholder (mostrato quando non c'è immagine) -->
+                                    <div id="logoImagePlaceholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 150px; pointer-events: none;">
+                                        <i class="fas fa-cloud-upload-alt" style="font-size: 4rem; color: #667eea; margin-bottom: 15px;"></i>
+                                        <p style="margin: 0; color: #666; margin-bottom: 8px; font-size: 1.1rem;"><strong>Trascina immagine qui</strong></p>
+                                        <p style="margin: 0; color: #999; font-size: 0.95rem; margin-bottom: 12px;">oppure clicca per selezionare</p>
+                                        <small style="color: #999;">PNG consigliato (supporta trasparenza)</small>
+                                    </div>
+                                    <!-- Preview immagine (mostrato quando c'è immagine) -->
+                                    <div id="logoImagePreviewContainer" style="display: none; pointer-events: none; position: relative;">
+                                        <!-- Pulsante elimina immagine -->
+                                        <button onclick="clearImagePreview('logoImage', event)" style="position: absolute; top: 10px; right: 10px; background: rgba(255,0,0,0.8); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; z-index: 10; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: background 0.3s;" onmouseover="this.style.background='rgba(255,0,0,1)'" onmouseout="this.style.background='rgba(255,0,0,0.8)'">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        <img id="logoImagePreview" style="width: 100%; max-height: 400px; border-radius: 8px; pointer-events: auto; object-fit: contain; background: repeating-conic-gradient(#ddd 0% 25%, white 0% 50%) 50% / 20px 20px;">
+                                        <div style="margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.95); border-radius: 10px;">
+                                            <div style="display: flex; align-items: center;">
+                                                <i class="fas fa-image" style="color: #667eea;"></i>
+                                                <span id="logoImageName" style="margin-left: 10px; font-weight: 600; color: #333;"></span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <input type="file" id="logoImage" accept="image/*" style="display: none;">
-                                <div id="logoImageInfo" style="margin-top: 15px; padding: 15px; background: #f0f9ff; border-radius: 10px; display: none;">
-                                    <i class="fas fa-image" style="color: #667eea;"></i>
-                                    <span id="logoImageName" style="margin-left: 10px; font-weight: 600;"></span>
+                            </div>
+                        </div>
+
+                        <!-- Preview Interattiva Logo -->
+                        <div id="logoInteractivePreview" style="margin-top: 30px; padding: 25px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 15px; border: 2px solid #667eea;">
+                            <h3 style="color: #2c3e50; margin-bottom: 20px;">
+                                <i class="fas fa-expand-arrows-alt"></i> Anteprima Posizionamento Logo
+                            </h3>
+                            <p style="color: #666; margin-bottom: 20px;">
+                                <i class="fas fa-info-circle"></i> Carica video e logo per vedere l'anteprima. Trascina il logo per posizionarlo e ridimensionalo dai bordi.
+                            </p>
+
+                            <div style="position: relative; width: 100%; max-width: 800px; margin: 0 auto; background: #000; border-radius: 10px; overflow: hidden; aspect-ratio: 16/9;">
+                                <!-- Canvas principale -->
+                                <canvas id="logoPreviewCanvas" style="width: 100%; height: 100%; display: block;"></canvas>
+
+                                <!-- Overlay draggable per Logo -->
+                                <div id="logoDragOverlay" style="position: absolute; top: 5%; right: 5%; width: 15%; height: 15%; border: 3px solid #667eea; background: rgba(102, 126, 234, 0.1); cursor: move; display: none; z-index: 10; transition: background 0.2s, border-color 0.2s; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+                                    <div id="logoOverlayLabel" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-align: center; pointer-events: none; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); opacity: 0.7; font-size: 0.8rem;">
+                                        <i class="fas fa-arrows-alt" style="font-size: 1.5rem; display: block; margin-bottom: 5px;"></i>
+                                        Logo
+                                    </div>
+                                    <!-- Resize handles -->
+                                    <div class="resize-handle resize-nw" style="position: absolute; top: -5px; left: -5px; width: 15px; height: 15px; background: #667eea; border: 2px solid white; border-radius: 50%; cursor: nw-resize;"></div>
+                                    <div class="resize-handle resize-ne" style="position: absolute; top: -5px; right: -5px; width: 15px; height: 15px; background: #667eea; border: 2px solid white; border-radius: 50%; cursor: ne-resize;"></div>
+                                    <div class="resize-handle resize-sw" style="position: absolute; bottom: -5px; left: -5px; width: 15px; height: 15px; background: #667eea; border: 2px solid white; border-radius: 50%; cursor: sw-resize;"></div>
+                                    <div class="resize-handle resize-se" style="position: absolute; bottom: -5px; right: -5px; width: 15px; height: 15px; background: #667eea; border: 2px solid white; border-radius: 50%; cursor: se-resize;"></div>
                                 </div>
+                            </div>
+
+                            <div style="margin-top: 20px; text-align: center;">
+                                <button onclick="updateLogoPreview()" style="background: #667eea; color: white; border: none; padding: 12px 30px; border-radius: 20px; font-weight: 600; cursor: pointer; margin-right: 10px;">
+                                    <i class="fas fa-sync-alt"></i> Aggiorna Anteprima
+                                </button>
+                                <button onclick="resetLogoPosition()" style="background: #6c757d; color: white; border: none; padding: 12px 30px; border-radius: 20px; font-weight: 600; cursor: pointer;">
+                                    <i class="fas fa-undo"></i> Reset Posizione
+                                </button>
                             </div>
                         </div>
 
@@ -3583,16 +3646,386 @@
 
         document.getElementById('logoVideo').addEventListener('change', function(e) {
             if (e.target.files.length > 0) {
-                document.getElementById('logoVideoName').textContent = e.target.files[0].name;
-                document.getElementById('logoVideoInfo').style.display = 'block';
+                const file = e.target.files[0];
+                const fileName = file.name;
+                const fileSize = (file.size / (1024 * 1024)).toFixed(2); // MB
+
+                // Mostra preview video
+                const preview = document.getElementById('logoVideoPreview');
+                const previewContainer = document.getElementById('logoVideoPreviewContainer');
+                const placeholder = document.getElementById('logoVideoPlaceholder');
+                const url = URL.createObjectURL(file);
+                preview.src = url;
+
+                // Quando il video è caricato, ottieni dimensioni e durata
+                preview.onloadedmetadata = function() {
+                    const duration = Math.floor(preview.duration);
+                    const minutes = Math.floor(duration / 60);
+                    const seconds = duration % 60;
+                    const durationStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                    const resolution = `${preview.videoWidth}x${preview.videoHeight}`;
+
+                    // Aggiorna il testo con tutte le info
+                    document.getElementById('logoVideoName').innerHTML = `
+                        <strong>${fileName}</strong><br>
+                        <small style="color: #666;">
+                            📏 ${resolution} • ⏱️ ${durationStr} • 💾 ${fileSize} MB
+                        </small>
+                    `;
+
+                    // Nascondi placeholder e mostra preview
+                    placeholder.style.display = 'none';
+                    previewContainer.style.display = 'block';
+
+                    // Avvia rendering canvas
+                    startLogoCanvasRendering();
+                };
             }
         });
 
         document.getElementById('logoImage').addEventListener('change', function(e) {
             if (e.target.files.length > 0) {
-                document.getElementById('logoImageName').textContent = e.target.files[0].name;
-                document.getElementById('logoImageInfo').style.display = 'block';
+                const file = e.target.files[0];
+                const fileName = file.name;
+                const fileSize = (file.size / (1024 * 1024)).toFixed(2); // MB
+
+                // Mostra preview immagine
+                const preview = document.getElementById('logoImagePreview');
+                const previewContainer = document.getElementById('logoImagePreviewContainer');
+                const placeholder = document.getElementById('logoImagePlaceholder');
+                const url = URL.createObjectURL(file);
+                preview.src = url;
+
+                // Quando l'immagine è caricata
+                preview.onload = function() {
+                    const resolution = `${preview.naturalWidth}x${preview.naturalHeight}`;
+
+                    // Aggiorna il testo con tutte le info
+                    document.getElementById('logoImageName').innerHTML = `
+                        <strong>${fileName}</strong><br>
+                        <small style="color: #666;">
+                            📏 ${resolution} • 💾 ${fileSize} MB
+                        </small>
+                    `;
+
+                    // Nascondi placeholder e mostra preview
+                    placeholder.style.display = 'none';
+                    previewContainer.style.display = 'block';
+
+                    // Avvia rendering canvas
+                    startLogoCanvasRendering();
+                };
             }
+        });
+
+        // Clear image preview function
+        function clearImagePreview(inputId, event) {
+            // Ferma la propagazione per evitare di aprire il file dialog
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+
+            const previewElement = document.getElementById(inputId + 'Preview');
+            const previewContainer = document.getElementById(inputId + 'PreviewContainer');
+            const placeholder = document.getElementById(inputId + 'Placeholder');
+            const inputElement = document.getElementById(inputId);
+
+            if (previewElement && previewContainer && placeholder && inputElement) {
+                // Pulisci l'immagine
+                previewElement.src = '';
+
+                // Pulisci l'input file
+                inputElement.value = '';
+
+                // Mostra placeholder e nascondi preview
+                previewContainer.style.display = 'none';
+                placeholder.style.display = 'flex';
+
+                console.log(`🗑️ Immagine rimossa per ${inputId}`);
+
+                // Controlla se ci sono ancora file caricati
+                const mainVideo = document.getElementById('logoVideoPreview');
+                const logoImage = document.getElementById('logoImagePreview');
+                const logoOverlay = document.getElementById('logoDragOverlay');
+
+                if (!mainVideo.src && !logoImage.src) {
+                    // Nessun file caricato, ferma rendering e nascondi overlay
+                    stopLogoCanvasRendering();
+                    if (logoOverlay) {
+                        logoOverlay.style.display = 'none';
+                    }
+                } else {
+                    // Riavvia rendering con i file rimasti
+                    startLogoCanvasRendering();
+                }
+            }
+        }
+
+        // ==================== LOGO CANVAS RENDERING FUNCTIONS ====================
+
+        let logoCanvasRenderingActive = false;
+        let logoAnimationFrameId = null;
+
+        function startLogoCanvasRendering() {
+            const canvas = document.getElementById('logoPreviewCanvas');
+            const ctx = canvas.getContext('2d');
+            const mainVideo = document.getElementById('logoVideoPreview');
+            const logoImage = document.getElementById('logoImagePreview');
+            const logoOverlay = document.getElementById('logoDragOverlay');
+
+            if (!canvas || !ctx) return;
+
+            // Set canvas resolution
+            canvas.width = 1280;
+            canvas.height = 720;
+
+            // Stop previous rendering if active
+            if (logoAnimationFrameId) {
+                cancelAnimationFrame(logoAnimationFrameId);
+            }
+
+            logoCanvasRenderingActive = true;
+
+            function render() {
+                if (!logoCanvasRenderingActive) return;
+
+                // Clear canvas
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Render main video (background) if loaded
+                if (mainVideo && mainVideo.src && mainVideo.readyState >= 2) {
+                    ctx.drawImage(mainVideo, 0, 0, canvas.width, canvas.height);
+                }
+
+                // Render logo image (overlay) if loaded
+                if (logoImage && logoImage.src && logoImage.complete) {
+                    const overlayRect = logoOverlay.getBoundingClientRect();
+                    const canvasRect = canvas.getBoundingClientRect();
+
+                    // Calculate logo position and size on canvas
+                    const scaleX = canvas.width / canvasRect.width;
+                    const scaleY = canvas.height / canvasRect.height;
+
+                    const logoX = (overlayRect.left - canvasRect.left) * scaleX;
+                    const logoY = (overlayRect.top - canvasRect.top) * scaleY;
+                    const logoWidth = overlayRect.width * scaleX;
+                    const logoHeight = overlayRect.height * scaleY;
+
+                    // Apply opacity from slider
+                    const opacity = parseFloat(document.getElementById('logoOpacity').value) / 100;
+                    ctx.globalAlpha = opacity;
+
+                    // Draw logo image
+                    ctx.drawImage(logoImage, logoX, logoY, logoWidth, logoHeight);
+
+                    // Reset opacity
+                    ctx.globalAlpha = 1.0;
+                }
+
+                logoAnimationFrameId = requestAnimationFrame(render);
+            }
+
+            // Show overlay only if logo image is loaded
+            if (logoImage.src) {
+                logoOverlay.style.display = 'block';
+            } else {
+                logoOverlay.style.display = 'none';
+            }
+
+            // Start rendering if any file is loaded
+            if (mainVideo.src || logoImage.src) {
+                render();
+            }
+        }
+
+        function stopLogoCanvasRendering() {
+            logoCanvasRenderingActive = false;
+            if (logoAnimationFrameId) {
+                cancelAnimationFrame(logoAnimationFrameId);
+                logoAnimationFrameId = null;
+            }
+        }
+
+        // ==================== LOGO DRAG & DROP FUNCTIONS ====================
+
+        let logoDragState = {
+            isDragging: false,
+            isResizing: false,
+            startX: 0,
+            startY: 0,
+            startLeft: 0,
+            startTop: 0,
+            startWidth: 0,
+            startHeight: 0,
+            resizeHandle: null
+        };
+
+        function initLogoDragAndDrop() {
+            const logoOverlay = document.getElementById('logoDragOverlay');
+            if (!logoOverlay) return;
+
+            // Drag functionality
+            logoOverlay.addEventListener('mousedown', function(e) {
+                if (e.target.classList.contains('resize-handle')) {
+                    return; // Let resize handle it
+                }
+
+                logoDragState.isDragging = true;
+                logoDragState.startX = e.clientX;
+                logoDragState.startY = e.clientY;
+
+                const rect = logoOverlay.getBoundingClientRect();
+                const parent = logoOverlay.parentElement.getBoundingClientRect();
+
+                logoDragState.startLeft = ((rect.left - parent.left) / parent.width) * 100;
+                logoDragState.startTop = ((rect.top - parent.top) / parent.height) * 100;
+
+                // Visual feedback
+                logoOverlay.style.background = 'rgba(102, 126, 234, 0.3)';
+                logoOverlay.style.borderColor = '#764ba2';
+
+                e.preventDefault();
+            });
+
+            // Resize functionality
+            const resizeHandles = logoOverlay.querySelectorAll('.resize-handle');
+            resizeHandles.forEach(handle => {
+                handle.addEventListener('mousedown', function(e) {
+                    logoDragState.isResizing = true;
+                    logoDragState.resizeHandle = handle.classList[1];
+                    logoDragState.startX = e.clientX;
+                    logoDragState.startY = e.clientY;
+
+                    const rect = logoOverlay.getBoundingClientRect();
+                    const parent = logoOverlay.parentElement.getBoundingClientRect();
+
+                    logoDragState.startLeft = ((rect.left - parent.left) / parent.width) * 100;
+                    logoDragState.startTop = ((rect.top - parent.top) / parent.height) * 100;
+                    logoDragState.startWidth = (rect.width / parent.width) * 100;
+                    logoDragState.startHeight = (rect.height / parent.height) * 100;
+
+                    e.stopPropagation();
+                    e.preventDefault();
+                });
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (logoDragState.isDragging) {
+                    const parent = logoOverlay.parentElement.getBoundingClientRect();
+                    const deltaX = ((e.clientX - logoDragState.startX) / parent.width) * 100;
+                    const deltaY = ((e.clientY - logoDragState.startY) / parent.height) * 100;
+
+                    let newLeft = logoDragState.startLeft + deltaX;
+                    let newTop = logoDragState.startTop + deltaY;
+
+                    // Constrain to parent
+                    newLeft = Math.max(0, Math.min(100 - parseFloat(logoOverlay.style.width), newLeft));
+                    newTop = Math.max(0, Math.min(100 - parseFloat(logoOverlay.style.height), newTop));
+
+                    logoOverlay.style.left = newLeft + '%';
+                    logoOverlay.style.top = newTop + '%';
+                }
+
+                if (logoDragState.isResizing) {
+                    const parent = logoOverlay.parentElement.getBoundingClientRect();
+                    const deltaX = ((e.clientX - logoDragState.startX) / parent.width) * 100;
+                    const deltaY = ((e.clientY - logoDragState.startY) / parent.height) * 100;
+
+                    let newWidth = logoDragState.startWidth;
+                    let newHeight = logoDragState.startHeight;
+                    let newLeft = logoDragState.startLeft;
+                    let newTop = logoDragState.startTop;
+
+                    // Calculate new dimensions based on handle
+                    if (logoDragState.resizeHandle.includes('e')) {
+                        newWidth = Math.max(5, logoDragState.startWidth + deltaX);
+                    }
+                    if (logoDragState.resizeHandle.includes('w')) {
+                        newWidth = Math.max(5, logoDragState.startWidth - deltaX);
+                        newLeft = logoDragState.startLeft + deltaX;
+                    }
+                    if (logoDragState.resizeHandle.includes('s')) {
+                        newHeight = Math.max(5, logoDragState.startHeight + deltaY);
+                    }
+                    if (logoDragState.resizeHandle.includes('n')) {
+                        newHeight = Math.max(5, logoDragState.startHeight - deltaY);
+                        newTop = logoDragState.startTop + deltaY;
+                    }
+
+                    // Constrain to parent
+                    newWidth = Math.min(100 - newLeft, newWidth);
+                    newHeight = Math.min(100 - newTop, newHeight);
+
+                    logoOverlay.style.width = newWidth + '%';
+                    logoOverlay.style.height = newHeight + '%';
+                    logoOverlay.style.left = newLeft + '%';
+                    logoOverlay.style.top = newTop + '%';
+
+                    // Update scale slider
+                    updateLogoScaleFromOverlay();
+                }
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (logoDragState.isDragging || logoDragState.isResizing) {
+                    // Reset visual feedback
+                    logoOverlay.style.background = 'rgba(102, 126, 234, 0.1)';
+                    logoOverlay.style.borderColor = '#667eea';
+                }
+
+                logoDragState.isDragging = false;
+                logoDragState.isResizing = false;
+                logoDragState.resizeHandle = null;
+            });
+        }
+
+        function updateLogoScaleFromOverlay() {
+            const logoOverlay = document.getElementById('logoDragOverlay');
+            const currentWidth = parseFloat(logoOverlay.style.width);
+
+            // Convert to percentage scale (15% baseline)
+            const scale = Math.round((currentWidth / 15) * 15);
+
+            const scaleSlider = document.getElementById('logoScale');
+            if (scaleSlider) {
+                scaleSlider.value = scale;
+                document.getElementById('logoScaleValue').textContent = scale;
+            }
+        }
+
+        function updateLogoPreview() {
+            const videoPreview = document.getElementById('logoVideoPreview');
+            const imagePreview = document.getElementById('logoImagePreview');
+
+            if (videoPreview.src || imagePreview.src) {
+                startLogoCanvasRendering();
+                showInfo('Anteprima logo aggiornata! Trascina il logo per posizionarlo.');
+            } else {
+                showWarning('Carica almeno un file per vedere l\'anteprima.');
+            }
+        }
+
+        function resetLogoPosition() {
+            const logoOverlay = document.getElementById('logoDragOverlay');
+            logoOverlay.style.top = '5%';
+            logoOverlay.style.right = '5%';
+            logoOverlay.style.left = 'auto';
+            logoOverlay.style.width = '15%';
+            logoOverlay.style.height = '15%';
+
+            // Reset sliders
+            document.getElementById('logoScale').value = 15;
+            document.getElementById('logoScaleValue').textContent = '15';
+
+            showInfo('Posizione logo resettata.');
+        }
+
+        // Sync logo opacity slider with rendering
+        document.getElementById('logoOpacity').addEventListener('input', function() {
+            document.getElementById('logoOpacityValue').textContent = this.value;
+            // Rendering already applies opacity, no need to restart
         });
 
         // Slider updates
@@ -3601,11 +4034,19 @@
         });
 
         document.getElementById('logoScale').addEventListener('input', function() {
-            document.getElementById('logoScaleValue').textContent = this.value;
+            const scale = this.value;
+            document.getElementById('logoScaleValue').textContent = scale;
+
+            // Update overlay size
+            const logoOverlay = document.getElementById('logoDragOverlay');
+            const newSize = (scale / 15) * 15; // Relative to 15% baseline
+            logoOverlay.style.width = newSize + '%';
+            logoOverlay.style.height = newSize + '%';
         });
 
-        document.getElementById('logoOpacity').addEventListener('input', function() {
-            document.getElementById('logoOpacityValue').textContent = this.value;
+        // Initialize drag & drop when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initLogoDragAndDrop();
         });
 
         async function processLogoOverlay() {
@@ -5960,20 +6401,42 @@
 
                 console.log(`🗑️ Video rimosso per ${inputId}`);
 
-                // Controlla se ci sono ancora video caricati
+                // Controlla se ci sono ancora video caricati per CTA
                 const mainVideo = document.getElementById('chromakeyBackgroundPreview');
                 const ctaVideo = document.getElementById('chromakeyForegroundPreview');
                 const ctaOverlay = document.getElementById('ctaDragOverlay');
 
-                if (!mainVideo.src && !ctaVideo.src) {
-                    // Nessun video caricato, ferma rendering e nascondi overlay
-                    stopCanvasRendering();
-                    if (ctaOverlay) {
-                        ctaOverlay.style.display = 'none';
+                // Controlla se ci sono ancora file caricati per Logo
+                const logoMainVideo = document.getElementById('logoVideoPreview');
+                const logoImage = document.getElementById('logoImagePreview');
+                const logoOverlay = document.getElementById('logoDragOverlay');
+
+                // Gestisci CTA canvas
+                if (inputId.includes('chromakey')) {
+                    if (!mainVideo.src && !ctaVideo.src) {
+                        // Nessun video caricato, ferma rendering e nascondi overlay
+                        stopCanvasRendering();
+                        if (ctaOverlay) {
+                            ctaOverlay.style.display = 'none';
+                        }
+                    } else {
+                        // Riavvia rendering con i video rimasti
+                        startCanvasRendering();
                     }
-                } else {
-                    // Riavvia rendering con i video rimasti
-                    startCanvasRendering();
+                }
+
+                // Gestisci Logo canvas
+                if (inputId.includes('logoVideo')) {
+                    if (!logoMainVideo.src && !logoImage.src) {
+                        // Nessun file caricato, ferma rendering e nascondi overlay
+                        stopLogoCanvasRendering();
+                        if (logoOverlay) {
+                            logoOverlay.style.display = 'none';
+                        }
+                    } else {
+                        // Riavvia rendering con i file rimasti
+                        startLogoCanvasRendering();
+                    }
                 }
             }
         }
