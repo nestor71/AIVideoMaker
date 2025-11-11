@@ -165,13 +165,20 @@ app.add_middleware(
     enabled=settings.rate_limit_enabled
 )
 
-# CORS
+# CORS - Configurazione sicura e restrittiva
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_headers=[
+        "Content-Type",
+        "Authorization",
+        "Accept",
+        "Origin",
+        "X-Requested-With",
+        "X-CSRF-Token",
+    ],
 )
 
 # ==================== STATIC FILES ====================

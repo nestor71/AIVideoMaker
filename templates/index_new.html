@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎬 AIVideoMaker - Piattaforma Enterprise</title>
+    <title>🎬 AIVideoMaker</title>
 
     <!-- External Dependencies -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -1025,7 +1025,7 @@
         <div class="container">
             <!-- Hero Section -->
             <div class="hero-section">
-                <h1>🎬 AIVideoMaker Enterprise</h1>
+                <h1>🎬 AIVideoMaker</h1>
                 <p>Piattaforma completa per editing, trascrizione, traduzione e automazione video con AI</p>
             </div>
 
@@ -2758,12 +2758,14 @@
     <!-- Footer -->
     <footer style="background: #2c3e50; color: white; padding: 30px 0; margin-top: 60px;">
         <div class="container" style="text-align: center;">
-            <p style="margin: 0; opacity: 0.8;">© 2024 AIVideoMaker Enterprise - Powered by AI</p>
-            <p style="margin: 10px 0 0 0; font-size: 0.9rem; opacity: 0.6;">
-                Piattaforma completa per editing, trascrizione, traduzione e automazione video
-            </p>
+            <p style="margin: 0; opacity: 0.8;">© <span id="currentYear"></span> AIVideoMaker - Piattaforma completa per video editing con AI</p>
         </div>
     </footer>
+
+    <script>
+        // Aggiorna automaticamente l'anno corrente
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+    </script>
 
     <!-- Scripts -->
     <!-- <script src="/static/js/modern-app.js"></script> -->

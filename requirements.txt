@@ -22,8 +22,8 @@ pydantic-settings==2.0.3
 python-dotenv==1.0.0
 
 # Computer Vision
-opencv-python==4.12.0.88
-numpy>=2.0,<2.3  # Compatibile con opencv-python 4.12.x
+opencv-python>=4.9,<4.11  # Compatible with numpy 1.x
+numpy>=1.24,<2.0  # Compatible with PyTorch 2.2.2 and OpenCV 4.10
 
 # Validation
 pydantic==2.9.2

@@ -5,12 +5,12 @@ Modello per gestire refresh tokens persistenti.
 """
 
 from sqlalchemy import Column, String, DateTime, ForeignKey, Boolean
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
 
 from app.core.database import Base
+from app.core.types import UUID
 
 
 class RefreshToken(Base):
@@ -21,13 +21,13 @@ class RefreshToken(Base):
     """
     __tablename__ = "refresh_tokens"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4)
 
     # Token hash (non salviamo token in chiaro!)
     token_hash = Column(String(64), unique=True, nullable=False, index=True)
 
     # User relationship
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(UUID(), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     user = relationship("User", back_populates="refresh_tokens")
 
     # Metadata

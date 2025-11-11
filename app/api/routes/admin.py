@@ -604,3 +604,76 @@ async def export_users_csv(
             "Content-Disposition": f"attachment; filename=users_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
         }
     )
+
+
+# ==================== ADMIN AUDIT LOG ROUTES ====================
+
+class AuditLogResponse(BaseModel):
+    """Schema per audit log entry"""
+    id: UUID
+    admin_username: str
+    admin_email: str
+    action: str
+    target_type: Optional[str]
+    target_identifier: Optional[str]
+    details: Optional[dict]
+    ip_address: Optional[str]
+    timestamp: datetime
+
+    @field_serializer('id')
+    def serialize_id(self, value: UUID) -> str:
+        return str(value)
+
+    class Config:
+        from_attributes = True
+
+
+@router.get("/audit-logs", response_model=List[AuditLogResponse])
+@limiter.limit("100/minute")
+async def get_audit_logs(
+    request: Request,
+    admin_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+    limit: int = 100,
+    offset: int = 0,
+    action_filter: Optional[str] = None,
+    admin_filter: Optional[str] = None
+):
+    """
+    Recupera audit logs delle azioni amministrative
+
+    **Richiede privilegi admin.**
+    **RATE LIMIT: 100 richieste/minuto per IP**
+
+    Query parameters:
+    - **limit**: Numero massimo di log da ritornare (default 100, max 500)
+    - **offset**: Offset per paginazione (default 0)
+    - **action_filter**: Filtra per tipo azione (es. 'user.delete', 'user.update')
+    - **admin_filter**: Filtra per username admin
+
+    Returns:
+    - Lista audit logs ordinati dal più recente
+    """
+    from app.models.admin_audit_log import AdminAuditLog
+
+    # Limita max results
+    if limit > 500:
+        limit = 500
+
+    # Build query
+    query = db.query(AdminAuditLog)
+
+    # Apply filters
+    if action_filter:
+        query = query.filter(AdminAuditLog.action == action_filter)
+
+    if admin_filter:
+        query = query.filter(AdminAuditLog.admin_username.like(f"%{admin_filter}%"))
+
+    # Order by timestamp descending (most recent first)
+    query = query.order_by(AdminAuditLog.timestamp.desc())
+
+    # Apply pagination
+    logs = query.offset(offset).limit(limit).all()
+
+    return logs
