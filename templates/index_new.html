@@ -1150,7 +1150,7 @@
 
                         <div class="dashboard-card" onclick="showPrimaryTab('video'); showSubTab('video', 'recorder');">
                             <i class="fas fa-record-vinyl"></i>
-                            <h3>Screen Recorder</h3>
+                            <h3>Registratore Schermo</h3>
                             <p>Registra schermo, finestra o tab con audio</p>
                         </div>
 
@@ -1571,7 +1571,7 @@
                 <div class="tab-pane" id="pane-video-recorder">
                     <div class="section-header">
                         <i class="fas fa-record-vinyl"></i>
-                        <h2>Screen Recorder</h2>
+                        <h2>Registratore Schermo</h2>
                     </div>
                     <p class="section-description">Registra schermo, finestra o tab del browser con audio direttamente dal browser</p>
 
@@ -1658,7 +1658,7 @@
                                         <div style="font-size: 2rem; font-weight: 700; color: #dc3545; font-family: monospace;" id="recorderTimerDisplay">00:00:00</div>
                                         <div style="margin-top: 5px;">
                                             <span id="recorderStatus" style="display: inline-block; padding: 5px 15px; background: #dc3545; color: white; border-radius: 20px; font-size: 0.9rem; font-weight: 600;">
-                                                <i class="fas fa-circle" style="animation: blink 1s infinite;"></i> RECORDING
+                                                <i class="fas fa-circle" style="animation: blink 1s infinite;"></i> REGISTRAZIONE
                                             </span>
                                         </div>
                                     </div>
@@ -1670,7 +1670,7 @@
                                 <div style="background: #000; border-radius: 15px; overflow: hidden; margin-bottom: 20px;">
                                     <div style="padding: 15px; background: #1a1a1a; border-bottom: 1px solid #333;">
                                         <h3 style="color: white; margin: 0; font-size: 1rem;">
-                                            <i class="fas fa-eye"></i> Preview
+                                            <i class="fas fa-eye"></i> Anteprima
                                         </h3>
                                     </div>
                                     <div style="position: relative; padding-bottom: 56.25%; background: #000;">
@@ -4582,7 +4582,7 @@
                 isPaused = false;
                 document.getElementById('recorderPauseBtn').innerHTML = '<i class="fas fa-pause"></i> Pausa';
                 document.getElementById('recorderStatus').style.background = '#dc3545';
-                document.getElementById('recorderStatus').innerHTML = '<i class="fas fa-circle" style="animation: blink 1s infinite;"></i> RECORDING';
+                document.getElementById('recorderStatus').innerHTML = '<i class="fas fa-circle" style="animation: blink 1s infinite;"></i> REGISTRAZIONE';
                 startTimer();
             } else {
                 // Pause
@@ -4590,7 +4590,7 @@
                 isPaused = true;
                 document.getElementById('recorderPauseBtn').innerHTML = '<i class="fas fa-play"></i> Riprendi';
                 document.getElementById('recorderStatus').style.background = '#ffc107';
-                document.getElementById('recorderStatus').innerHTML = '<i class="fas fa-pause"></i> PAUSED';
+                document.getElementById('recorderStatus').innerHTML = '<i class="fas fa-pause"></i> IN PAUSA';
                 stopTimer();
             }
         }
@@ -4724,10 +4724,10 @@
                     </div>
                     <div style="display: flex; gap: 10px;">
                         <button onclick="playRecording(${index})" style="flex: 1; background: #667eea; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
-                            <i class="fas fa-play"></i> Play
+                            <i class="fas fa-play"></i> Riproduci
                         </button>
                         <button onclick="downloadRecording(${index})" style="flex: 1; background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
-                            <i class="fas fa-download"></i> Download
+                            <i class="fas fa-download"></i> Scarica
                         </button>
                         <button onclick="deleteRecording(${index})" style="background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
                             <i class="fas fa-trash"></i>
