@@ -1281,10 +1281,10 @@
                                 <canvas id="chromakeyPreviewCanvas" style="width: 100%; height: 100%; display: block;"></canvas>
 
                                 <!-- Overlay draggable per CTA -->
-                                <div id="ctaDragOverlay" style="position: absolute; top: 20%; left: 20%; width: 30%; height: 30%; border: 2px dashed #667eea; background: rgba(102, 126, 234, 0.2); cursor: move; display: none; z-index: 10;">
-                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-align: center; pointer-events: none;">
-                                        <i class="fas fa-hand-pointer" style="font-size: 2rem; display: block; margin-bottom: 10px;"></i>
-                                        Video CTA
+                                <div id="ctaDragOverlay" style="position: absolute; top: 20%; left: 20%; width: 30%; height: 30%; border: 3px solid #667eea; background: rgba(102, 126, 234, 0.1); cursor: move; display: none; z-index: 10; transition: background 0.2s, border-color 0.2s; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+                                    <div id="ctaOverlayLabel" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-align: center; pointer-events: none; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); opacity: 0.7;">
+                                        <i class="fas fa-arrows-alt" style="font-size: 2rem; display: block; margin-bottom: 10px;"></i>
+                                        Trascina CTA
                                     </div>
                                     <!-- Resize handles -->
                                     <div class="resize-handle resize-nw" style="position: absolute; top: -5px; left: -5px; width: 15px; height: 15px; background: #667eea; border: 2px solid white; border-radius: 50%; cursor: nw-resize;"></div>
@@ -3062,6 +3062,9 @@
                     // Nascondi placeholder e mostra preview
                     placeholder.style.display = 'none';
                     previewContainer.style.display = 'block';
+
+                    // Avvia rendering canvas
+                    startCanvasRendering();
                 };
             }
         });
@@ -3098,9 +3101,92 @@
                     // Nascondi placeholder e mostra preview
                     placeholder.style.display = 'none';
                     previewContainer.style.display = 'block';
+
+                    // Avvia rendering canvas
+                    startCanvasRendering();
                 };
             }
         });
+
+        // ==================== CANVAS RENDERING FUNCTIONS ====================
+
+        let canvasRenderingActive = false;
+        let animationFrameId = null;
+
+        function startCanvasRendering() {
+            const canvas = document.getElementById('chromakeyPreviewCanvas');
+            const ctx = canvas.getContext('2d');
+            const mainVideo = document.getElementById('chromakeyBackgroundPreview');
+            const ctaVideo = document.getElementById('chromakeyForegroundPreview');
+            const ctaOverlay = document.getElementById('ctaDragOverlay');
+
+            if (!canvas || !ctx) return;
+
+            // Set canvas resolution
+            const container = canvas.parentElement;
+            canvas.width = 1280;
+            canvas.height = 720;
+
+            // Stop previous rendering if active
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+
+            canvasRenderingActive = true;
+
+            function render() {
+                if (!canvasRenderingActive) return;
+
+                // Clear canvas
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Render main video (background) if loaded
+                if (mainVideo && mainVideo.src && mainVideo.readyState >= 2) {
+                    ctx.drawImage(mainVideo, 0, 0, canvas.width, canvas.height);
+                }
+
+                // Render CTA video (overlay) if loaded
+                if (ctaVideo && ctaVideo.src && ctaVideo.readyState >= 2) {
+                    const overlayRect = ctaOverlay.getBoundingClientRect();
+                    const canvasRect = canvas.getBoundingClientRect();
+
+                    // Calculate CTA position and size on canvas
+                    const scaleX = canvas.width / canvasRect.width;
+                    const scaleY = canvas.height / canvasRect.height;
+
+                    const ctaX = (overlayRect.left - canvasRect.left) * scaleX;
+                    const ctaY = (overlayRect.top - canvasRect.top) * scaleY;
+                    const ctaWidth = overlayRect.width * scaleX;
+                    const ctaHeight = overlayRect.height * scaleY;
+
+                    // Draw CTA video
+                    ctx.drawImage(ctaVideo, ctaX, ctaY, ctaWidth, ctaHeight);
+                }
+
+                animationFrameId = requestAnimationFrame(render);
+            }
+
+            // Show overlay only if CTA video is loaded
+            if (ctaVideo.src) {
+                ctaOverlay.style.display = 'block';
+            } else {
+                ctaOverlay.style.display = 'none';
+            }
+
+            // Start rendering if any video is loaded
+            if (mainVideo.src || ctaVideo.src) {
+                render();
+            }
+        }
+
+        function stopCanvasRendering() {
+            canvasRenderingActive = false;
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+        }
 
         function processChromakey() {
             showInfo('Chromakey processing - funzione in sviluppo. Sarà collegata all\'API /chromakey/upload');
@@ -3139,6 +3225,10 @@
 
                 ctaDragState.startLeft = ((rect.left - parent.left) / parent.width) * 100;
                 ctaDragState.startTop = ((rect.top - parent.top) / parent.height) * 100;
+
+                // Visual feedback
+                ctaOverlay.style.background = 'rgba(102, 126, 234, 0.3)';
+                ctaOverlay.style.borderColor = '#764ba2';
 
                 e.preventDefault();
             });
@@ -3226,6 +3316,12 @@
             });
 
             document.addEventListener('mouseup', function() {
+                if (ctaDragState.isDragging || ctaDragState.isResizing) {
+                    // Reset visual feedback
+                    ctaOverlay.style.background = 'rgba(102, 126, 234, 0.1)';
+                    ctaOverlay.style.borderColor = '#667eea';
+                }
+
                 ctaDragState.isDragging = false;
                 ctaDragState.isResizing = false;
                 ctaDragState.resizeHandle = null;
@@ -3274,11 +3370,11 @@
             const backgroundPreview = document.getElementById('chromakeyBackgroundPreview');
             const ctaOverlay = document.getElementById('ctaDragOverlay');
 
-            if (foregroundPreview.src && backgroundPreview.src) {
-                ctaOverlay.style.display = 'block';
-                showInfo('Anteprima aggiornata! Trascina il box per posizionare il CTA.');
+            if (foregroundPreview.src || backgroundPreview.src) {
+                startCanvasRendering();
+                showInfo('Anteprima aggiornata! Trascina il box CTA per posizionarlo.');
             } else {
-                showWarning('Carica entrambi i video per vedere l\'anteprima.');
+                showWarning('Carica almeno un video per vedere l\'anteprima.');
             }
         }
 
@@ -5863,6 +5959,22 @@
                 placeholder.style.display = 'flex';
 
                 console.log(`🗑️ Video rimosso per ${inputId}`);
+
+                // Controlla se ci sono ancora video caricati
+                const mainVideo = document.getElementById('chromakeyBackgroundPreview');
+                const ctaVideo = document.getElementById('chromakeyForegroundPreview');
+                const ctaOverlay = document.getElementById('ctaDragOverlay');
+
+                if (!mainVideo.src && !ctaVideo.src) {
+                    // Nessun video caricato, ferma rendering e nascondi overlay
+                    stopCanvasRendering();
+                    if (ctaOverlay) {
+                        ctaOverlay.style.display = 'none';
+                    }
+                } else {
+                    // Riavvia rendering con i video rimasti
+                    startCanvasRendering();
+                }
             }
         }
 
