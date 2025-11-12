@@ -193,14 +193,138 @@ if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
 fi
 
 # ========================================
-# 6. APRI BROWSER
+# 6. APRI/RICARICA BROWSER
 # ========================================
 
 echo -e "${BLUE}🌐 Apertura browser...${NC}"
 sleep 1
 
-# Apri il browser sulla pagina dell'applicazione
-open "http://localhost:8000"
+APP_URL="http://localhost:8000"
+
+# Funzione per aprire/ricaricare in Safari
+open_or_reload_safari() {
+    osascript <<EOF 2>/dev/null
+tell application "Safari"
+    set targetURL to "$APP_URL"
+    set tabFound to false
+
+    -- Cerca una scheda esistente con l'URL
+    repeat with w in windows
+        repeat with t in tabs of w
+            if URL of t contains "localhost:8000" then
+                set tabFound to true
+                -- Porta la finestra in primo piano
+                set index of w to 1
+                -- Seleziona la scheda
+                set current tab of w to t
+                -- Ricarica la pagina
+                tell t to do JavaScript "window.location.reload()"
+                activate
+                exit repeat
+            end if
+        end repeat
+        if tabFound then exit repeat
+    end repeat
+
+    -- Se non trovata, apri nuova scheda/finestra
+    if not tabFound then
+        if (count of windows) > 0 then
+            tell front window
+                set current tab to (make new tab with properties {URL:targetURL})
+            end tell
+        else
+            make new document with properties {URL:targetURL}
+        end if
+        activate
+    end if
+end tell
+EOF
+    return $?
+}
+
+# Funzione per aprire/ricaricare in Chrome
+open_or_reload_chrome() {
+    osascript <<EOF 2>/dev/null
+tell application "Google Chrome"
+    set targetURL to "$APP_URL"
+    set tabFound to false
+
+    -- Cerca una scheda esistente con l'URL
+    repeat with w in windows
+        repeat with t in tabs of w
+            if URL of t contains "localhost:8000" then
+                set tabFound to true
+                -- Porta la finestra in primo piano
+                set index of w to 1
+                -- Seleziona e ricarica la scheda
+                set active tab index of w to (index of t)
+                tell t to reload
+                activate
+                exit repeat
+            end if
+        end repeat
+        if tabFound then exit repeat
+    end repeat
+
+    -- Se non trovata, apri nuova scheda/finestra
+    if not tabFound then
+        if (count of windows) > 0 then
+            tell front window
+                make new tab with properties {URL:targetURL}
+            end tell
+        else
+            make new window with properties {URL:targetURL}
+        end if
+        activate
+    end if
+end tell
+EOF
+    return $?
+}
+
+# Rileva e usa il browser predefinito
+DEFAULT_BROWSER=$(defaults read ~/Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure LSHandlers 2>/dev/null | grep -B 1 'LSHandlerURLScheme.*http' | grep 'LSHandlerRoleAll' | head -1 | sed -E 's/.*"(.*)".*/\1/' || echo "")
+
+BROWSER_OPENED=false
+
+# Prova prima con il browser predefinito
+if [[ "$DEFAULT_BROWSER" == *"safari"* ]] || [[ "$DEFAULT_BROWSER" == *"Safari"* ]]; then
+    echo -e "${BLUE}   Uso Safari (browser predefinito)${NC}"
+    if open_or_reload_safari; then
+        BROWSER_OPENED=true
+    fi
+elif [[ "$DEFAULT_BROWSER" == *"chrome"* ]] || [[ "$DEFAULT_BROWSER" == *"Chrome"* ]]; then
+    echo -e "${BLUE}   Uso Chrome (browser predefinito)${NC}"
+    if open_or_reload_chrome; then
+        BROWSER_OPENED=true
+    fi
+fi
+
+# Se non ha funzionato, prova Safari
+if [ "$BROWSER_OPENED" = false ]; then
+    if pgrep -x "Safari" > /dev/null 2>&1 || [ -d "/Applications/Safari.app" ]; then
+        echo -e "${BLUE}   Tentativo con Safari...${NC}"
+        if open_or_reload_safari; then
+            BROWSER_OPENED=true
+        fi
+    fi
+fi
+
+# Se Safari non ha funzionato, prova Chrome
+if [ "$BROWSER_OPENED" = false ]; then
+    if pgrep -x "Google Chrome" > /dev/null 2>&1 || [ -d "/Applications/Google Chrome.app" ]; then
+        echo -e "${BLUE}   Tentativo con Chrome...${NC}"
+        if open_or_reload_chrome; then
+            BROWSER_OPENED=true
+        fi
+    fi
+fi
+
+# Fallback: usa il comando open standard
+if [ "$BROWSER_OPENED" = false ]; then
+    echo -e "${BLUE}   Uso browser di sistema...${NC}"
+    open "$APP_URL"
+fi
 
 echo ""
 echo "╔════════════════════════════════════════════╗"

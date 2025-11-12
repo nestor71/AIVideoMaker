@@ -21,6 +21,26 @@ Sono stati creati **due metodi** per avviare facilmente l'applicazione su macOS:
 - ✅ Avvio rapido dal Launchpad
 - ✅ Esperienza utente più pulita
 
+## 🌟 Gestione Intelligente del Browser
+
+**Novità:** I launcher ora gestiscono intelligentemente le schede del browser!
+
+- 🔍 **Rileva** se hai già una scheda aperta su `localhost:8000`
+- 🔄 **Ricarica** la scheda esistente invece di aprirne una nuova
+- ➕ **Apre** nuova scheda solo se necessario
+- 🎯 **Zero schede duplicate** - ambiente di lavoro più pulito!
+
+**Come funziona:**
+1. Avvii lo script
+2. Lo script controlla Safari e Chrome
+3. Se trova una scheda con `localhost:8000`:
+   - La porta in primo piano
+   - La ricarica automaticamente
+   - Continua a usare quella
+4. Se non trova nessuna scheda:
+   - Apre una nuova scheda/finestra
+   - Usa il browser predefinito
+
 ---
 
 ## 🎯 Come Usare
@@ -79,10 +99,18 @@ Sono stati creati **due metodi** per avviare facilmente l'applicazione su macOS:
 - Monitora che il server sia pronto
 - Attende fino a 30 secondi per il health check
 
-### 6️⃣ Apertura Browser
-- Apre automaticamente Safari (o browser predefinito)
-- Naviga su `http://localhost:8000`
-- L'applicazione è pronta all'uso!
+### 6️⃣ Apertura/Ricarica Browser Intelligente
+- 🔍 **Controlla** se esiste già una scheda aperta su `http://localhost:8000`
+- 🔄 Se trovata: **ricarica** la scheda esistente e la porta in primo piano
+- ➕ Se non trovata: **apre** una nuova scheda/finestra
+- 🌐 Supporta **Safari** e **Google Chrome**
+- ⚡ Rileva automaticamente il browser predefinito
+- 🎯 Evita apertura di schede duplicate
+
+**Benefici:**
+- Non accumuli decine di schede duplicate
+- Esperienza più pulita e professionale
+- Refresh automatico se riavvii l'app
 
 ---
 
@@ -186,6 +214,57 @@ cat .env
 # Prova avvio manuale
 source venv/bin/activate
 python main.py
+```
+
+### Problema: Il browser non si apre/ricarica automaticamente
+
+**Soluzione**:
+1. Verifica che Safari o Chrome siano installati
+2. Controlla i permessi di automazione:
+   - **Preferenze di Sistema** → **Sicurezza e Privacy** → **Privacy** → **Automazione**
+   - Assicurati che Terminal.app possa controllare Safari/Chrome
+3. Se continua a non funzionare, il launcher userà il browser predefinito del sistema
+
+---
+
+## ❓ Domande Frequenti (FAQ)
+
+### Come fa lo script a sapere se ho già una scheda aperta?
+
+Lo script usa **AppleScript** per comunicare direttamente con Safari e Chrome:
+1. Scansiona tutte le finestre aperte del browser
+2. Cerca schede con URL contenente `localhost:8000`
+3. Se trova una corrispondenza, la ricarica
+4. Se non trova nulla, apre una nuova scheda
+
+### Funziona con altri browser oltre a Safari e Chrome?
+
+Attualmente supporta **Safari** e **Google Chrome** (i più comuni su macOS). Per altri browser, lo script usa il comando `open` standard di macOS che aprirà il browser predefinito, ma senza la funzionalità di ricarica intelligente della scheda esistente.
+
+### Cosa succede se ho più schede aperte su localhost:8000?
+
+Lo script ricarica **la prima scheda** che trova con quell'URL. Se hai più schede duplicate (caso raro), solo una verrà ricaricata. Consigliamo di chiudere le schede duplicate per una gestione più pulita.
+
+### Lo script funziona anche se il browser è minimizzato?
+
+Sì! Lo script:
+1. Trova la scheda anche se il browser è minimizzato
+2. Porta la finestra del browser in primo piano
+3. Seleziona la scheda corretta
+4. La ricarica automaticamente
+
+### Posso disabilitare la funzionalità di ricarica intelligente?
+
+Sì, se preferisci il comportamento classico (sempre nuova scheda), modifica lo script `Avvia_AIVideoMaker.command`:
+
+```bash
+# Cerca questa sezione (verso la fine):
+# 6. APRI/RICARICA BROWSER
+
+# E sostituisci tutto con:
+echo -e "${BLUE}🌐 Apertura browser...${NC}"
+sleep 1
+open "http://localhost:8000"
 ```
 
 ---
