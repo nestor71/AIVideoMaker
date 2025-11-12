@@ -1379,7 +1379,7 @@
                             <!-- Process Button -->
                             <div style="text-align: center; margin-top: 30px;">
                                 <button onclick="processChromakey()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px 40px; border-radius: 25px; font-size: 1.1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(102,126,234,0.3); transition: all 0.3s;">
-                                    <i class="fas fa-magic"></i> Elabora Chromakey
+                                    <i class="fas fa-magic"></i> Elabora
                                 </button>
                             </div>
                         </div>
@@ -3239,8 +3239,153 @@
             }
         }
 
-        function processChromakey() {
-            showInfo('Chromakey processing - funzione in sviluppo. Sarà collegata all\'API /chromakey/upload');
+        // ==================== CHROMAKEY API INTEGRATION ====================
+
+        let chromakeyJobId = null;
+        let chromakeyPollingInterval = null;
+
+        async function processChromakey() {
+            // Validazione: controlla che entrambi i video siano stati caricati
+            const foregroundInput = document.getElementById('chromakeyForeground');
+            const backgroundInput = document.getElementById('chromakeyBackground');
+
+            if (!foregroundInput.files || foregroundInput.files.length === 0) {
+                showInfo('Carica prima il video CTA (Call to Action) con green screen');
+                return;
+            }
+
+            if (!backgroundInput.files || backgroundInput.files.length === 0) {
+                showInfo('Carica prima il video principale');
+                return;
+            }
+
+            // Ottieni token autenticazione
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                showInfo('Devi effettuare il login per utilizzare questa funzionalità');
+                return;
+            }
+
+            // Raccogli parametri dal form
+            const formData = new FormData();
+            formData.append('foreground', foregroundInput.files[0]);
+            formData.append('background', backgroundInput.files[0]);
+            formData.append('output_name', 'chromakey_output_' + Date.now() + '.mp4');
+
+            // Parametri posizionamento e dimensioni
+            formData.append('position_x', parseInt(document.getElementById('chromakeyPosX').value || 0));
+            formData.append('position_y', parseInt(document.getElementById('chromakeyPosY').value || 0));
+            formData.append('scale', parseFloat(document.getElementById('chromakeyScale').value || 1.0));
+            formData.append('opacity', parseFloat(document.getElementById('chromakeyOpacity').value || 1.0));
+
+            // Parametri green screen
+            formData.append('green_threshold', parseInt(document.getElementById('chromakeyThreshold').value || 100));
+            formData.append('tolerance', parseInt(document.getElementById('chromakeyTolerance').value || 50));
+            formData.append('edge_blur', 5);  // Valore fisso per ora
+            formData.append('spill_reduction', 0.5);  // Valore fisso per ora
+
+            // Parametri temporali
+            formData.append('start_time', parseFloat(document.getElementById('chromakeyStartTime').value || 0.0));
+            formData.append('end_time', '');  // null per tutto il video
+
+            // Parametri video
+            formData.append('audio_mode', 'synced');
+            formData.append('quality', 'high');
+
+            try {
+                // Disabilita pulsante e mostra feedback
+                const button = event.target;
+                const originalText = button.innerHTML;
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Caricamento...';
+
+                // Chiamata API
+                const response = await fetch('/api/v1/chromakey/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Errore durante l\'avvio del processo chromakey');
+                }
+
+                const result = await response.json();
+                chromakeyJobId = result.job_id;
+
+                // Mostra messaggio di successo
+                showInfo(`Job chromakey avviato! ID: ${chromakeyJobId}<br>Elaborazione in corso...`);
+
+                // Avvia polling per monitorare progresso
+                startChromakeyPolling();
+
+            } catch (error) {
+                console.error('Errore chromakey:', error);
+                showInfo('Errore: ' + error.message);
+
+                // Ripristina pulsante
+                const button = event.target;
+                button.disabled = false;
+                button.innerHTML = originalText;
+            }
+        }
+
+        function startChromakeyPolling() {
+            if (chromakeyPollingInterval) {
+                clearInterval(chromakeyPollingInterval);
+            }
+
+            chromakeyPollingInterval = setInterval(async () => {
+                try {
+                    const token = localStorage.getItem('auth_token');
+                    const response = await fetch(`/api/v1/chromakey/jobs/${chromakeyJobId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Errore durante il controllo dello stato del job');
+                    }
+
+                    const data = await response.json();
+
+                    // Aggiorna UI con progresso
+                    console.log('Chromakey job status:', data.status, 'Progress:', data.progress);
+
+                    if (data.status === 'completed') {
+                        clearInterval(chromakeyPollingInterval);
+                        chromakeyPollingInterval = null;
+
+                        showInfo(`✅ Chromakey completato!<br>File salvato: ${data.output_path || 'chromakey_output.mp4'}`);
+
+                        // Ripristina pulsante
+                        const buttons = document.querySelectorAll('button[onclick*="processChromakey"]');
+                        buttons.forEach(btn => {
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="fas fa-magic"></i> Elabora';
+                        });
+
+                    } else if (data.status === 'failed') {
+                        clearInterval(chromakeyPollingInterval);
+                        chromakeyPollingInterval = null;
+
+                        showInfo(`❌ Errore durante l'elaborazione: ${data.error || 'Errore sconosciuto'}`);
+
+                        // Ripristina pulsante
+                        const buttons = document.querySelectorAll('button[onclick*="processChromakey"]');
+                        buttons.forEach(btn => {
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="fas fa-magic"></i> Elabora';
+                        });
+                    }
+                } catch (error) {
+                    console.error('Errore polling:', error);
+                }
+            }, 2000); // Controlla ogni 2 secondi
         }
 
         // ==================== CTA DRAG & DROP FUNCTIONS ====================
