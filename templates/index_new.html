@@ -1069,7 +1069,7 @@
             <!-- Sub-tabs for Video Editing -->
             <div class="sub-tabs" id="subTabs-video">
                 <button class="sub-tab active" onclick="showSubTab('video', 'chromakey')">
-                    <i class="fas fa-hand-pointer"></i> CTA
+                    <i class="fas fa-layer-group"></i> Video Overlay
                 </button>
                 <button class="sub-tab" onclick="showSubTab('video', 'logo')">
                     <i class="fas fa-image"></i> Sovrapposizione Logo
@@ -1137,9 +1137,9 @@
 
                     <div class="dashboard-grid">
                         <div class="dashboard-card" onclick="showPrimaryTab('video'); showSubTab('video', 'chromakey');">
-                            <i class="fas fa-magic"></i>
-                            <h3>Chromakey</h3>
-                            <p>Rimozione green screen e compositing video professionale</p>
+                            <i class="fas fa-layer-group"></i>
+                            <h3>Video Overlay (Chromakey)</h3>
+                            <p>Sovrapponi video con rimozione automatica sfondo verde per CTA, loghi e altro</p>
                         </div>
 
                         <div class="dashboard-card" onclick="showPrimaryTab('video'); showSubTab('video', 'logo');">
@@ -1197,10 +1197,81 @@
                 <!-- Video > Chromakey -->
                 <div class="tab-pane" id="pane-video-chromakey">
                     <div class="section-header">
-                        <i class="fas fa-hand-pointer"></i>
-                        <h2>CTA (Call to Action Sfondo verde)</h2>
+                        <i class="fas fa-layer-group"></i>
+                        <h2>Video in Sovraimpressione (Chromakey)</h2>
                     </div>
-                    <p class="section-description">Aggiungi video CTA in sovrapposizione togliendo lo sfondo verde e controllo temporale</p>
+                    <p class="section-description">Sovrapponi qualsiasi video al tuo video principale rimuovendo automaticamente lo sfondo verde (chromakey). Perfetto per Call-to-Action, loghi animati, sottotitoli creativi, cornici e molto altro.</p>
+
+                    <!-- Box informativo -->
+                    <div style="margin-bottom: 30px; padding: 25px; background: linear-gradient(135deg, #e8f5e9 0%, #e3f2fd 100%); border-radius: 15px; border-left: 5px solid #667eea;">
+                        <h3 style="color: #2c3e50; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-lightbulb" style="color: #ffc107;"></i> Come funziona il Chromakey?
+                        </h3>
+                        <p style="color: #555; margin-bottom: 15px; line-height: 1.6;">
+                            Il <strong>chromakey</strong> (o "green screen") è una tecnica che rimuove automaticamente uno sfondo verde da un video, permettendoti di sovrapporlo su un altro.
+                            Registra il tuo video in sovraimpressione con uno <strong>sfondo verde uniforme</strong> (può essere un telo, carta o parete colorata) e il sistema lo renderà trasparente.
+                        </p>
+
+                        <h4 style="color: #2c3e50; margin: 20px 0 10px 0; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-star" style="color: #667eea;"></i> Casi d'uso principali:
+                        </h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 15px;">
+                            <div style="padding: 15px; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                    <i class="fas fa-bullhorn" style="color: #667eea; font-size: 1.3rem;"></i>
+                                    <strong style="color: #2c3e50;">Call-to-Action (CTA)</strong>
+                                </div>
+                                <p style="color: #666; font-size: 0.9rem; margin: 0;">Aggiungi te stesso che inviti gli spettatori a iscriversi, commentare o visitare un link</p>
+                            </div>
+
+                            <div style="padding: 15px; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                    <i class="fas fa-play-circle" style="color: #667eea; font-size: 1.3rem;"></i>
+                                    <strong style="color: #2c3e50;">Logo Animato</strong>
+                                </div>
+                                <p style="color: #666; font-size: 0.9rem; margin: 0;">Sovrapponi il tuo logo o brand animato per dare identità professionale ai video</p>
+                            </div>
+
+                            <div style="padding: 15px; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                    <i class="fas fa-comment-dots" style="color: #667eea; font-size: 1.3rem;"></i>
+                                    <strong style="color: #2c3e50;">Sottotitoli Creativi</strong>
+                                </div>
+                                <p style="color: #666; font-size: 0.9rem; margin: 0;">Crea sottotitoli animati o fumetti con effetti speciali su sfondo verde</p>
+                            </div>
+
+                            <div style="padding: 15px; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                    <i class="fas fa-border-style" style="color: #667eea; font-size: 1.3rem;"></i>
+                                    <strong style="color: #2c3e50;">Cornici e Effetti</strong>
+                                </div>
+                                <p style="color: #666; font-size: 0.9rem; margin: 0;">Aggiungi cornici animate, effetti grafici o transizioni creative ai tuoi video</p>
+                            </div>
+
+                            <div style="padding: 15px; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                    <i class="fas fa-user-tie" style="color: #667eea; font-size: 1.3rem;"></i>
+                                    <strong style="color: #2c3e50;">Presentatore</strong>
+                                </div>
+                                <p style="color: #666; font-size: 0.9rem; margin: 0;">Inserisci te stesso come "talking head" che commenta o presenta il contenuto principale</p>
+                            </div>
+
+                            <div style="padding: 15px; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                    <i class="fas fa-graduation-cap" style="color: #667eea; font-size: 1.3rem;"></i>
+                                    <strong style="color: #2c3e50;">Tutorial e Formazione</strong>
+                                </div>
+                                <p style="color: #666; font-size: 0.9rem; margin: 0;">Sovrapponi istruzioni, frecce animate o elementi didattici per video educativi</p>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 20px; padding: 15px; background: rgba(255,193,7,0.1); border-radius: 10px; border-left: 3px solid #ffc107;">
+                            <p style="margin: 0; color: #555; display: flex; align-items: start; gap: 10px;">
+                                <i class="fas fa-info-circle" style="color: #ffc107; margin-top: 3px;"></i>
+                                <span><strong>Consiglio:</strong> Per risultati ottimali, usa uno sfondo verde uniforme e ben illuminato. Evita ombre e pieghe nel telo verde.</span>
+                            </p>
+                        </div>
+                    </div>
 
                     <div class="upload-section">
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px;">
@@ -1235,18 +1306,18 @@
                                 <input type="file" id="chromakeyBackground" accept="video/*" style="display: none;">
                             </div>
 
-                            <!-- Foreground Upload - RINOMINATO: Video CTA -->
+                            <!-- Foreground Upload - RINOMINATO: Video in Sovraimpressione -->
                             <div>
                                 <h3 style="color: #667eea; margin-bottom: 15px;">
-                                    <i class="fas fa-hand-pointer"></i> Video CTA (Call to Action)
+                                    <i class="fas fa-layer-group"></i> Video in Sovraimpressione
                                 </h3>
                                 <div class="upload-area" id="chromakeyForegroundUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;">
                                     <!-- Placeholder (mostrato quando non c'è video) -->
                                     <div id="chromakeyForegroundPlaceholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 150px; pointer-events: none;">
                                         <i class="fas fa-cloud-upload-alt" style="font-size: 4rem; color: #667eea; margin-bottom: 15px;"></i>
-                                        <p style="margin: 0; color: #666; margin-bottom: 8px; font-size: 1.1rem;"><strong>Trascina video CTA qui</strong></p>
+                                        <p style="margin: 0; color: #666; margin-bottom: 8px; font-size: 1.1rem;"><strong>Trascina video da sovrapporre qui</strong></p>
                                         <p style="margin: 0; color: #999; font-size: 0.95rem; margin-bottom: 12px;">oppure clicca per selezionare</p>
-                                        <small style="color: #999;">MP4, AVI, MOV, MKV supportati (Green Screen)</small>
+                                        <small style="color: #999;">MP4, AVI, MOV, MKV supportati (con Sfondo Verde)</small>
                                     </div>
                                     <!-- Preview video (mostrato quando c'è video) -->
                                     <div id="chromakeyForegroundPreviewContainer" style="display: none; pointer-events: none; position: relative;">
@@ -1267,24 +1338,24 @@
                             </div>
                         </div>
 
-                        <!-- Preview Interattiva CTA -->
+                        <!-- Preview Interattiva Video Sovraimpressione -->
                         <div id="chromakeyInteractivePreview" style="margin-top: 30px; padding: 25px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 15px; border: 2px solid #667eea;">
                             <h3 style="color: #2c3e50; margin-bottom: 20px;">
-                                <i class="fas fa-expand-arrows-alt"></i> Anteprima Posizionamento CTA
+                                <i class="fas fa-expand-arrows-alt"></i> Anteprima Posizionamento Video
                             </h3>
                             <p style="color: #666; margin-bottom: 20px;">
-                                <i class="fas fa-info-circle"></i> Carica entrambi i video per vedere l'anteprima. Trascina il CTA per posizionarlo e ridimensionalo dai bordi.
+                                <i class="fas fa-info-circle"></i> Carica entrambi i video per vedere l'anteprima. Trascina il video in sovraimpressione per posizionarlo e ridimensionalo dai bordi.
                             </p>
 
                             <div style="position: relative; width: 100%; max-width: 800px; margin: 0 auto; background: #000; border-radius: 10px; overflow: hidden; aspect-ratio: 16/9;">
                                 <!-- Canvas principale -->
                                 <canvas id="chromakeyPreviewCanvas" style="width: 100%; height: 100%; display: block;"></canvas>
 
-                                <!-- Overlay draggable per CTA -->
+                                <!-- Overlay draggable per video in sovraimpressione -->
                                 <div id="ctaDragOverlay" style="position: absolute; top: 20%; left: 20%; width: 30%; height: 30%; border: 3px solid #667eea; background: rgba(102, 126, 234, 0.1); cursor: move; display: none; z-index: 10; transition: background 0.2s, border-color 0.2s; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
                                     <div id="ctaOverlayLabel" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-align: center; pointer-events: none; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); opacity: 0.7;">
                                         <i class="fas fa-arrows-alt" style="font-size: 2rem; display: block; margin-bottom: 10px;"></i>
-                                        Trascina CTA
+                                        Trascina Video
                                     </div>
                                     <!-- Resize handles -->
                                     <div class="resize-handle resize-nw" style="position: absolute; top: -5px; left: -5px; width: 15px; height: 15px; background: #667eea; border: 2px solid white; border-radius: 50%; cursor: nw-resize;"></div>
@@ -1365,10 +1436,10 @@
                                            style="width: 100%; accent-color: #667eea;">
                                 </div>
 
-                                <!-- Start Time CTA -->
+                                <!-- Start Time Video Sovraimpressione -->
                                 <div>
                                     <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
-                                        <i class="fas fa-clock"></i> Inizio CTA (secondi): <span id="chromakeyStartTimeValue" style="color: #667eea;">0</span>
+                                        <i class="fas fa-clock"></i> Inizio Sovraimpressione (secondi): <span id="chromakeyStartTimeValue" style="color: #667eea;">0</span>
                                     </label>
                                     <input type="number" id="chromakeyStartTime" min="0" max="3600" step="0.1" value="0"
                                            style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem;"
