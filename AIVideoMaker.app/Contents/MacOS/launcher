@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# ========================================
+# AIVideoMaker - App Bundle Launcher
+# ========================================
+
+# Ottieni il path dell'app bundle e la directory del progetto
+APP_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+BUNDLE_PATH="$(dirname "$(dirname "$APP_PATH")")"
+PROJECT_DIR="$(dirname "$BUNDLE_PATH")"
+
+cd "$PROJECT_DIR"
+
+# Avvia il terminale con lo script principale
+osascript <<EOF
+tell application "Terminal"
+    activate
+    do script "cd '$PROJECT_DIR' && ./Avvia_AIVideoMaker.command"
+end tell
+EOF

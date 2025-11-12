@@ -50,6 +50,7 @@ venv/
 ENV/
 env/
 .venv/
+venv/.dependencies_installed
 
 # IDEs
 .vscode/
@@ -66,6 +67,9 @@ env/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# macOS App Bundle (keep only the launcher scripts in git)
+# AIVideoMaker.app is tracked, but runtime files are ignored
 
 # Project specific
 uploads/*
