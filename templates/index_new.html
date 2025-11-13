@@ -1043,7 +1043,7 @@
                     <i class="fas fa-film"></i> Video Editing
                 </button>
                 <button class="primary-tab" data-tab="download" onclick="showPrimaryTab('download')">
-                    <i class="fas fa-cloud-download-alt"></i> Acquisizione
+                    <i class="fas fa-cloud-download-alt"></i> Scarica Video
                 </button>
                 <button class="primary-tab" data-tab="audio" onclick="showPrimaryTab('audio')">
                     <i class="fas fa-microphone-alt"></i> Audio & Testi
@@ -1051,11 +1051,11 @@
                 <button class="primary-tab" data-tab="metadata" onclick="showPrimaryTab('metadata')">
                     <i class="fas fa-tags"></i> Metadata & SEO
                 </button>
+                <button class="primary-tab" data-tab="social" onclick="showPrimaryTab('social')">
+                    <i class="fas fa-share-alt"></i> Social
+                </button>
                 <button class="primary-tab" data-tab="automation" onclick="showPrimaryTab('automation')">
                     <i class="fas fa-rocket"></i> Automazione
-                </button>
-                <button class="primary-tab" data-tab="settings" onclick="showPrimaryTab('settings')">
-                    <i class="fas fa-cog"></i> Impostazioni
                 </button>
             </div>
 
@@ -1069,7 +1069,7 @@
             <!-- Sub-tabs for Video Editing -->
             <div class="sub-tabs" id="subTabs-video">
                 <button class="sub-tab active" onclick="showSubTab('video', 'chromakey')">
-                    <i class="fas fa-hand-pointer"></i> CTA
+                    <i class="fas fa-layer-group"></i> Video Compositor
                 </button>
                 <button class="sub-tab" onclick="showSubTab('video', 'logo')">
                     <i class="fas fa-image"></i> Sovrapposizione Logo
@@ -1100,7 +1100,14 @@
                     <i class="fas fa-robot"></i> SEO AI
                 </button>
                 <button class="sub-tab" onclick="showSubTab('metadata', 'thumbnail')">
-                    <i class="fas fa-photo-video"></i> Copertina
+                    <i class="fas fa-photo-video"></i> Miniatura
+                </button>
+            </div>
+
+            <!-- Sub-tabs for Social -->
+            <div class="sub-tabs" id="subTabs-social">
+                <button class="sub-tab active" onclick="showSubTab('social', 'youtube')">
+                    <i class="fab fa-youtube"></i> YouTube
                 </button>
             </div>
 
@@ -1108,9 +1115,6 @@
             <div class="sub-tabs" id="subTabs-automation">
                 <button class="sub-tab active" onclick="showSubTab('automation', 'pipeline')">
                     <i class="fas fa-tasks"></i> Pipeline
-                </button>
-                <button class="sub-tab" onclick="showSubTab('automation', 'youtube')">
-                    <i class="fab fa-youtube"></i> YouTube Upload
                 </button>
             </div>
 
@@ -1137,9 +1141,9 @@
 
                     <div class="dashboard-grid">
                         <div class="dashboard-card" onclick="showPrimaryTab('video'); showSubTab('video', 'chromakey');">
-                            <i class="fas fa-magic"></i>
-                            <h3>Chromakey</h3>
-                            <p>Rimozione green screen e compositing video professionale</p>
+                            <i class="fas fa-layer-group"></i>
+                            <h3>Video Compositor</h3>
+                            <p>Sovrapponi file multipli con chromakey, posizionamento e timing precisi</p>
                         </div>
 
                         <div class="dashboard-card" onclick="showPrimaryTab('video'); showSubTab('video', 'logo');">
@@ -1174,8 +1178,8 @@
 
                         <div class="dashboard-card" onclick="showPrimaryTab('metadata'); showSubTab('metadata', 'thumbnail');">
                             <i class="fas fa-photo-video"></i>
-                            <h3>Copertina AI</h3>
-                            <p>Genera thumbnail professionali con AI</p>
+                            <h3>Miniatura AI</h3>
+                            <p>Genera miniature professionali con AI</p>
                         </div>
 
                         <div class="dashboard-card" onclick="showPrimaryTab('automation'); showSubTab('automation', 'pipeline');">
@@ -1184,9 +1188,9 @@
                             <p>Workflow batch multi-step automatizzati</p>
                         </div>
 
-                        <div class="dashboard-card" onclick="showPrimaryTab('automation'); showSubTab('automation', 'youtube');">
+                        <div class="dashboard-card" onclick="showPrimaryTab('social'); showSubTab('social', 'youtube');">
                             <i class="fab fa-youtube"></i>
-                            <h3>YouTube Upload</h3>
+                            <h3>YouTube</h3>
                             <p>Carica e ottimizza video per YouTube</p>
                         </div>
                     </div>
@@ -1197,94 +1201,102 @@
                 <!-- Video > Chromakey -->
                 <div class="tab-pane" id="pane-video-chromakey">
                     <div class="section-header">
-                        <i class="fas fa-hand-pointer"></i>
-                        <h2>CTA (Call to Action Sfondo verde)</h2>
+                        <i class="fas fa-layer-group"></i>
+                        <h2>Video Compositor - Sovrapposizione Multi-File</h2>
                     </div>
-                    <p class="section-description">Aggiungi video CTA in sovrapposizione togliendo lo sfondo verde e controllo temporale</p>
+                    <p class="section-description">Sovrapponi video, immagini e loghi sul tuo video principale. Rimuovi lo sfondo verde, posiziona e ridimensiona ogni elemento con precisione.</p>
+
+                    <!-- Info Box compatto -->
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(102,126,234,0.3);">
+                        <p style="margin: 0; font-size: 0.95rem; line-height: 1.6;">
+                            <i class="fas fa-info-circle"></i> <strong>Sovrapponi file illimitati</strong> (video, immagini, audio) sul video base.
+                            <strong>Rimuovi green screen</strong> per ogni file. <strong>Posiziona</strong> trascinando nell'anteprima.
+                            <br>
+                            <span style="font-size: 0.85rem; opacity: 0.9;">Casi d'uso: CTA, Branding, Picture-in-Picture, Green Screen</span>
+                        </p>
+                    </div>
 
                     <div class="upload-section">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px;">
-                            <!-- Background Upload - RINOMINATO: Video Principale -->
+                        <!-- Layout a due colonne: Video Principale + Gestione Layer -->
+                        <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 30px; margin-bottom: 30px;">
+
+                            <!-- COLONNA 1: Video Principale -->
                             <div>
-                                <h3 style="color: #667eea; margin-bottom: 15px;">
-                                    <i class="fas fa-video"></i> Video Principale
+                                <h3 style="color: #667eea; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-video"></i> Video Principale (Base)
                                 </h3>
-                                <div class="upload-area" id="chromakeyBackgroundUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;">
-                                    <!-- Placeholder (mostrato quando non c'è video) -->
-                                    <div id="chromakeyBackgroundPlaceholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 150px; pointer-events: none;">
-                                        <i class="fas fa-cloud-upload-alt" style="font-size: 4rem; color: #667eea; margin-bottom: 15px;"></i>
-                                        <p style="margin: 0; color: #666; margin-bottom: 8px; font-size: 1.1rem;"><strong>Trascina video qui</strong></p>
-                                        <p style="margin: 0; color: #999; font-size: 0.95rem; margin-bottom: 12px;">oppure clicca per selezionare</p>
-                                        <small style="color: #999;">MP4, AVI, MOV, MKV supportati</small>
+                                <div class="upload-area" id="chromakeyBackgroundUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 30px; text-align: center; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden; height: 298px; display: flex; align-items: center; justify-content: center;">
+                                    <!-- Placeholder -->
+                                    <div id="chromakeyBackgroundPlaceholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none;">
+                                        <i class="fas fa-cloud-upload-alt" style="font-size: 3.5rem; color: #667eea; margin-bottom: 15px;"></i>
+                                        <p style="margin: 0; color: #666; margin-bottom: 5px; font-size: 1.05rem;"><strong>Carica Video Base</strong></p>
+                                        <p style="margin: 0; color: #999; font-size: 0.9rem;">Trascina o clicca</p>
+                                        <small style="color: #999; margin-top: 8px;">MP4, AVI, MOV, MKV</small>
                                     </div>
-                                    <!-- Preview video (mostrato quando c'è video) -->
-                                    <div id="chromakeyBackgroundPreviewContainer" style="display: none; pointer-events: none; position: relative;">
-                                        <!-- Pulsante elimina video -->
-                                        <button onclick="clearVideoPreview('chromakeyBackground', event)" style="position: absolute; top: 10px; right: 10px; background: rgba(255,0,0,0.8); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; z-index: 10; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: background 0.3s;" onmouseover="this.style.background='rgba(255,0,0,1)'" onmouseout="this.style.background='rgba(255,0,0,0.8)'">
+                                    <!-- Preview -->
+                                    <div id="chromakeyBackgroundPreviewContainer" style="display: none; width: 100%; pointer-events: none; position: relative;">
+                                        <button onclick="clearVideoPreview('chromakeyBackground', event)" style="position: absolute; top: 5px; right: 5px; background: rgba(255,0,0,0.9); color: white; border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; z-index: 10; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,0,0,1)'; this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(255,0,0,0.9)'; this.style.transform='scale(1)'">
                                             <i class="fas fa-trash"></i>
                                         </button>
-                                        <video id="chromakeyBackgroundPreview" controls controlsList="nodownload" style="width: 100%; max-height: 400px; border-radius: 8px; pointer-events: auto;"></video>
-                                        <div style="margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.95); border-radius: 10px;">
-                                            <div style="display: flex; align-items: center;">
-                                                <i class="fas fa-video" style="color: #667eea;"></i>
-                                                <span id="chromakeyBackgroundName" style="margin-left: 10px; font-weight: 600; color: #333;"></span>
-                                            </div>
+                                        <video id="chromakeyBackgroundPreview" controls controlsList="nodownload" style="width: 100%; max-height: 230px; border-radius: 8px; pointer-events: auto;"></video>
+                                        <div style="margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.95); border-radius: 8px; text-align: left;">
+                                            <i class="fas fa-video" style="color: #667eea;"></i>
+                                            <span id="chromakeyBackgroundName" style="margin-left: 8px; font-weight: 600; color: #333; font-size: 0.9rem;"></span>
                                         </div>
                                     </div>
                                 </div>
                                 <input type="file" id="chromakeyBackground" accept="video/*" style="display: none;">
                             </div>
 
-                            <!-- Foreground Upload - RINOMINATO: Video CTA -->
+                            <!-- COLONNA 2: Gestione Layer -->
                             <div>
-                                <h3 style="color: #667eea; margin-bottom: 15px;">
-                                    <i class="fas fa-hand-pointer"></i> Video CTA (Call to Action)
+                                <h3 style="color: #667eea; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-layer-group"></i> File da Sovrapporre
                                 </h3>
-                                <div class="upload-area" id="chromakeyForegroundUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;">
-                                    <!-- Placeholder (mostrato quando non c'è video) -->
-                                    <div id="chromakeyForegroundPlaceholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 150px; pointer-events: none;">
-                                        <i class="fas fa-cloud-upload-alt" style="font-size: 4rem; color: #667eea; margin-bottom: 15px;"></i>
-                                        <p style="margin: 0; color: #666; margin-bottom: 8px; font-size: 1.1rem;"><strong>Trascina video CTA qui</strong></p>
-                                        <p style="margin: 0; color: #999; font-size: 0.95rem; margin-bottom: 12px;">oppure clicca per selezionare</p>
-                                        <small style="color: #999;">MP4, AVI, MOV, MKV supportati (Green Screen)</small>
-                                    </div>
-                                    <!-- Preview video (mostrato quando c'è video) -->
-                                    <div id="chromakeyForegroundPreviewContainer" style="display: none; pointer-events: none; position: relative;">
-                                        <!-- Pulsante elimina video -->
-                                        <button onclick="clearVideoPreview('chromakeyForeground', event)" style="position: absolute; top: 10px; right: 10px; background: rgba(255,0,0,0.8); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; z-index: 10; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: background 0.3s;" onmouseover="this.style.background='rgba(255,0,0,1)'" onmouseout="this.style.background='rgba(255,0,0,0.8)'">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                        <video id="chromakeyForegroundPreview" controls controlsList="nodownload" volume="1.0" style="width: 100%; max-height: 400px; border-radius: 8px; pointer-events: auto;"></video>
-                                        <div style="margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.95); border-radius: 10px;">
-                                            <div style="display: flex; align-items: center;">
-                                                <i class="fas fa-video" style="color: #667eea;"></i>
-                                                <span id="chromakeyForegroundName" style="margin-left: 10px; font-weight: 600; color: #333;"></span>
-                                            </div>
-                                        </div>
-                                    </div>
+
+                                <!-- Area Upload con Drag & Drop -->
+                                <div class="upload-area" id="layersUploadArea" style="border: 2px dashed #ccc; border-radius: 10px; padding: 12px; text-align: center; cursor: pointer; transition: all 0.3s; margin-bottom: 10px; background: white;">
+                                    <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: #667eea; margin-bottom: 6px;"></i>
+                                    <p style="margin: 0; color: #666; margin-bottom: 3px; font-size: 0.9rem;"><strong>Carica File da Sovrapporre</strong></p>
+                                    <p style="margin: 0; color: #999; font-size: 0.75rem;">Trascina o clicca</p>
+                                    <small style="color: #999; margin-top: 4px; display: block; font-size: 0.7rem;">Video (MP4, AVI, MOV, MKV), Immagini (PNG, JPG, GIF, WebP), Audio (MP3, WAV, OGG)</small>
                                 </div>
-                                <input type="file" id="chromakeyForeground" accept="video/*" style="display: none;">
+
+                                <!-- Lista Layer (scrollabile) -->
+                                <div id="layersList" style="background: #f8f9fa; border: 2px solid #e0e0e0; border-radius: 15px; padding: 12px; height: 160px; overflow-y: auto;">
+                                    <!-- Empty State -->
+                                    <div id="layersEmptyState" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 136px; color: #999;">
+                                        <i class="fas fa-layer-group" style="font-size: 2rem; margin-bottom: 8px; opacity: 0.3;"></i>
+                                        <p style="margin: 0; font-size: 0.9rem; font-weight: 600;">Nessun file caricato</p>
+                                        <p style="margin: 3px 0 0 0; font-size: 0.75rem;">Usa l'area sopra per caricare</p>
+                                    </div>
+
+                                    <!-- I layer verranno aggiunti qui dinamicamente -->
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Preview Interattiva CTA -->
-                        <div id="chromakeyInteractivePreview" style="margin-top: 30px; padding: 25px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 15px; border: 2px solid #667eea;">
+                        <!-- Hidden file input per layer -->
+                        <input type="file" id="layerFileInput" accept="video/*,image/*,audio/*,.png,.jpg,.jpeg,.gif,.webp,.mp4,.avi,.mov,.mkv,.webm,.mp3,.wav,.ogg,.aac,.m4a,.flac" multiple style="display: none;">
+
+                        <!-- Preview Interattiva -->
+                        <div id="chromakeyInteractivePreview" style="margin-top: 20px; padding: 20px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 15px; border: 2px solid #667eea;">
                             <h3 style="color: #2c3e50; margin-bottom: 20px;">
-                                <i class="fas fa-expand-arrows-alt"></i> Anteprima Posizionamento CTA
+                                <i class="fas fa-expand-arrows-alt"></i> Anteprima Posizionamento
                             </h3>
                             <p style="color: #666; margin-bottom: 20px;">
-                                <i class="fas fa-info-circle"></i> Carica entrambi i video per vedere l'anteprima. Trascina il CTA per posizionarlo e ridimensionalo dai bordi.
+                                <i class="fas fa-info-circle"></i> Carica i file per vedere l'anteprima. Trascina gli elementi per posizionarli e ridimensionali dai bordi.
                             </p>
 
                             <div style="position: relative; width: 100%; max-width: 800px; margin: 0 auto; background: #000; border-radius: 10px; overflow: hidden; aspect-ratio: 16/9;">
                                 <!-- Canvas principale -->
                                 <canvas id="chromakeyPreviewCanvas" style="width: 100%; height: 100%; display: block;"></canvas>
 
-                                <!-- Overlay draggable per CTA -->
+                                <!-- Overlay draggable per Layer -->
                                 <div id="ctaDragOverlay" style="position: absolute; top: 20%; left: 20%; width: 30%; height: 30%; border: 3px solid #667eea; background: rgba(102, 126, 234, 0.1); cursor: move; display: none; z-index: 10; transition: background 0.2s, border-color 0.2s; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
                                     <div id="ctaOverlayLabel" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-align: center; pointer-events: none; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); opacity: 0.7;">
                                         <i class="fas fa-arrows-alt" style="font-size: 2rem; display: block; margin-bottom: 10px;"></i>
-                                        Trascina CTA
+                                        Trascina Layer
                                     </div>
                                     <!-- Resize handles -->
                                     <div class="resize-handle resize-nw" style="position: absolute; top: -5px; left: -5px; width: 15px; height: 15px; background: #667eea; border: 2px solid white; border-radius: 50%; cursor: nw-resize;"></div>
@@ -1295,91 +1307,122 @@
                             </div>
 
                             <div style="margin-top: 20px; text-align: center;">
-                                <button onclick="updateChromakeyPreview()" style="background: #667eea; color: white; border: none; padding: 12px 30px; border-radius: 20px; font-weight: 600; cursor: pointer; margin-right: 10px;">
-                                    <i class="fas fa-sync-alt"></i> Aggiorna Anteprima
-                                </button>
                                 <button onclick="resetCtaPosition()" style="background: #6c757d; color: white; border: none; padding: 12px 30px; border-radius: 20px; font-weight: 600; cursor: pointer;">
                                     <i class="fas fa-undo"></i> Reset Posizione
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Chromakey Settings -->
-                        <div style="margin-top: 30px; padding: 25px; background: #f8f9fa; border-radius: 15px;">
-                            <h3 style="color: #2c3e50; margin-bottom: 20px;">
-                                <i class="fas fa-sliders-h"></i> Impostazioni Chromakey
-                            </h3>
+                        <!-- Chromakey Settings - Dinamiche per File Selezionato -->
+                        <div id="layerSettingsPanel" style="margin-top: 30px; padding: 25px; background: #f8f9fa; border-radius: 15px; display: none;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                                <h3 style="color: #2c3e50; margin: 0; display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-sliders-h"></i> Impostazioni File: <span id="selectedLayerName" style="color: #667eea;">Nessuno</span>
+                                </h3>
+                                <span id="selectedLayerBadge" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 5px 15px; border-radius: 15px; font-size: 0.85rem; font-weight: 600;"></span>
+                            </div>
 
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-                                <!-- Position X -->
-                                <div>
-                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
-                                        Posizione X: <span id="chromakeyPosXValue" style="color: #667eea;">0</span> px
-                                    </label>
-                                    <input type="range" id="chromakeyPosX" min="-500" max="500" value="0"
-                                           style="width: 100%; accent-color: #667eea;">
+                            <!-- Toggle Green Screen Removal -->
+                            <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 25px; border: 2px solid #e0e0e0;">
+                                <div style="display: flex; align-items: center; justify-content: space-between;">
+                                    <div>
+                                        <i class="fas fa-magic" style="color: #667eea; margin-right: 10px;"></i>
+                                        <span style="font-weight: 600; font-size: 1.1rem; color: #2c3e50;">Rimuovi Sfondo Verde (Chromakey)</span>
+                                        <p style="margin: 5px 0 0 33px; color: #666; font-size: 0.9rem;">Attiva per rimuovere automaticamente lo sfondo verde da questo file</p>
+                                    </div>
+                                    <div style="position: relative;">
+                                        <input type="checkbox" id="chromakeyEnabled" style="display: none;">
+                                        <div class="toggle-switch" id="chromakeyToggleSwitch" style="width: 60px; height: 30px; background: #ccc; border-radius: 30px; position: relative; transition: background 0.3s; cursor: pointer;">
+                                            <div class="toggle-slider" style="width: 26px; height: 26px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: transform 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.2); pointer-events: none;"></div>
+                                        </div>
+                                    </div>
                                 </div>
+                            </div>
 
-                                <!-- Position Y -->
-                                <div>
-                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
-                                        Posizione Y: <span id="chromakeyPosYValue" style="color: #667eea;">0</span> px
-                                    </label>
-                                    <input type="range" id="chromakeyPosY" min="-500" max="500" value="0"
-                                           style="width: 100%; accent-color: #667eea;">
+                            <!-- Impostazioni Posizione e Dimensione (sempre visibili) -->
+                            <div style="margin-bottom: 25px;">
+                                <h4 style="color: #2c3e50; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-arrows-alt"></i> Posizione e Dimensione
+                                </h4>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                                    <!-- Position X -->
+                                    <div>
+                                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                            Posizione Orizzontale: <span id="chromakeyPosXValue" style="color: #667eea;">0</span> px
+                                        </label>
+                                        <input type="range" id="chromakeyPosX" min="-500" max="500" value="0"
+                                               style="width: 100%; accent-color: #667eea;">
+                                    </div>
+
+                                    <!-- Position Y -->
+                                    <div>
+                                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                            Posizione Verticale: <span id="chromakeyPosYValue" style="color: #667eea;">0</span> px
+                                        </label>
+                                        <input type="range" id="chromakeyPosY" min="-500" max="500" value="0"
+                                               style="width: 100%; accent-color: #667eea;">
+                                    </div>
+
+                                    <!-- Scale -->
+                                    <div>
+                                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                            Dimensione: <span id="chromakeyScaleValue" style="color: #667eea;">30</span>%
+                                        </label>
+                                        <input type="range" id="chromakeyScale" min="5" max="100" step="5" value="30"
+                                               style="width: 100%; accent-color: #667eea;">
+                                    </div>
+
+                                    <!-- Opacity -->
+                                    <div>
+                                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                            Opacità: <span id="chromakeyOpacityValue" style="color: #667eea;">1.0</span>
+                                        </label>
+                                        <input type="range" id="chromakeyOpacity" min="0.0" max="1.0" step="0.1" value="1.0"
+                                               style="width: 100%; accent-color: #667eea;">
+                                    </div>
+
+                                    <!-- Start Time -->
+                                    <div>
+                                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                            <i class="fas fa-clock"></i> Inizio (secondi): <span id="chromakeyStartTimeValue" style="color: #667eea;">0</span>
+                                        </label>
+                                        <input type="number" id="chromakeyStartTime" min="0" max="3600" step="0.1" value="0"
+                                               style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem;"
+                                               oninput="document.getElementById('chromakeyStartTimeValue').textContent = this.value">
+                                    </div>
                                 </div>
+                            </div>
 
-                                <!-- Scale -->
-                                <div>
-                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
-                                        Dimensione: <span id="chromakeyScaleValue" style="color: #667eea;">1.0</span>x
-                                    </label>
-                                    <input type="range" id="chromakeyScale" min="0.1" max="2.0" step="0.1" value="1.0"
-                                           style="width: 100%; accent-color: #667eea;">
-                                </div>
+                            <!-- Impostazioni Chromakey (visibili solo se chromakey è attivo) -->
+                            <div id="chromakeyAdvancedSettings" style="display: none; padding: 20px; background: #e8f4f8; border-radius: 10px; border-left: 4px solid #667eea;">
+                                <h4 style="color: #2c3e50; margin: 0 0 15px 0; display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-adjust"></i> Impostazioni Avanzate Chromakey
+                                </h4>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                                    <!-- Green Threshold -->
+                                    <div>
+                                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                            Soglia Verde: <span id="chromakeyThresholdValue" style="color: #667eea;">100</span>
+                                        </label>
+                                        <input type="range" id="chromakeyThreshold" min="0" max="255" value="100"
+                                               style="width: 100%; accent-color: #667eea;">
+                                    </div>
 
-                                <!-- Opacity -->
-                                <div>
-                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
-                                        Opacità: <span id="chromakeyOpacityValue" style="color: #667eea;">1.0</span>
-                                    </label>
-                                    <input type="range" id="chromakeyOpacity" min="0.0" max="1.0" step="0.1" value="1.0"
-                                           style="width: 100%; accent-color: #667eea;">
-                                </div>
-
-                                <!-- Green Threshold -->
-                                <div>
-                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
-                                        Soglia Verde: <span id="chromakeyThresholdValue" style="color: #667eea;">100</span>
-                                    </label>
-                                    <input type="range" id="chromakeyThreshold" min="0" max="255" value="100"
-                                           style="width: 100%; accent-color: #667eea;">
-                                </div>
-
-                                <!-- Tolerance -->
-                                <div>
-                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
-                                        Tolleranza: <span id="chromakeyToleranceValue" style="color: #667eea;">50</span>
-                                    </label>
-                                    <input type="range" id="chromakeyTolerance" min="0" max="255" value="50"
-                                           style="width: 100%; accent-color: #667eea;">
-                                </div>
-
-                                <!-- Start Time CTA -->
-                                <div>
-                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
-                                        <i class="fas fa-clock"></i> Inizio CTA (secondi): <span id="chromakeyStartTimeValue" style="color: #667eea;">0</span>
-                                    </label>
-                                    <input type="number" id="chromakeyStartTime" min="0" max="3600" step="0.1" value="0"
-                                           style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem;"
-                                           oninput="document.getElementById('chromakeyStartTimeValue').textContent = this.value">
+                                    <!-- Tolerance -->
+                                    <div>
+                                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                            Tolleranza: <span id="chromakeyToleranceValue" style="color: #667eea;">50</span>
+                                        </label>
+                                        <input type="range" id="chromakeyTolerance" min="0" max="255" value="50"
+                                               style="width: 100%; accent-color: #667eea;">
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Process Button -->
                             <div style="text-align: center; margin-top: 30px;">
                                 <button onclick="processChromakey()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px 40px; border-radius: 25px; font-size: 1.1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(102,126,234,0.3); transition: all 0.3s;">
-                                    <i class="fas fa-magic"></i> Elabora Chromakey
+                                    <i class="fas fa-play-circle"></i> Elabora Video
                                 </button>
                             </div>
                         </div>
@@ -2009,9 +2052,9 @@
                 <div class="tab-pane" id="pane-metadata-thumbnail">
                     <div class="section-header">
                         <i class="fas fa-photo-video"></i>
-                        <h2>Generatore Copertina</h2>
+                        <h2>Generatore Miniatura</h2>
                     </div>
-                    <p class="section-description">Crea thumbnail professionali 1280x720 per YouTube e social media</p>
+                    <p class="section-description">Crea miniature professionali 1280x720 per YouTube e social media</p>
 
                     <div style="max-width: 800px; margin: 0 auto;">
                         <!-- Image Upload -->
@@ -2344,11 +2387,11 @@
 
                     <div style="max-width: 1200px; margin: 0 auto;">
 
-                        <!-- FASE 1: Acquisizione Video -->
+                        <!-- FASE 1: Scarica Video -->
                         <div id="pipelinePhase1" style="background: #f8f9fa; padding: 30px; border-radius: 15px; margin-bottom: 25px;">
                             <h3 style="color: #2c3e50; margin-bottom: 20px;">
                                 <span style="background: #667eea; color: white; width: 35px; height: 35px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 10px; font-weight: 700;">1</span>
-                                Acquisizione Video
+                                Scarica Video
                             </h3>
                             <p style="color: #666; margin-bottom: 20px;">Scegli come ottenere il video da elaborare</p>
 
@@ -2607,11 +2650,11 @@
                     </div>
                 </div>
 
-                <!-- Automation > YouTube -->
-                <div class="tab-pane" id="pane-automation-youtube">
+                <!-- Social > YouTube -->
+                <div class="tab-pane" id="pane-social-youtube">
                     <div class="section-header">
                         <i class="fab fa-youtube"></i>
-                        <h2>YouTube Upload</h2>
+                        <h2>YouTube</h2>
                     </div>
                     <p class="section-description">Carica e ottimizza video direttamente su YouTube</p>
 
@@ -2640,14 +2683,14 @@
                             </div>
                         </div>
 
-                        <!-- Thumbnail Upload (Optional) -->
+                        <!-- Miniatura Upload (Optional) -->
                         <div style="margin-bottom: 30px;">
                             <h3 style="color: #667eea; margin-bottom: 15px;">
-                                <i class="fas fa-image"></i> Thumbnail (Opzionale)
+                                <i class="fas fa-image"></i> Miniatura (Opzionale)
                             </h3>
                             <div class="upload-area" id="youtubeThumbnailUpload" style="border: 2px dashed #ccc; border-radius: 15px; padding: 30px; text-align: center; cursor: pointer;">
                                 <i class="fas fa-cloud-upload-alt" style="font-size: 3.5rem; color: #667eea; margin-bottom: 12px;"></i>
-                                <p style="margin: 0; color: #666; margin-bottom: 5px;"><strong>Trascina thumbnail qui</strong></p>
+                                <p style="margin: 0; color: #666; margin-bottom: 5px;"><strong>Trascina miniatura qui</strong></p>
                                 <p style="margin: 0; color: #999; font-size: 0.9rem;">oppure clicca per selezionare</p>
                                 <small style="color: #999; display: block; margin-top: 8px;">1280x720 consigliato</small>
                             </div>
@@ -3043,84 +3086,479 @@
             }
         });
 
+        // ==================== MULTI-LAYER SYSTEM ====================
+
+        // State management per layer multipli
+        let layersState = {
+            layers: [],  // Array di layer: {id, file, name, type, chromakey, posX, posY, scale, opacity, threshold, tolerance, startTime}
+            selectedLayerId: null,
+            nextId: 1
+        };
+
+        // Setup Upload Area per Layer (Click)
+        const layersUploadArea = document.getElementById('layersUploadArea');
+        const layerFileInput = document.getElementById('layerFileInput');
+
+        if (layersUploadArea && layerFileInput) {
+            // Click per aprire finestra selezione file
+            layersUploadArea.addEventListener('click', function() {
+                layerFileInput.click();
+            });
+
+            // Drag & Drop handlers
+            layersUploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.style.borderColor = '#667eea';
+                this.style.background = 'linear-gradient(135deg, #667eea10 0%, #764ba210 100%)';
+            });
+
+            layersUploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.style.borderColor = '#ccc';
+                this.style.background = 'white';
+            });
+
+            layersUploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.style.borderColor = '#ccc';
+                this.style.background = 'white';
+
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    // Gestisci tutti i file trascinati
+                    Array.from(files).forEach(file => {
+                        handleLayerFileUpload(file);
+                    });
+                }
+            });
+
+            // File input change handler
+            layerFileInput.addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    // Gestisci tutti i file selezionati
+                    Array.from(e.target.files).forEach(file => {
+                        handleLayerFileUpload(file);
+                    });
+                    // Reset input dopo aver processato tutti i file
+                    e.target.value = '';
+                }
+            });
+        }
+
+        // Funzione per gestire upload di un file layer
+        function handleLayerFileUpload(file) {
+            if (!file) return;
+
+            // Verifica se il file è già stato caricato (stesso nome)
+            const existingLayer = layersState.layers.find(layer => layer.name === file.name);
+            if (existingLayer) {
+                showError(`Il file "${file.name}" è già stato caricato.`);
+                return;
+            }
+
+            const isVideo = file.type.startsWith('video/');
+            const isImage = file.type.startsWith('image/');
+            const isAudio = file.type.startsWith('audio/');
+
+            if (!isVideo && !isImage && !isAudio) {
+                showError('Formato file non supportato. Usa video (MP4, AVI, MOV, MKV), immagini (PNG, JPG, GIF, WebP) o audio (MP3, WAV, OGG, AAC).');
+                return;
+            }
+
+            // Determina il tipo di file
+            let fileType = 'image';
+            if (isVideo) fileType = 'video';
+            else if (isAudio) fileType = 'audio';
+
+            // Crea nuovo layer
+            const layer = {
+                id: layersState.nextId++,
+                file: file,
+                name: file.name,
+                type: fileType,
+                chromakey: false,
+                posX: 0,
+                posY: 0,
+                scale: 30, // Percentuale del video principale (30% default)
+                opacity: 1.0,
+                threshold: 100,
+                tolerance: 50,
+                startTime: 0,
+                fileUrl: URL.createObjectURL(file),
+                mediaLoaded: false,
+                mediaElement: null
+            };
+
+            // Pre-carica l'elemento media per rendering canvas
+            if (fileType === 'video' || fileType === 'image') {
+                // Crea elemento corretto: 'video' o 'img' (non 'image')
+                const elementType = fileType === 'image' ? 'img' : fileType;
+                layer.mediaElement = document.createElement(elementType);
+                layer.mediaElement.style.display = 'none'; // Nascosto ma nel DOM
+
+                if (fileType === 'video') {
+                    layer.mediaElement.muted = true;
+                    layer.mediaElement.loop = true;
+                    layer.mediaElement.playsInline = true;
+                    layer.mediaElement.onloadedmetadata = () => {
+                        layer.mediaLoaded = true;
+                        console.log(`✓ Video layer "${layer.name}" caricato e pronto per rendering`);
+                        // Avvia riproduzione per rendering
+                        layer.mediaElement.play().catch(e => console.log('Play non riuscito:', e));
+                    };
+                    // Aggiungi al DOM PRIMA di settare src
+                    document.body.appendChild(layer.mediaElement);
+                    // Setta src dopo handler
+                    layer.mediaElement.src = layer.fileUrl;
+                    layer.mediaElement.load();
+                } else if (fileType === 'image') {
+                    console.log(`📸 Inizializzazione immagine "${layer.name}", URL:`, layer.fileUrl);
+
+                    // Setta handler PRIMA di settare src
+                    layer.mediaElement.onload = () => {
+                        layer.mediaLoaded = true;
+                        console.log(`✓ Immagine layer "${layer.name}" caricata! Dimensioni: ${layer.mediaElement.naturalWidth}x${layer.mediaElement.naturalHeight}`);
+                    };
+                    layer.mediaElement.onerror = (e) => {
+                        console.error(`✗ Errore caricamento immagine "${layer.name}":`, e);
+                        console.error('URL immagine:', layer.fileUrl);
+                    };
+
+                    // Setta src DOPO handler (importante!)
+                    layer.mediaElement.src = layer.fileUrl;
+
+                    console.log(`📸 Src settato per "${layer.name}", complete=${layer.mediaElement.complete}, naturalWidth=${layer.mediaElement.naturalWidth}`);
+
+                    // Usa setTimeout per controllare dopo un attimo
+                    setTimeout(() => {
+                        if (layer.mediaElement.complete && layer.mediaElement.naturalWidth > 0) {
+                            layer.mediaLoaded = true;
+                            console.log(`✓ Immagine layer "${layer.name}" caricata subito (complete=${layer.mediaElement.complete}, width=${layer.mediaElement.naturalWidth})`);
+                        } else {
+                            console.warn(`⏳ Immagine "${layer.name}" ancora in caricamento dopo 100ms...`);
+                        }
+                    }, 100);
+                }
+            }
+
+            layersState.layers.push(layer);
+            renderLayersList();
+            selectLayer(layer.id);
+            showSuccess(`File "${file.name}" aggiunto con successo!`);
+
+            // Assicurati che il rendering canvas sia attivo
+            if (!canvasRenderingActive) {
+                startCanvasRendering();
+            }
+        }
+
+        // Renderizza lista layer
+        function renderLayersList() {
+            const layersList = document.getElementById('layersList');
+            const emptyState = document.getElementById('layersEmptyState');
+
+            if (layersState.layers.length === 0) {
+                emptyState.style.display = 'flex';
+                // Nascondi tutti i layer items
+                const items = layersList.querySelectorAll('.layer-item');
+                items.forEach(item => item.remove());
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            // Genera HTML per ogni layer
+            let html = '';
+            layersState.layers.forEach((layer, index) => {
+                const isSelected = layer.id === layersState.selectedLayerId;
+
+                // Determina icona in base al tipo
+                let icon = 'fa-image';
+                if (layer.type === 'video') icon = 'fa-video';
+                else if (layer.type === 'audio') icon = 'fa-music';
+
+                html += `
+                    <div class="layer-item" data-layer-id="${layer.id}"
+                         style="background: ${isSelected ? 'linear-gradient(135deg, #667eea20 0%, #764ba220 100%)' : 'white'};
+                                border: 2px solid ${isSelected ? '#667eea' : '#e0e0e0'};
+                                border-radius: 10px;
+                                padding: 12px 15px;
+                                margin-bottom: 10px;
+                                cursor: pointer;
+                                transition: all 0.2s;
+                                display: flex;
+                                align-items: center;
+                                gap: 12px;"
+                         onclick="selectLayer(${layer.id})"
+                         onmouseover="if(${layer.id} !== ${layersState.selectedLayerId}) this.style.borderColor='#667eea'; this.style.transform='translateX(5px)'"
+                         onmouseout="if(${layer.id} !== ${layersState.selectedLayerId}) this.style.borderColor='#e0e0e0'; this.style.transform='translateX(0)'">
+
+                        <!-- Thumbnail preview -->
+                        <div style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; background: #f0f0f0; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                            ${layer.type === 'video'
+                                ? `<video src="${layer.fileUrl}" style="width: 100%; height: 100%; object-fit: cover;" muted></video>`
+                                : layer.type === 'audio'
+                                ? `<i class="fas fa-music" style="font-size: 2rem; color: #667eea;"></i>`
+                                : `<img src="${layer.fileUrl}" style="width: 100%; height: 100%; object-fit: cover;">`
+                            }
+                        </div>
+
+                        <!-- Info layer -->
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                <i class="fas ${icon}" style="color: #667eea; font-size: 0.9rem;"></i>
+                                <span style="font-weight: 600; color: #2c3e50; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${layer.name}</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: #666;">
+                                <span><i class="fas ${layer.chromakey ? 'fa-check-circle' : 'fa-circle'}" style="color: ${layer.chromakey ? '#10b981' : '#ccc'}; font-size: 0.7rem;"></i> Chromakey</span>
+                                <span>Z: ${layersState.layers.length - index}</span>
+                            </div>
+                        </div>
+
+                        <!-- Controlli layer -->
+                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                            ${index > 0 ? `<button onclick="event.stopPropagation(); moveLayerUp(${layer.id});" style="background: #667eea; color: white; border: none; border-radius: 5px; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;" onmouseover="this.style.background='#764ba2'" onmouseout="this.style.background='#667eea'" title="Sposta su">
+                                <i class="fas fa-arrow-up" style="font-size: 0.8rem;"></i>
+                            </button>` : '<div style="height: 28px;"></div>'}
+
+                            ${index < layersState.layers.length - 1 ? `<button onclick="event.stopPropagation(); moveLayerDown(${layer.id});" style="background: #667eea; color: white; border: none; border-radius: 5px; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;" onmouseover="this.style.background='#764ba2'" onmouseout="this.style.background='#667eea'" title="Sposta giù">
+                                <i class="fas fa-arrow-down" style="font-size: 0.8rem;"></i>
+                            </button>` : '<div style="height: 28px;"></div>'}
+                        </div>
+
+                        <!-- Pulsante elimina -->
+                        <button onclick="event.stopPropagation(); removeLayer(${layer.id});" style="background: #ef4444; color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0;" onmouseover="this.style.background='#dc2626'; this.style.transform='scale(1.1)'" onmouseout="this.style.background='#ef4444'; this.style.transform='scale(1)'" title="Elimina layer">
+                            <i class="fas fa-trash" style="font-size: 0.85rem;"></i>
+                        </button>
+                    </div>
+                `;
+            });
+
+            // Rimuovi tutti i layer items esistenti e aggiungi i nuovi
+            const existingItems = layersList.querySelectorAll('.layer-item');
+            existingItems.forEach(item => item.remove());
+
+            // Inserisci i nuovi layer dopo l'empty state
+            emptyState.insertAdjacentHTML('afterend', html);
+        }
+
+        // Seleziona un layer
+        function selectLayer(layerId) {
+            const layer = layersState.layers.find(l => l.id === layerId);
+            if (!layer) return;
+
+            layersState.selectedLayerId = layerId;
+
+            // Aggiorna UI lista layer
+            renderLayersList();
+
+            // Mostra pannello impostazioni
+            const settingsPanel = document.getElementById('layerSettingsPanel');
+            settingsPanel.style.display = 'block';
+
+            // Aggiorna titolo e badge
+            document.getElementById('selectedLayerName').textContent = layer.name;
+
+            // Traduci tipo in italiano
+            const typeTranslations = {
+                'IMAGE': 'IMMAGINE',
+                'VIDEO': 'VIDEO',
+                'AUDIO': 'AUDIO'
+            };
+            const typeItalian = typeTranslations[layer.type.toUpperCase()] || layer.type.toUpperCase();
+            document.getElementById('selectedLayerBadge').textContent = `File ${layerId} - ${typeItalian}`;
+
+            // Carica valori correnti nei controlli
+            document.getElementById('chromakeyEnabled').checked = layer.chromakey;
+            toggleChromakeySettings(layer.chromakey);
+
+            // Setup click handler per toggle switch (rimuovi vecchi listener)
+            const chromakeyToggle = document.getElementById('chromakeyToggleSwitch');
+            const newToggle = chromakeyToggle.cloneNode(true);
+            chromakeyToggle.parentNode.replaceChild(newToggle, chromakeyToggle);
+
+            newToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const checkbox = document.getElementById('chromakeyEnabled');
+                const currentLayer = layersState.layers.find(l => l.id === layersState.selectedLayerId);
+                if (currentLayer) {
+                    currentLayer.chromakey = !checkbox.checked;
+                    checkbox.checked = currentLayer.chromakey;
+                    toggleChromakeySettings(currentLayer.chromakey);
+                }
+            });
+
+            document.getElementById('chromakeyPosX').value = layer.posX;
+            document.getElementById('chromakeyPosXValue').textContent = layer.posX;
+
+            document.getElementById('chromakeyPosY').value = layer.posY;
+            document.getElementById('chromakeyPosYValue').textContent = layer.posY;
+
+            document.getElementById('chromakeyScale').value = layer.scale;
+            document.getElementById('chromakeyScaleValue').textContent = layer.scale;
+
+            document.getElementById('chromakeyOpacity').value = layer.opacity;
+            document.getElementById('chromakeyOpacityValue').textContent = layer.opacity;
+
+            document.getElementById('chromakeyThreshold').value = layer.threshold;
+            document.getElementById('chromakeyThresholdValue').textContent = layer.threshold;
+
+            document.getElementById('chromakeyTolerance').value = layer.tolerance;
+            document.getElementById('chromakeyToleranceValue').textContent = layer.tolerance;
+
+            document.getElementById('chromakeyStartTime').value = layer.startTime;
+            document.getElementById('chromakeyStartTimeValue').textContent = layer.startTime;
+
+            // Aggiorna anteprima
+            updateChromakeyPreview();
+        }
+
+        // Aggiorna UI delle impostazioni layer dal layer corrente
+        function updateLayerSettingsUI() {
+            if (!layersState.selectedLayerId) return;
+
+            const layer = layersState.layers.find(l => l.id === layersState.selectedLayerId);
+            if (!layer) return;
+
+            // Aggiorna tutti i controlli con i valori correnti del layer
+            document.getElementById('chromakeyPosX').value = layer.posX;
+            document.getElementById('chromakeyPosXValue').textContent = Math.round(layer.posX);
+
+            document.getElementById('chromakeyPosY').value = layer.posY;
+            document.getElementById('chromakeyPosYValue').textContent = Math.round(layer.posY);
+
+            document.getElementById('chromakeyScale').value = layer.scale;
+            document.getElementById('chromakeyScaleValue').textContent = layer.scale.toFixed(2);
+
+            document.getElementById('chromakeyOpacity').value = layer.opacity;
+            document.getElementById('chromakeyOpacityValue').textContent = layer.opacity.toFixed(2);
+        }
+
+        // Rimuovi layer
+        function removeLayer(layerId) {
+            const layerIndex = layersState.layers.findIndex(l => l.id === layerId);
+            if (layerIndex === -1) return;
+
+            const layer = layersState.layers[layerIndex];
+
+            // Rilascia URL
+            if (layer.fileUrl) {
+                URL.revokeObjectURL(layer.fileUrl);
+            }
+
+            // Rimuovi elemento video dal DOM se esiste
+            if (layer.mediaElement && layer.mediaElement.parentElement) {
+                layer.mediaElement.pause();
+                layer.mediaElement.src = '';
+                layer.mediaElement.remove();
+            }
+
+            // Rimuovi da array
+            layersState.layers.splice(layerIndex, 1);
+
+            // Se era selezionato, deseleziona
+            if (layersState.selectedLayerId === layerId) {
+                layersState.selectedLayerId = null;
+                document.getElementById('layerSettingsPanel').style.display = 'none';
+            }
+
+            renderLayersList();
+            updateChromakeyPreview();
+        }
+
+        // Sposta layer su (aumenta z-index)
+        function moveLayerUp(layerId) {
+            const index = layersState.layers.findIndex(l => l.id === layerId);
+            if (index <= 0) return;
+
+            // Swap con elemento precedente
+            [layersState.layers[index], layersState.layers[index - 1]] =
+            [layersState.layers[index - 1], layersState.layers[index]];
+
+            renderLayersList();
+            updateChromakeyPreview();
+        }
+
+        // Sposta layer giù (diminuisce z-index)
+        function moveLayerDown(layerId) {
+            const index = layersState.layers.findIndex(l => l.id === layerId);
+            if (index === -1 || index >= layersState.layers.length - 1) return;
+
+            // Swap con elemento successivo
+            [layersState.layers[index], layersState.layers[index + 1]] =
+            [layersState.layers[index + 1], layersState.layers[index]];
+
+            renderLayersList();
+            updateChromakeyPreview();
+        }
+
+        // Aggiorna impostazioni layer corrente quando cambiano i controlli
+        function updateCurrentLayerSettings() {
+            if (!layersState.selectedLayerId) return;
+
+            const layer = layersState.layers.find(l => l.id === layersState.selectedLayerId);
+            if (!layer) return;
+
+            layer.chromakey = document.getElementById('chromakeyEnabled').checked;
+            layer.posX = parseFloat(document.getElementById('chromakeyPosX').value);
+            layer.posY = parseFloat(document.getElementById('chromakeyPosY').value);
+            layer.scale = parseFloat(document.getElementById('chromakeyScale').value);
+            layer.opacity = parseFloat(document.getElementById('chromakeyOpacity').value);
+            layer.threshold = parseInt(document.getElementById('chromakeyThreshold').value);
+            layer.tolerance = parseInt(document.getElementById('chromakeyTolerance').value);
+            layer.startTime = parseFloat(document.getElementById('chromakeyStartTime').value);
+
+            // Aggiorna lista (per mostrare icona chromakey aggiornata)
+            renderLayersList();
+        }
+
         // ==================== CHROMAKEY FUNCTIONS ====================
 
         // Update slider values display
         document.getElementById('chromakeyPosX').addEventListener('input', function() {
             document.getElementById('chromakeyPosXValue').textContent = this.value;
+            updateCurrentLayerSettings();
         });
 
         document.getElementById('chromakeyPosY').addEventListener('input', function() {
             document.getElementById('chromakeyPosYValue').textContent = this.value;
+            updateCurrentLayerSettings();
         });
 
         document.getElementById('chromakeyScale').addEventListener('input', function() {
             document.getElementById('chromakeyScaleValue').textContent = parseFloat(this.value).toFixed(1);
+            updateCurrentLayerSettings();
         });
 
         document.getElementById('chromakeyOpacity').addEventListener('input', function() {
             document.getElementById('chromakeyOpacityValue').textContent = parseFloat(this.value).toFixed(1);
+            updateCurrentLayerSettings();
         });
 
         document.getElementById('chromakeyThreshold').addEventListener('input', function() {
             document.getElementById('chromakeyThresholdValue').textContent = this.value;
+            updateCurrentLayerSettings();
         });
 
         document.getElementById('chromakeyTolerance').addEventListener('input', function() {
             document.getElementById('chromakeyToleranceValue').textContent = this.value;
+            updateCurrentLayerSettings();
         });
 
-        // File uploads
-        document.getElementById('chromakeyForegroundUpload').addEventListener('click', function() {
-            document.getElementById('chromakeyForeground').click();
-        });
+        // File uploads - Video Background (principale)
+        const bgUploadArea = document.getElementById('chromakeyBackgroundUpload');
+        if (bgUploadArea) {
+            bgUploadArea.addEventListener('click', function() {
+                document.getElementById('chromakeyBackground').click();
+            });
+        }
 
-        document.getElementById('chromakeyBackgroundUpload').addEventListener('click', function() {
-            document.getElementById('chromakeyBackground').click();
-        });
-
-        document.getElementById('chromakeyForeground').addEventListener('change', function(e) {
-            console.log('📁 Change event su chromakeyForeground, files:', e.target.files.length);
-            if (e.target.files.length > 0) {
-                const file = e.target.files[0];
-                const fileName = file.name;
-                const fileSize = (file.size / (1024 * 1024)).toFixed(2); // MB
-                console.log('✅ File selezionato:', fileName);
-
-                // Mostra preview video
-                const preview = document.getElementById('chromakeyForegroundPreview');
-                const previewContainer = document.getElementById('chromakeyForegroundPreviewContainer');
-                const placeholder = document.getElementById('chromakeyForegroundPlaceholder');
-                const url = URL.createObjectURL(file);
-                preview.src = url;
-
-                // Quando il video è caricato, ottieni dimensioni e durata
-                preview.onloadedmetadata = function() {
-                    const duration = Math.floor(preview.duration);
-                    const minutes = Math.floor(duration / 60);
-                    const seconds = duration % 60;
-                    const durationStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                    const resolution = `${preview.videoWidth}x${preview.videoHeight}`;
-
-                    // Aggiorna il testo con tutte le info
-                    document.getElementById('chromakeyForegroundName').innerHTML = `
-                        <strong>${fileName}</strong><br>
-                        <small style="color: #666;">
-                            📏 ${resolution} • ⏱️ ${durationStr} • 💾 ${fileSize} MB
-                        </small>
-                    `;
-
-                    // Nascondi placeholder e mostra preview
-                    placeholder.style.display = 'none';
-                    previewContainer.style.display = 'block';
-
-                    // Avvia rendering canvas
-                    startCanvasRendering();
-                };
-            }
-        });
-
-        document.getElementById('chromakeyBackground').addEventListener('change', function(e) {
+        const bgFileInput = document.getElementById('chromakeyBackground');
+        if (bgFileInput) {
+            bgFileInput.addEventListener('change', function(e) {
             if (e.target.files.length > 0) {
                 const file = e.target.files[0];
                 const fileName = file.name;
@@ -3155,9 +3593,21 @@
 
                     // Avvia rendering canvas
                     startCanvasRendering();
+
+                    // Forza aggiornamento immediato del canvas con primo frame
+                    setTimeout(() => {
+                        const canvas = document.getElementById('chromakeyPreviewCanvas');
+                        const ctx = canvas.getContext('2d');
+                        if (canvas && ctx && preview.readyState >= 2) {
+                            canvas.width = 1280;
+                            canvas.height = 720;
+                            ctx.drawImage(preview, 0, 0, canvas.width, canvas.height);
+                        }
+                    }, 100);
                 };
             }
-        });
+            });
+        }
 
         // ==================== CANVAS RENDERING FUNCTIONS ====================
 
@@ -3168,8 +3618,6 @@
             const canvas = document.getElementById('chromakeyPreviewCanvas');
             const ctx = canvas.getContext('2d');
             const mainVideo = document.getElementById('chromakeyBackgroundPreview');
-            const ctaVideo = document.getElementById('chromakeyForegroundPreview');
-            const ctaOverlay = document.getElementById('ctaDragOverlay');
 
             if (!canvas || !ctx) return;
 
@@ -3197,36 +3645,68 @@
                     ctx.drawImage(mainVideo, 0, 0, canvas.width, canvas.height);
                 }
 
-                // Render CTA video (overlay) if loaded
-                if (ctaVideo && ctaVideo.src && ctaVideo.readyState >= 2) {
-                    const overlayRect = ctaOverlay.getBoundingClientRect();
-                    const canvasRect = canvas.getBoundingClientRect();
+                // Render all layers from layersState
+                if (layersState && layersState.layers && layersState.layers.length > 0) {
+                    layersState.layers.forEach((layer, index) => {
+                        // Solo renderizza layer con media caricato
+                        if (layer.mediaElement && layer.mediaLoaded) {
+                            try {
+                                // Calcola dimensioni come percentuale del canvas (video principale)
+                                // layer.scale è ora una percentuale (5-100)
+                                const scalePercent = layer.scale / 100; // Converti in decimale
+                                const width = canvas.width * scalePercent;
+                                const height = canvas.height * scalePercent;
 
-                    // Calculate CTA position and size on canvas
-                    const scaleX = canvas.width / canvasRect.width;
-                    const scaleY = canvas.height / canvasRect.height;
+                                // Calculate position on canvas based on layer settings
+                                const x = (canvas.width / 2) + layer.posX;
+                                const y = (canvas.height / 2) + layer.posY;
 
-                    const ctaX = (overlayRect.left - canvasRect.left) * scaleX;
-                    const ctaY = (overlayRect.top - canvasRect.top) * scaleY;
-                    const ctaWidth = overlayRect.width * scaleX;
-                    const ctaHeight = overlayRect.height * scaleY;
+                                ctx.save();
+                                ctx.globalAlpha = layer.opacity;
+                                ctx.drawImage(layer.mediaElement, x - width/2, y - height/2, width, height);
+                                ctx.restore();
 
-                    // Draw CTA video
-                    ctx.drawImage(ctaVideo, ctaX, ctaY, ctaWidth, ctaHeight);
+                                // Disegna controlli se selezionato
+                                if (layersState.selectedLayerId === layer.id) {
+                                    // Bordo blu
+                                    ctx.strokeStyle = '#667eea';
+                                    ctx.lineWidth = 2;
+                                    ctx.strokeRect(x - width/2, y - height/2, width, height);
+
+                                    // Disegna quadratini agli angoli (handles)
+                                    const handleSize = 10;
+                                    ctx.fillStyle = '#667eea';
+
+                                    // Angolo top-left
+                                    ctx.fillRect(x - width/2 - handleSize/2, y - height/2 - handleSize/2, handleSize, handleSize);
+                                    // Angolo top-right
+                                    ctx.fillRect(x + width/2 - handleSize/2, y - height/2 - handleSize/2, handleSize, handleSize);
+                                    // Angolo bottom-left
+                                    ctx.fillRect(x - width/2 - handleSize/2, y + height/2 - handleSize/2, handleSize, handleSize);
+                                    // Angolo bottom-right
+                                    ctx.fillRect(x + width/2 - handleSize/2, y + height/2 - handleSize/2, handleSize, handleSize);
+                                }
+                            } catch(e) {
+                                console.error(`✗ Errore rendering layer "${layer.name}":`, e);
+                            }
+                        } else {
+                            // Debug warning ogni 60 frame (circa 1 al secondo)
+                            if (Math.random() < 0.016) {
+                                if (!layer.mediaElement) {
+                                    console.warn(`Layer "${layer.name}": mediaElement mancante`);
+                                } else if (!layer.mediaLoaded) {
+                                    console.warn(`Layer "${layer.name}": media non ancora caricato`);
+                                }
+                            }
+                        }
+                    });
                 }
 
                 animationFrameId = requestAnimationFrame(render);
             }
 
-            // Show overlay only if CTA video is loaded
-            if (ctaVideo.src) {
-                ctaOverlay.style.display = 'block';
-            } else {
-                ctaOverlay.style.display = 'none';
-            }
-
-            // Start rendering if any video is loaded
-            if (mainVideo.src || ctaVideo.src) {
+            // Start rendering if main video is loaded
+            if (mainVideo.src) {
                 render();
             }
         }
@@ -3239,9 +3719,410 @@
             }
         }
 
-        function processChromakey() {
-            showInfo('Chromakey processing - funzione in sviluppo. Sarà collegata all\'API /chromakey/upload');
+        // ==================== CANVAS DRAG & DROP INTERACTION ====================
+        function setupCanvasInteraction() {
+            const canvas = document.getElementById('chromakeyPreviewCanvas');
+            if (!canvas) return;
+
+            let isDragging = false;
+            let isResizing = false;
+            let resizeHandle = null; // 'tl', 'tr', 'bl', 'br'
+            let draggedLayer = null;
+            let startX, startY;
+            let layerStartX, layerStartY;
+            let layerStartScale;
+
+            function checkResizeHandle(mouseX, mouseY, layer) {
+                const scalePercent = layer.scale / 100;
+                const width = canvas.width * scalePercent;
+                const height = canvas.height * scalePercent;
+                const x = (canvas.width / 2) + layer.posX;
+                const y = (canvas.height / 2) + layer.posY;
+                const handleSize = 10;
+                const hitArea = 15; // Area più grande per cliccare
+
+                // Top-left
+                if (Math.abs(mouseX - (x - width/2)) < hitArea && Math.abs(mouseY - (y - height/2)) < hitArea) {
+                    return 'tl';
+                }
+                // Top-right
+                if (Math.abs(mouseX - (x + width/2)) < hitArea && Math.abs(mouseY - (y - height/2)) < hitArea) {
+                    return 'tr';
+                }
+                // Bottom-left
+                if (Math.abs(mouseX - (x - width/2)) < hitArea && Math.abs(mouseY - (y + height/2)) < hitArea) {
+                    return 'bl';
+                }
+                // Bottom-right
+                if (Math.abs(mouseX - (x + width/2)) < hitArea && Math.abs(mouseY - (y + height/2)) < hitArea) {
+                    return 'br';
+                }
+                return null;
+            }
+
+            canvas.addEventListener('mousedown', function(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                const mouseX = (e.clientX - rect.left) * scaleX;
+                const mouseY = (e.clientY - rect.top) * scaleY;
+
+                // Trova il layer cliccato (dal più in alto, quindi reverse)
+                for (let i = layersState.layers.length - 1; i >= 0; i--) {
+                    const layer = layersState.layers[i];
+                    if (!layer.mediaElement || !layer.mediaLoaded) continue;
+
+                    const scalePercent = layer.scale / 100;
+                    
+                    const x = (canvas.width / 2) + layer.posX;
+                    const y = (canvas.height / 2) + layer.posY;
+                    const width = canvas.width * scalePercent;
+                    const height = canvas.height * scalePercent;
+
+                    // Prima controlla se stiamo cliccando un handle di resize
+                    const handle = checkResizeHandle(mouseX, mouseY, layer);
+                    if (handle) {
+                        isResizing = true;
+                        resizeHandle = handle;
+                        draggedLayer = layer;
+                        startX = mouseX;
+                        startY = mouseY;
+                        layerStartScale = layer.scale;
+                        canvas.style.cursor = getCursorForHandle(handle);
+                        selectLayer(layer.id);
+                        break;
+                    }
+
+                    // Check se il mouse è dentro il layer
+                    if (mouseX >= x - width/2 && mouseX <= x + width/2 &&
+                        mouseY >= y - height/2 && mouseY <= y + height/2) {
+                        isDragging = true;
+                        draggedLayer = layer;
+                        startX = mouseX;
+                        startY = mouseY;
+                        layerStartX = layer.posX;
+                        layerStartY = layer.posY;
+                        canvas.style.cursor = 'grabbing';
+                        selectLayer(layer.id);
+                        break;
+                    }
+                }
+            });
+
+            function getCursorForHandle(handle) {
+                if (handle === 'tl' || handle === 'br') return 'nwse-resize';
+                if (handle === 'tr' || handle === 'bl') return 'nesw-resize';
+                return 'default';
+            }
+
+            canvas.addEventListener('mousemove', function(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                const mouseX = (e.clientX - rect.left) * scaleX;
+                const mouseY = (e.clientY - rect.top) * scaleY;
+
+                if (!isDragging && !isResizing) {
+                    // Mostra cursor appropriato quando passa sopra layer o handle
+                    let cursorSet = false;
+                    for (let i = layersState.layers.length - 1; i >= 0; i--) {
+                        const layer = layersState.layers[i];
+                        if (!layer.mediaElement || !layer.mediaLoaded) continue;
+
+                        // Controlla handle se layer è selezionato
+                        if (layersState.selectedLayerId === layer.id) {
+                            const handle = checkResizeHandle(mouseX, mouseY, layer);
+                            if (handle) {
+                                canvas.style.cursor = getCursorForHandle(handle);
+                                cursorSet = true;
+                                break;
+                            }
+                        }
+
+                        const scalePercent = layer.scale / 100;
+                        
+                        const x = (canvas.width / 2) + layer.posX;
+                        const y = (canvas.height / 2) + layer.posY;
+                        const width = canvas.width * scalePercent;
+                        const height = canvas.height * scalePercent;
+
+                        if (mouseX >= x - width/2 && mouseX <= x + width/2 &&
+                            mouseY >= y - height/2 && mouseY <= y + height/2) {
+                            canvas.style.cursor = 'grab';
+                            cursorSet = true;
+                            break;
+                        }
+                    }
+                    if (!cursorSet) {
+                        canvas.style.cursor = 'default';
+                    }
+                    return;
+                }
+
+                if (isResizing && draggedLayer) {
+                    // Ridimensionamento con percentuale
+                    const deltaX = mouseX - startX;
+                    const deltaY = mouseY - startY;
+
+                    // Calcola nuova percentuale basata sul movimento del mouse
+                    const avgDelta = (Math.abs(deltaX) + Math.abs(deltaY)) / 2;
+                    const percentChange = (avgDelta / canvas.width) * 100; // Converti pixel in percentuale
+
+                    // Determina se ingrandire o rimpicciolire basato sulla direzione
+                    let scaleChange = 0;
+                    if (resizeHandle === 'br' || resizeHandle === 'tr') {
+                        scaleChange = deltaX > 0 ? percentChange : -percentChange;
+                    } else if (resizeHandle === 'tl' || resizeHandle === 'bl') {
+                        scaleChange = deltaX < 0 ? percentChange : -percentChange;
+                    }
+
+                    // Limita tra 5% e 100%
+                    draggedLayer.scale = Math.max(5, Math.min(100, layerStartScale + scaleChange));
+
+                    // Aggiorna UI
+                    if (layersState.selectedLayerId === draggedLayer.id) {
+                        updateLayerSettingsUI();
+                    }
+                } else if (isDragging && draggedLayer) {
+                    // Spostamento
+                    const deltaX = mouseX - startX;
+                    const deltaY = mouseY - startY;
+
+                    draggedLayer.posX = layerStartX + deltaX;
+                    draggedLayer.posY = layerStartY + deltaY;
+
+                    // Aggiorna slider se il layer è selezionato
+                    if (layersState.selectedLayerId === draggedLayer.id) {
+                        updateLayerSettingsUI();
+                    }
+                }
+            });
+
+            canvas.addEventListener('mouseup', function() {
+                if (isDragging || isResizing) {
+                    isDragging = false;
+                    isResizing = false;
+                    resizeHandle = null;
+                    draggedLayer = null;
+                    canvas.style.cursor = 'default';
+                }
+            });
+
+            canvas.addEventListener('mouseleave', function() {
+                if (isDragging || isResizing) {
+                    isDragging = false;
+                    isResizing = false;
+                    resizeHandle = null;
+                    draggedLayer = null;
+                    canvas.style.cursor = 'default';
+                }
+            });
+
+            // Ridimensiona con rotellina mouse
+            canvas.addEventListener('wheel', function(e) {
+                e.preventDefault();
+
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                const mouseX = (e.clientX - rect.left) * scaleX;
+                const mouseY = (e.clientY - rect.top) * scaleY;
+
+                // Trova il layer sotto il mouse
+                for (let i = layersState.layers.length - 1; i >= 0; i--) {
+                    const layer = layersState.layers[i];
+                    if (!layer.mediaElement || !layer.mediaLoaded) continue;
+
+                    const scalePercent = layer.scale / 100;
+                    
+                    const x = (canvas.width / 2) + layer.posX;
+                    const y = (canvas.height / 2) + layer.posY;
+                    const width = canvas.width * scalePercent;
+                    const height = canvas.height * scalePercent;
+
+                    if (mouseX >= x - width/2 && mouseX <= x + width/2 &&
+                        mouseY >= y - height/2 && mouseY <= y + height/2) {
+
+                        // Ridimensiona: scroll su = ingrandisce, scroll giù = rimpicciolisce
+                        // delta è in percentuale (5%)
+                        const delta = e.deltaY > 0 ? -5 : 5;
+                        layer.scale = Math.max(5, Math.min(100, layer.scale + delta));
+
+                        // Aggiorna UI se selezionato
+                        if (layersState.selectedLayerId === layer.id) {
+                            updateLayerSettingsUI();
+                        }
+                        break;
+                    }
+                }
+            }, { passive: false });
         }
+
+        // ==================== CONTROLLO AUTENTICAZIONE ====================
+        function checkAuthentication() {
+            /**
+             * Controlla se l'utente è loggato verificando la presenza del token JWT
+             * @returns {boolean} true se loggato, false altrimenti
+             */
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                // Mostra errore con link al login (senza redirect automatico per non perdere lo stato)
+                const loginLink = '<a href="/login" style="color: #fff; text-decoration: underline; font-weight: bold;" target="_blank">Clicca qui per accedere</a>';
+                showError(`Devi essere loggato per poter usare questa funzionalità. ${loginLink}`);
+                return false;
+            }
+            return true;
+        }
+
+        async function processChromakey() {
+            // Controlla autenticazione
+            if (!checkAuthentication()) return;
+
+            // Verifica che ci sia un video principale
+            const mainVideo = document.getElementById('chromakeyBackgroundPreview');
+            if (!mainVideo || !mainVideo.src) {
+                showError('Carica prima un video principale');
+                return;
+            }
+
+            // Verifica che ci siano layer con chromakey attivo
+            const layersWithChromakey = layersState.layers.filter(l => l.chromakey && (l.type === 'video' || l.type === 'image'));
+            if (layersWithChromakey.length === 0) {
+                showWarning('Nessun layer con chromakey attivo. Attiva "Rimuovi Sfondo Verde" per almeno un file.');
+                return;
+            }
+
+            // Per ora, elaboriamo solo il primo layer con chromakey
+            // TODO: supportare multi-layer chromakey
+            const layer = layersWithChromakey[0];
+
+            if (layersWithChromakey.length > 1) {
+                showInfo(`Elaborazione chromakey per "${layer.name}". Altri ${layersWithChromakey.length - 1} layer verranno processati nelle prossime versioni.`);
+            }
+
+            // Prepara FormData
+            const formData = new FormData();
+
+            // Aggiungi file foreground (layer con green screen)
+            // Usa direttamente il file originale salvato nel layer
+            if (layer.file) {
+                formData.append('foreground', layer.file, layer.name);
+            } else {
+                showError('File originale non disponibile per il layer');
+                return;
+            }
+
+            // Aggiungi file background (video principale)
+            // Recupera il file originale dal video principale
+            const backgroundInput = document.getElementById('chromakeyBackground');
+            if (!backgroundInput || !backgroundInput.files || backgroundInput.files.length === 0) {
+                showError('File video principale non disponibile');
+                return;
+            }
+            formData.append('background', backgroundInput.files[0], backgroundInput.files[0].name);
+
+            // Parametri
+            formData.append('output_name', `chromakey_${Date.now()}.mp4`);
+            formData.append('audio_mode', 'synced');
+            formData.append('position_x', Math.round(layer.posX));
+            formData.append('position_y', Math.round(layer.posY));
+            formData.append('scale', layer.scale);
+            formData.append('opacity', layer.opacity);
+            formData.append('green_threshold', layer.threshold);
+            formData.append('tolerance', layer.tolerance);
+            formData.append('quality', 'high');
+
+            showInfo('Avvio elaborazione chromakey...');
+
+            try {
+                // Recupera CSRF token
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+                const response = await fetch('/api/v1/chromakey/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+                        'X-CSRF-Token': csrfToken
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+
+                    // Gestisci errore di autenticazione
+                    if (response.status === 401 || error.detail?.includes('credentials')) {
+                        // Rimuovi token scaduto
+                        localStorage.removeItem('auth_token');
+
+                        // Mostra errore con link (senza redirect per non perdere lo stato)
+                        const loginLink = '<a href="/login" style="color: #fff; text-decoration: underline; font-weight: bold;" target="_blank">Clicca qui per accedere</a>';
+                        showError(`Sessione scaduta. ${loginLink}`);
+                        return;
+                    }
+
+                    throw new Error(error.detail || 'Errore nell\'elaborazione');
+                }
+
+                const result = await response.json();
+                showSuccess(`Job chromakey avviato! Job ID: ${result.job_id}. Usa la tab Pipeline per monitorare il progresso.`);
+
+                // TODO: Mostrare progresso in tempo reale
+                console.log('Job chromakey:', result);
+
+            } catch (error) {
+                console.error('Errore chromakey:', error);
+                showError(`Errore: ${error.message}`);
+            }
+        }
+
+        // ==================== TOGGLE CHROMAKEY SETTINGS ====================
+        function toggleChromakeySettings(enabled) {
+            const advancedSettings = document.getElementById('chromakeyAdvancedSettings');
+            const toggleSwitch = document.querySelector('.toggle-switch');
+            const toggleSlider = document.querySelector('.toggle-slider');
+
+            if (enabled) {
+                advancedSettings.style.display = 'block';
+                toggleSwitch.style.background = '#667eea';
+                toggleSlider.style.transform = 'translateX(30px)';
+            } else {
+                advancedSettings.style.display = 'none';
+                toggleSwitch.style.background = '#ccc';
+                toggleSlider.style.transform = 'translateX(0)';
+            }
+        }
+
+        // ==================== UPDATE SLIDER VALUES ====================
+        // Position X
+        document.getElementById('chromakeyPosX')?.addEventListener('input', function() {
+            document.getElementById('chromakeyPosXValue').textContent = this.value;
+        });
+
+        // Position Y
+        document.getElementById('chromakeyPosY')?.addEventListener('input', function() {
+            document.getElementById('chromakeyPosYValue').textContent = this.value;
+        });
+
+        // Scale
+        document.getElementById('chromakeyScale')?.addEventListener('input', function() {
+            document.getElementById('chromakeyScaleValue').textContent = this.value;
+        });
+
+        // Opacity
+        document.getElementById('chromakeyOpacity')?.addEventListener('input', function() {
+            document.getElementById('chromakeyOpacityValue').textContent = this.value;
+        });
+
+        // Green Threshold
+        document.getElementById('chromakeyThreshold')?.addEventListener('input', function() {
+            document.getElementById('chromakeyThresholdValue').textContent = this.value;
+        });
+
+        // Tolerance
+        document.getElementById('chromakeyTolerance')?.addEventListener('input', function() {
+            document.getElementById('chromakeyToleranceValue').textContent = this.value;
+        });
 
         // ==================== CTA DRAG & DROP FUNCTIONS ====================
 
@@ -3417,15 +4298,11 @@
         }
 
         function updateChromakeyPreview() {
-            const foregroundPreview = document.getElementById('chromakeyForegroundPreview');
             const backgroundPreview = document.getElementById('chromakeyBackgroundPreview');
-            const ctaOverlay = document.getElementById('ctaDragOverlay');
 
-            if (foregroundPreview.src || backgroundPreview.src) {
+            // Avvia rendering se c'è un video principale o ci sono layer
+            if ((backgroundPreview && backgroundPreview.src) || (layersState && layersState.layers.length > 0)) {
                 startCanvasRendering();
-                showInfo('Anteprima aggiornata! Trascina il box CTA per posizionarlo.');
-            } else {
-                showWarning('Carica almeno un video per vedere l\'anteprima.');
             }
         }
 
@@ -3444,7 +4321,7 @@
             document.getElementById('chromakeyPosYValue').textContent = '0';
             document.getElementById('chromakeyScaleValue').textContent = '1.0';
 
-            showInfo('Posizione CTA resettata.');
+            showInfo('Posizioni resettate.');
         }
 
         // Sync sliders with overlay position
@@ -3501,11 +4378,15 @@
         document.addEventListener('DOMContentLoaded', function() {
             initCtaDragAndDrop();
             syncSlidersToOverlay();
+            setupCanvasInteraction();
         });
 
         // ==================== VIDEO DOWNLOAD FUNCTIONS ====================
 
         async function getVideoInfo() {
+            // Controlla autenticazione
+            if (!checkAuthentication()) return;
+
             const url = document.getElementById('downloadVideoUrl').value;
 
             if (!url) {
@@ -3549,6 +4430,9 @@
         }
 
         async function downloadVideo() {
+            // Controlla autenticazione
+            if (!checkAuthentication()) return;
+
             const url = document.getElementById('downloadVideoUrl').value;
             const quality = document.getElementById('downloadQuality').value;
             const format = document.getElementById('downloadFormat').value;
@@ -4038,6 +4922,9 @@
         });
 
         async function processLogoOverlay() {
+            // Controlla autenticazione
+            if (!checkAuthentication()) return;
+
             const videoFile = document.getElementById('logoVideo').files[0];
             const logoFile = document.getElementById('logoImage').files[0];
 
@@ -4088,6 +4975,9 @@
         });
 
         async function processTranscription() {
+            // Controlla autenticazione
+            if (!checkAuthentication()) return;
+
             const file = document.getElementById('transcriptionFile').files[0];
 
             if (!file) {
@@ -4269,6 +5159,9 @@
         });
 
         async function generateThumbnail() {
+            // Controlla autenticazione
+            if (!checkAuthentication()) return;
+
             const file = document.getElementById('thumbnailImage').files[0];
 
             if (!file) {
@@ -4972,8 +5865,8 @@
             if (!currentSEOData) return;
 
             // Passa a YouTube Upload tab
-            showPrimaryTab('automation');
-            showSubTab('automation', 'youtube');
+            showPrimaryTab('social');
+            showSubTab('social', 'youtube');
 
             // Popola i campi con i dati SEO
             setTimeout(() => {
@@ -5625,15 +6518,18 @@
          * Applica settings caricati all'UI
          */
         function restoreUIFromSettings() {
-            // Ripristina tab corrente
-            if (userSettings.ui_state?.current_tab) {
-                showPrimaryTab(userSettings.ui_state.current_tab);
-            }
+            // Sempre partire dalla dashboard all'avvio
+            showPrimaryTab('dashboard');
 
-            if (userSettings.ui_state?.current_subtab) {
-                const currentTab = userSettings.ui_state.current_tab;
-                showSubTab(currentTab, userSettings.ui_state.current_subtab);
-            }
+            // Non ripristinare più la tab corrente salvata
+            // if (userSettings.ui_state?.current_tab) {
+            //     showPrimaryTab(userSettings.ui_state.current_tab);
+            // }
+
+            // if (userSettings.ui_state?.current_subtab) {
+            //     const currentTab = userSettings.ui_state.current_tab;
+            //     showSubTab(currentTab, userSettings.ui_state.current_subtab);
+            // }
 
             // Ripristina Chromakey settings
             if (userSettings.chromakey) {
@@ -6371,7 +7267,6 @@
 
                 // Controlla se ci sono ancora video caricati per CTA
                 const mainVideo = document.getElementById('chromakeyBackgroundPreview');
-                const ctaVideo = document.getElementById('chromakeyForegroundPreview');
                 const ctaOverlay = document.getElementById('ctaDragOverlay');
 
                 // Controlla se ci sono ancora file caricati per Logo
@@ -6379,10 +7274,10 @@
                 const logoImage = document.getElementById('logoImagePreview');
                 const logoOverlay = document.getElementById('logoDragOverlay');
 
-                // Gestisci CTA canvas
+                // Gestisci CTA canvas (sistema multi-layer)
                 if (inputId.includes('chromakey')) {
-                    if (!mainVideo.src && !ctaVideo.src) {
-                        // Nessun video caricato, ferma rendering e nascondi overlay
+                    if (!mainVideo.src && layersState.layers.length === 0) {
+                        // Nessun video caricato, ferma rendering
                         stopCanvasRendering();
                         if (ctaOverlay) {
                             ctaOverlay.style.display = 'none';
@@ -6474,7 +7369,6 @@
             console.log('🔧 Configurazione drag & drop...');
 
             const uploadAreas = [
-                { area: 'chromakeyForegroundUpload', input: 'chromakeyForeground' },
                 { area: 'chromakeyBackgroundUpload', input: 'chromakeyBackground' },
                 { area: 'logoVideoUpload', input: 'logoVideo' },
                 { area: 'logoImageUpload', input: 'logoImage' },

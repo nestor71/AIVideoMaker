@@ -36,6 +36,7 @@ class CSRFProtectionMiddleware(BaseHTTPMiddleware):
         "/api/v1/auth/reset-password",
         "/api/v1/auth/verify-email",
         "/api/v1/auth/resend-verification",
+        "/api/v1/chromakey",  # Protetto da JWT
         "/docs",
         "/redoc",
         "/openapi.json",
