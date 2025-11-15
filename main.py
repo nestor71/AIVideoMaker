@@ -200,6 +200,7 @@ from app.api.routes import (
     auth,
     admin,
     chromakey,
+    compositor,  # Multi-layer video compositor
     translation,
     thumbnail,
     youtube,
@@ -299,6 +300,7 @@ app.include_router(files.router, prefix="/api", tags=["File Upload"])  # Endpoin
 
 # Processing routes
 app.include_router(chromakey.router, prefix=f"{settings.api_prefix}/chromakey", tags=["Chromakey"])
+app.include_router(compositor.router, prefix=f"{settings.api_prefix}/compositor", tags=["Multi-Layer Compositor"])
 app.include_router(translation.router, prefix=f"{settings.api_prefix}/translation", tags=["Translation"])
 app.include_router(thumbnail.router, prefix=f"{settings.api_prefix}/thumbnail", tags=["Thumbnail"])
 app.include_router(youtube.router, prefix=f"{settings.api_prefix}/youtube", tags=["YouTube"])

@@ -929,27 +929,6 @@
                 padding: 15px 20px 20px 20px;
             }
         }
-
-        /* ==================== CHROMAKEY TOGGLE SWITCH ==================== */
-        #chromakeyToggle:checked + span {
-            background-color: #00d4aa;
-        }
-
-        #chromakeyToggle:checked + span + span {
-            transform: translateX(26px);
-        }
-
-        /* Chromakey Color Options */
-        .chromakey-color-option:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 12px rgba(255,255,255,0.3) !important;
-        }
-
-        .chromakey-color-option.selected {
-            border-color: white !important;
-            box-shadow: 0 0 0 4px rgba(255,255,255,0.3) !important;
-            transform: scale(1.05);
-        }
     </style>
 </head>
 <body>
@@ -1093,7 +1072,7 @@
                     <i class="fas fa-layer-group"></i> Video Compositor
                 </button>
                 <button class="sub-tab" onclick="showSubTab('video', 'recorder')">
-                    <i class="fas fa-record-vinyl"></i> Registrazione
+                    <i class="fas fa-record-vinyl"></i> Registratore
                 </button>
             </div>
 
@@ -1162,6 +1141,12 @@
                             <i class="fas fa-layer-group"></i>
                             <h3>Video Compositor</h3>
                             <p>Sovrapponi file multipli con chromakey, posizionamento e timing precisi</p>
+                        </div>
+
+                        <div class="dashboard-card" onclick="showPrimaryTab('video'); showSubTab('video', 'logo');">
+                            <i class="fas fa-image"></i>
+                            <h3>Logo Overlay</h3>
+                            <p>Aggiungi logo e branding ai tuoi video</p>
                         </div>
 
                         <div class="dashboard-card" onclick="showPrimaryTab('video'); showSubTab('video', 'recorder');">
@@ -1325,64 +1310,6 @@
                             </div>
                         </div>
 
-                        <!-- Controlli Avanzati Posizione e Dimensione -->
-                        <div id="chromakeyAdvancedSettings" style="display: none; margin-top: 20px; padding: 25px; background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%); border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-                            <h4 style="color: white; margin: 0 0 20px 0; display: flex; align-items: center; gap: 10px; font-size: 1rem;">
-                                <i class="fas fa-sliders-h"></i> Controlli Avanzati
-                            </h4>
-
-                            <!-- Selettore Colore Verde/Blu -->
-                            <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-                                <div style="margin-bottom: 15px;">
-                                    <span style="color: white; font-weight: 600; font-size: 1rem;">
-                                        <i class="fas fa-magic"></i> Rimuovi Sfondo Verde/Blu
-                                    </span>
-                                </div>
-
-                                <!-- Selettore Colore -->
-                                <div id="chromakeyColorSelector">
-                                    <label style="display: block; margin-bottom: 10px; font-weight: 600; color: rgba(255,255,255,0.9); font-size: 0.9rem;">
-                                        Colore Sfondo da Rimuovere
-                                    </label>
-                                    <div style="display: flex; gap: 15px;">
-                                        <div class="chromakey-color-option selected" data-color="green" style="width: 60px; height: 60px; background: #00ff00; border-radius: 8px; cursor: pointer; border: 3px solid #00ff00; box-shadow: 0 2px 8px rgba(0,255,0,0.3); transition: all 0.3s;">
-                                        </div>
-                                        <div class="chromakey-color-option" data-color="blue" style="width: 60px; height: 60px; background: #0000ff; border-radius: 8px; cursor: pointer; border: 3px solid transparent; box-shadow: 0 2px 8px rgba(0,0,255,0.2); transition: all 0.3s;">
-                                        </div>
-                                    </div>
-                                    <div style="color: rgba(255,255,255,0.7); font-size: 0.85rem; font-style: italic; margin-top: 12px; padding: 10px; background: rgba(74, 144, 226, 0.2); border-radius: 8px;">
-                                        <i class="fas fa-lightbulb"></i> La rimozione dello sfondo verrà applicata automaticamente. Il sistema rileverà automaticamente il colore ottimale oppure puoi scegliere un preset.
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Soglia e Tolleranza Chromakey -->
-                            <div id="chromakeyFineControls" style="margin-top: 20px; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 12px;">
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                                    <div>
-                                        <label style="display: block; margin-bottom: 10px; font-weight: 600; color: white; font-size: 0.95rem;">
-                                            Quanto colore rimuovere: <span id="chromakeyThresholdValue" style="color: #00d4aa;">110</span>
-                                        </label>
-                                        <input type="range" id="chromakeyThreshold" min="0" max="150" value="110" step="1"
-                                               style="width: 100%; accent-color: #00d4aa; height: 6px;">
-                                        <div style="color: rgba(255,255,255,0.7); font-size: 0.8rem; margin-top: 8px; font-style: italic;">
-                                            (0-150, più alto = più permissivo)
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label style="display: block; margin-bottom: 10px; font-weight: 600; color: white; font-size: 0.95rem;">
-                                            Morbidezza bordi: <span id="chromakeyToleranceValue" style="color: #00d4aa;">2.00</span>
-                                        </label>
-                                        <input type="range" id="chromakeyTolerance" min="0" max="20" value="2" step="0.01"
-                                               style="width: 100%; accent-color: #00d4aa; height: 6px;">
-                                        <div style="color: rgba(255,255,255,0.7); font-size: 0.8rem; margin-top: 8px; font-style: italic;">
-                                            (0.00-20.00, più alto = bordi più sfumati)
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                         <!-- Chromakey Settings - Dinamiche per File Selezionato -->
                         <div id="layerSettingsPanel" style="margin-top: 30px; padding: 25px; background: #f8f9fa; border-radius: 15px; display: none;">
                             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
@@ -1397,30 +1324,13 @@
                                 <div style="display: flex; align-items: center; justify-content: space-between;">
                                     <div>
                                         <i class="fas fa-magic" style="color: #667eea; margin-right: 10px;"></i>
-                                        <span style="font-weight: 600; font-size: 1.1rem; color: #2c3e50;">Rimuovi Sfondo</span>
-                                        <p style="margin: 5px 0 0 33px; color: #666; font-size: 0.9rem;">Attiva per rimuovere automaticamente lo sfondo da questo file</p>
+                                        <span style="font-weight: 600; font-size: 1.1rem; color: #2c3e50;">Rimuovi Sfondo Verde (Chromakey)</span>
+                                        <p style="margin: 5px 0 0 33px; color: #666; font-size: 0.9rem;">Attiva per rimuovere automaticamente lo sfondo verde da questo file</p>
                                     </div>
                                     <div style="position: relative;">
                                         <input type="checkbox" id="chromakeyEnabled" style="display: none;">
                                         <div class="toggle-switch" id="chromakeyToggleSwitch" style="width: 60px; height: 30px; background: #ccc; border-radius: 30px; position: relative; transition: background 0.3s; cursor: pointer;">
                                             <div class="toggle-slider" style="width: 26px; height: 26px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: transform 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.2); pointer-events: none;"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Toggle Mantieni Proporzioni -->
-                            <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 25px; border: 2px solid #e0e0e0;">
-                                <div style="display: flex; align-items: center; justify-content: space-between;">
-                                    <div>
-                                        <i class="fas fa-expand-arrows-alt" style="color: #667eea; margin-right: 10px;"></i>
-                                        <span style="font-weight: 600; font-size: 1.1rem; color: #2c3e50;">Mantieni Proporzioni Originali</span>
-                                        <p style="margin: 5px 0 0 33px; color: #666; font-size: 0.9rem;">Mantieni l'aspect ratio originale del file (consigliato per evitare deformazioni)</p>
-                                    </div>
-                                    <div style="position: relative;">
-                                        <input type="checkbox" id="keepAspectRatio" checked style="display: none;">
-                                        <div class="toggle-switch" id="keepAspectRatioToggle" style="width: 60px; height: 30px; background: #667eea; border-radius: 30px; position: relative; transition: background 0.3s; cursor: pointer;">
-                                            <div class="toggle-slider" style="width: 26px; height: 26px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 32px; transition: transform 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.2); pointer-events: none;"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -1468,22 +1378,40 @@
                                                style="width: 100%; accent-color: #667eea;">
                                     </div>
 
-                                    <!-- Tempo Inizio -->
+                                    <!-- Start Time -->
                                     <div>
                                         <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
-                                            Tempo Inizio (sec)
+                                            <i class="fas fa-clock"></i> Inizio (secondi): <span id="chromakeyStartTimeValue" style="color: #667eea;">0</span>
                                         </label>
                                         <input type="number" id="chromakeyStartTime" min="0" max="3600" step="0.1" value="0"
-                                               style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem;">
+                                               style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem;"
+                                               oninput="document.getElementById('chromakeyStartTimeValue').textContent = this.value">
                                     </div>
+                                </div>
+                            </div>
 
-                                    <!-- Tempo Fine -->
+                            <!-- Impostazioni Chromakey (visibili solo se chromakey è attivo) -->
+                            <div id="chromakeyAdvancedSettings" style="display: none; padding: 20px; background: #e8f4f8; border-radius: 10px; border-left: 4px solid #667eea;">
+                                <h4 style="color: #2c3e50; margin: 0 0 15px 0; display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-adjust"></i> Impostazioni Avanzate Chromakey
+                                </h4>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                                    <!-- Green Threshold -->
                                     <div>
                                         <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
-                                            Tempo Fine (sec)
+                                            Soglia Verde: <span id="chromakeyThresholdValue" style="color: #667eea;">100</span>
                                         </label>
-                                        <input type="number" id="chromakeyEndTime" min="0" max="3600" step="0.1" value="" placeholder="Lasciare vuoto per l'intero video"
-                                               style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem;">
+                                        <input type="range" id="chromakeyThreshold" min="0" max="255" value="100"
+                                               style="width: 100%; accent-color: #667eea;">
+                                    </div>
+
+                                    <!-- Tolerance -->
+                                    <div>
+                                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                            Tolleranza: <span id="chromakeyToleranceValue" style="color: #667eea;">50</span>
+                                        </label>
+                                        <input type="range" id="chromakeyTolerance" min="0" max="255" value="50"
+                                               style="width: 100%; accent-color: #667eea;">
                                     </div>
                                 </div>
                             </div>
@@ -2385,7 +2313,7 @@
                                 </h4>
                                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                                     <button onclick="loadPipelineTemplate('video-completo')" style="background: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: 600;">
-                                        Video Completo (Chromakey + SEO + YouTube)
+                                        Video Completo (Chromakey + Logo + SEO + YouTube)
                                     </button>
                                     <button onclick="loadPipelineTemplate('quick-seo')" style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: 600;">
                                         Quick SEO (SEO AI + YouTube)
@@ -2407,6 +2335,15 @@
                                         <i class="fas fa-magic" style="color: #667eea;"></i>
                                         <strong>Chromakey</strong>
                                         <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #666;">Green screen removal</p>
+                                    </div>
+                                </label>
+
+                                <label class="pipeline-step-checkbox" style="display: flex; align-items: center; gap: 12px; padding: 15px; background: white; border-radius: 10px; border: 2px solid #e0e0e0; cursor: pointer;">
+                                    <input type="checkbox" class="pipeline-step" data-step="logo_overlay" onchange="togglePipelineStep(this)" style="width: 20px; height: 20px; accent-color: #667eea;">
+                                    <div>
+                                        <i class="fas fa-image" style="color: #667eea;"></i>
+                                        <strong>Logo Overlay</strong>
+                                        <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #666;">Aggiungi watermark</p>
                                     </div>
                                 </label>
 
@@ -2974,106 +2911,6 @@
             nextId: 1
         };
 
-        /**
-         * Salva lo stato dei layer e i file nel localStorage/sessionStorage prima del login
-         */
-        async function saveLayersStateBeforeLogin() {
-            try {
-                // NON salvare i file (troppo grandi per sessionStorage)
-                // Salva solo le configurazioni - l'utente dovrà ricaricare i file dopo il login
-                const layersData = [];
-
-                for (const layer of layersState.layers) {
-                    layersData.push({
-                        id: layer.id,
-                        name: layer.name,
-                        type: layer.type,
-                        chromakey: layer.chromakey,
-                        keepAspectRatio: layer.keepAspectRatio,
-                        posX: layer.posX,
-                        posY: layer.posY,
-                        scale: layer.scale,
-                        opacity: layer.opacity,
-                        threshold: layer.threshold,
-                        tolerance: layer.tolerance,
-                        startTime: layer.startTime,
-                        // Solo metadati del file, non i dati
-                        fileName: layer.file.name,
-                        fileType: layer.file.type,
-                        fileSize: layer.file.size
-                    });
-                }
-
-                const stateToSave = {
-                    layers: layersData,
-                    selectedLayerId: layersState.selectedLayerId,
-                    nextId: layersState.nextId,
-                    timestamp: Date.now()
-                };
-
-                // Salva anche i metadati del video principale (non il file)
-                const mainVideoInput = document.getElementById('chromakeyBackground');
-                if (mainVideoInput?.files?.[0]) {
-                    stateToSave.mainVideo = {
-                        name: mainVideoInput.files[0].name,
-                        type: mainVideoInput.files[0].type,
-                        size: mainVideoInput.files[0].size
-                    };
-                }
-
-                sessionStorage.setItem('chromakey_temp_state', JSON.stringify(stateToSave));
-                console.log('✅ Stato layer salvato (senza file - da ricaricare dopo login)');
-            } catch (error) {
-                console.error('❌ Errore salvataggio stato layer:', error);
-            }
-        }
-
-        /**
-         * Ripristina lo stato dei layer (solo configurazioni) dal sessionStorage dopo il login
-         * NOTA: I file NON vengono ripristinati (troppo grandi), l'utente deve ricaricarli
-         */
-        async function restoreLayersStateAfterLogin() {
-            try {
-                const savedState = sessionStorage.getItem('chromakey_temp_state');
-                if (!savedState) {
-                    console.log('ℹ️ Nessuno stato layer da ripristinare');
-                    return;
-                }
-
-                const state = JSON.parse(savedState);
-                console.log('🔄 Stato layer salvato trovato:', state.layers.length, 'layer');
-
-                // Mostra messaggio all'utente
-                if (state.layers.length > 0 || state.mainVideo) {
-                    let filesList = [];
-                    if (state.mainVideo) {
-                        filesList.push(`<li>Video principale: <strong>${state.mainVideo.name}</strong></li>`);
-                    }
-                    state.layers.forEach(layer => {
-                        filesList.push(`<li>Layer: <strong>${layer.fileName}</strong> (${layer.type})</li>`);
-                    });
-
-                    showInfo(`
-                        <div style="text-align: left;">
-                            <p><strong>File da ricaricare per ripristinare il progetto:</strong></p>
-                            <ul style="margin: 10px 0; padding-left: 20px;">
-                                ${filesList.join('')}
-                            </ul>
-                            <p style="margin-top: 10px;"><em>Le impostazioni verranno ripristinate automaticamente.</em></p>
-                        </div>
-                    `);
-                }
-
-                // Rimuovi lo stato salvato
-                sessionStorage.removeItem('chromakey_temp_state');
-                console.log('✅ Messaggio di ripristino mostrato');
-
-            } catch (error) {
-                console.error('❌ Errore ripristino stato layer:', error);
-                sessionStorage.removeItem('chromakey_temp_state');
-            }
-        }
-
         // Setup Upload Area per Layer (Click)
         const layersUploadArea = document.getElementById('layersUploadArea');
         const layerFileInput = document.getElementById('layerFileInput');
@@ -3109,7 +2946,7 @@
                 if (files.length > 0) {
                     // Gestisci tutti i file trascinati
                     Array.from(files).forEach(file => {
-                        addLayerFile(file);
+                        handleLayerFileUpload(file);
                     });
                 }
             });
@@ -3119,7 +2956,7 @@
                 if (e.target.files.length > 0) {
                     // Gestisci tutti i file selezionati
                     Array.from(e.target.files).forEach(file => {
-                        addLayerFile(file);
+                        handleLayerFileUpload(file);
                     });
                     // Reset input dopo aver processato tutti i file
                     e.target.value = '';
@@ -3127,17 +2964,15 @@
             });
         }
 
-        // Funzione per gestire upload di un file layer (con ripristino stato opzionale)
-        async function addLayerFile(file, savedState = null) {
+        // Funzione per gestire upload di un file layer
+        function handleLayerFileUpload(file) {
             if (!file) return;
 
-            // Verifica se il file è già stato caricato (stesso nome) - skip se stiamo ripristinando
-            if (!savedState) {
-                const existingLayer = layersState.layers.find(layer => layer.name === file.name);
-                if (existingLayer) {
-                    showError(`Il file "${file.name}" è già stato caricato.`);
-                    return;
-                }
+            // Verifica se il file è già stato caricato (stesso nome)
+            const existingLayer = layersState.layers.find(layer => layer.name === file.name);
+            if (existingLayer) {
+                showError(`Il file "${file.name}" è già stato caricato.`);
+                return;
             }
 
             const isVideo = file.type.startsWith('video/');
@@ -3154,23 +2989,20 @@
             if (isVideo) fileType = 'video';
             else if (isAudio) fileType = 'audio';
 
-            // Crea nuovo layer - usa savedState se disponibile
+            // Crea nuovo layer
             const layer = {
-                id: savedState?.id ?? layersState.nextId++,
+                id: layersState.nextId++,
                 file: file,
                 name: file.name,
                 type: fileType,
-                chromakey: savedState?.chromakey ?? false, // Default: disattivato (attiva solo se hai sfondo verde/blu)
-                chromaColor: savedState?.chromaColor ?? 'green', // green, blue
-                keepAspectRatio: savedState?.keepAspectRatio ?? true, // Default: mantieni proporzioni
-                posX: savedState?.posX ?? 0,
-                posY: savedState?.posY ?? 0,
-                scale: savedState?.scale ?? 30, // Percentuale del video principale (30% default)
-                opacity: savedState?.opacity ?? 1.0,
-                threshold: savedState?.threshold ?? 110, // Soglia default (0-150)
-                tolerance: savedState?.tolerance ?? 2.0, // Tolleranza default (0-20)
-                startTime: savedState?.startTime ?? 0,
-                endTime: savedState?.endTime ?? null, // null = intero video
+                chromakey: false,
+                posX: 0,
+                posY: 0,
+                scale: 30, // Percentuale del video principale (30% default)
+                opacity: 1.0,
+                threshold: 100,
+                tolerance: 50,
+                startTime: 0,
                 fileUrl: URL.createObjectURL(file),
                 mediaLoaded: false,
                 mediaElement: null
@@ -3364,16 +3196,6 @@
             const newToggle = chromakeyToggle.cloneNode(true);
             chromakeyToggle.parentNode.replaceChild(newToggle, chromakeyToggle);
 
-            // Imposta stato visuale iniziale dello switch chromakey
-            const chromakeySlider = newToggle.querySelector('.toggle-slider');
-            if (layer.chromakey) {
-                newToggle.style.background = '#667eea';
-                chromakeySlider.style.left = '32px';
-            } else {
-                newToggle.style.background = '#ccc';
-                chromakeySlider.style.left = '2px';
-            }
-
             newToggle.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const checkbox = document.getElementById('chromakeyEnabled');
@@ -3381,55 +3203,7 @@
                 if (currentLayer) {
                     currentLayer.chromakey = !checkbox.checked;
                     checkbox.checked = currentLayer.chromakey;
-
-                    // Aggiorna visuale dello switch
-                    const slider = this.querySelector('.toggle-slider');
-                    if (currentLayer.chromakey) {
-                        this.style.background = '#667eea';
-                        slider.style.left = '32px';
-                    } else {
-                        this.style.background = '#ccc';
-                        slider.style.left = '2px';
-                    }
-
-                    // Mostra/nascondi impostazioni chromakey
                     toggleChromakeySettings(currentLayer.chromakey);
-                }
-            });
-
-            // Setup toggle per mantenere proporzioni
-            document.getElementById('keepAspectRatio').checked = layer.keepAspectRatio;
-            const keepAspectToggle = document.getElementById('keepAspectRatioToggle');
-            const newAspectToggle = keepAspectToggle.cloneNode(true);
-            keepAspectToggle.parentNode.replaceChild(newAspectToggle, keepAspectToggle);
-
-            // Imposta stato iniziale dello switch
-            const aspectCheckbox = document.getElementById('keepAspectRatio');
-            const aspectSlider = newAspectToggle.querySelector('.toggle-slider');
-            if (layer.keepAspectRatio) {
-                newAspectToggle.style.background = '#667eea';
-                aspectSlider.style.left = '32px';
-            } else {
-                newAspectToggle.style.background = '#ccc';
-                aspectSlider.style.left = '2px';
-            }
-
-            newAspectToggle.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const currentLayer = layersState.layers.find(l => l.id === layersState.selectedLayerId);
-                if (currentLayer) {
-                    currentLayer.keepAspectRatio = !aspectCheckbox.checked;
-                    aspectCheckbox.checked = currentLayer.keepAspectRatio;
-
-                    // Aggiorna visuale dello switch
-                    const slider = this.querySelector('.toggle-slider');
-                    if (currentLayer.keepAspectRatio) {
-                        this.style.background = '#667eea';
-                        slider.style.left = '32px';
-                    } else {
-                        this.style.background = '#ccc';
-                        slider.style.left = '2px';
-                    }
                 }
             });
 
@@ -3451,8 +3225,8 @@
             document.getElementById('chromakeyTolerance').value = layer.tolerance;
             document.getElementById('chromakeyToleranceValue').textContent = layer.tolerance;
 
-            document.getElementById('chromakeyStartTime').value = layer.startTime || 0;
-            document.getElementById('chromakeyEndTime').value = layer.endTime || '';
+            document.getElementById('chromakeyStartTime').value = layer.startTime;
+            document.getElementById('chromakeyStartTimeValue').textContent = layer.startTime;
 
             // Aggiorna anteprima
             updateChromakeyPreview();
@@ -3549,22 +3323,9 @@
             layer.posY = parseFloat(document.getElementById('chromakeyPosY').value);
             layer.scale = parseFloat(document.getElementById('chromakeyScale').value);
             layer.opacity = parseFloat(document.getElementById('chromakeyOpacity').value);
-
-            const newThreshold = parseInt(document.getElementById('chromakeyThreshold').value);
-            const newTolerance = parseInt(document.getElementById('chromakeyTolerance').value);
-
-            // Debug: log solo quando i valori chromakey cambiano
-            if (layer.threshold !== newThreshold || layer.tolerance !== newTolerance) {
-                console.log(`🔄 Aggiornamento chromakey - Threshold: ${layer.threshold} → ${newThreshold}, Tolerance: ${layer.tolerance} → ${newTolerance}`);
-            }
-
-            layer.threshold = newThreshold;
-            layer.tolerance = newTolerance;
-            layer.startTime = parseFloat(document.getElementById('chromakeyStartTime').value) || 0;
-
-            // Tempo fine (null se vuoto)
-            const endTimeValue = document.getElementById('chromakeyEndTime').value;
-            layer.endTime = endTimeValue ? parseFloat(endTimeValue) : null;
+            layer.threshold = parseInt(document.getElementById('chromakeyThreshold').value);
+            layer.tolerance = parseInt(document.getElementById('chromakeyTolerance').value);
+            layer.startTime = parseFloat(document.getElementById('chromakeyStartTime').value);
 
             // Aggiorna lista (per mostrare icona chromakey aggiornata)
             renderLayersList();
@@ -3599,61 +3360,7 @@
         });
 
         document.getElementById('chromakeyTolerance').addEventListener('input', function() {
-            document.getElementById('chromakeyToleranceValue').textContent = parseFloat(this.value).toFixed(2);
-            updateCurrentLayerSettings();
-        });
-
-        // Listener per toggle chromakey - RIMOSSO (gestito da chromakeyToggleSwitch)
-
-        // Listener per selezione colore chromakey (quadrati colorati)
-        document.querySelectorAll('.chromakey-color-option').forEach(option => {
-            option.addEventListener('click', function() {
-                const color = this.dataset.color;
-
-                // Rimuovi selezione da tutti
-                document.querySelectorAll('.chromakey-color-option').forEach(opt => {
-                    opt.classList.remove('selected');
-                });
-
-                // Aggiungi selezione a questo
-                this.classList.add('selected');
-
-                // Aggiorna layer se selezionato
-                if (layersState.selectedLayerId !== null) {
-                    const layer = layersState.layers.find(l => l.id === layersState.selectedLayerId);
-                    if (layer) {
-                        layer.chromaColor = color;
-
-                        // Aggiorna valori ottimali per il colore selezionato
-                        if (color === 'blue') {
-                            // Blu: Soglia 220, Tolleranza 50
-                            layer.threshold = 220;
-                            layer.tolerance = 50;
-                            document.getElementById('chromakeyThreshold').value = 220;
-                            document.getElementById('chromakeyThresholdValue').textContent = 220;
-                            document.getElementById('chromakeyTolerance').value = 50;
-                            document.getElementById('chromakeyToleranceValue').textContent = 50;
-                        } else {
-                            // Verde: Soglia 150, Tolleranza 30
-                            layer.threshold = 150;
-                            layer.tolerance = 30;
-                            document.getElementById('chromakeyThreshold').value = 150;
-                            document.getElementById('chromakeyThresholdValue').textContent = 150;
-                            document.getElementById('chromakeyTolerance').value = 30;
-                            document.getElementById('chromakeyToleranceValue').textContent = 30;
-                        }
-
-                        renderCompositorPreview();
-                    }
-                }
-            });
-        });
-
-        document.getElementById('chromakeyStartTime').addEventListener('input', function() {
-            updateCurrentLayerSettings();
-        });
-
-        document.getElementById('chromakeyEndTime').addEventListener('input', function() {
+            document.getElementById('chromakeyToleranceValue').textContent = this.value;
             updateCurrentLayerSettings();
         });
 
@@ -3757,40 +3464,14 @@
                 // Render all layers from layersState
                 if (layersState && layersState.layers && layersState.layers.length > 0) {
                     layersState.layers.forEach((layer, index) => {
-                        // Debug: log stato layer ogni 60 frame
-                        if (Math.random() < 0.016) {
-                            console.log(`📊 Layer ${layer.name}: mediaLoaded=${layer.mediaLoaded}, chromakey=${layer.chromakey}, hasMediaElement=${!!layer.mediaElement}`);
-                        }
-
                         // Solo renderizza layer con media caricato
                         if (layer.mediaElement && layer.mediaLoaded) {
                             try {
                                 // Calcola dimensioni come percentuale del canvas (video principale)
                                 // layer.scale è ora una percentuale (5-100)
                                 const scalePercent = layer.scale / 100; // Converti in decimale
-
-                                let width, height;
-
-                                if (layer.keepAspectRatio) {
-                                    // Mantieni proporzioni originali
-                                    const originalWidth = layer.mediaElement.videoWidth || layer.mediaElement.naturalWidth || layer.mediaElement.width;
-                                    const originalHeight = layer.mediaElement.videoHeight || layer.mediaElement.naturalHeight || layer.mediaElement.height;
-                                    const aspectRatio = originalWidth / originalHeight;
-
-                                    if (aspectRatio >= 1) {
-                                        // Landscape o quadrato: base su larghezza
-                                        width = canvas.width * scalePercent;
-                                        height = width / aspectRatio;
-                                    } else {
-                                        // Portrait: base su altezza
-                                        height = canvas.height * scalePercent;
-                                        width = height * aspectRatio;
-                                    }
-                                } else {
-                                    // Adatta al video principale (può deformare)
-                                    width = canvas.width * scalePercent;
-                                    height = canvas.height * scalePercent;
-                                }
+                                const width = canvas.width * scalePercent;
+                                const height = canvas.height * scalePercent;
 
                                 // Calculate position on canvas based on layer settings
                                 const x = (canvas.width / 2) + layer.posX;
@@ -3798,82 +3479,7 @@
 
                                 ctx.save();
                                 ctx.globalAlpha = layer.opacity;
-
-                                // Se chromakey è attivo, applica rimozione verde in tempo reale
-                                if (layer.chromakey) {
-                                    // Debug: mostra valori ogni 60 frame (circa 1 volta al secondo)
-                                    if (Math.random() < 0.016) {
-                                        console.log(`🎨 Chromakey attivo - Layer: ${layer.name}, Threshold: ${layer.threshold}, Tolerance: ${layer.tolerance}`);
-                                    }
-
-                                    // Crea canvas temporaneo per processare chromakey
-                                    const tempCanvas = document.createElement('canvas');
-                                    tempCanvas.width = width;
-                                    tempCanvas.height = height;
-                                    const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
-
-                                    // Disegna layer su canvas temporaneo
-                                    tempCtx.drawImage(layer.mediaElement, 0, 0, width, height);
-
-                                    // Ottieni pixel data
-                                    const imageData = tempCtx.getImageData(0, 0, width, height);
-                                    const data = imageData.data;
-
-                                    // Usa valori 0-1 per similarity (come FFmpeg colorkey)
-                                    // Threshold: 0-255 → similarity 0-1 (quanto deve essere simile al colore per rimuoverlo)
-                                    // Tolerance: 0-255 → blend 0-1 (quanto sono morbidi i bordi)
-                                    const similarity = (layer.threshold || 150) / 255.0;
-                                    const blend = (layer.tolerance || 30) / 255.0;
-
-                                    // Target color: dipende da chromaColor (verde o blu)
-                                    let targetR, targetG, targetB;
-                                    if (layer.chromaColor === 'blue') {
-                                        // Blu puro (0x0000FF)
-                                        targetR = 0;
-                                        targetG = 0;
-                                        targetB = 255;
-                                    } else {
-                                        // Verde puro (0x00FF00) - default
-                                        targetR = 0;
-                                        targetG = 255;
-                                        targetB = 0;
-                                    }
-
-                                    // Processa ogni pixel
-                                    for (let i = 0; i < data.length; i += 4) {
-                                        const r = data[i];
-                                        const g = data[i + 1];
-                                        const b = data[i + 2];
-
-                                        // Calcola distanza euclidea dal verde nel range 0-1
-                                        const dr = (r - targetR) / 255.0;
-                                        const dg = (g - targetG) / 255.0;
-                                        const db = (b - targetB) / 255.0;
-                                        const distance = Math.sqrt(dr * dr + dg * dg + db * db);
-
-                                        // Se la distanza è minore di similarity, rimuovi il pixel
-                                        if (distance < similarity) {
-                                            if (distance < similarity - blend) {
-                                                // Rimozione completa
-                                                data[i + 3] = 0;
-                                            } else {
-                                                // Bordo morbido (fade graduale)
-                                                const alpha = (distance - (similarity - blend)) / blend;
-                                                data[i + 3] = Math.round(alpha * 255);
-                                            }
-                                        }
-                                    }
-
-                                    // Rimetti i pixel processati
-                                    tempCtx.putImageData(imageData, 0, 0);
-
-                                    // Disegna il risultato sul canvas principale
-                                    ctx.drawImage(tempCanvas, x - width/2, y - height/2, width, height);
-                                } else {
-                                    // Nessun chromakey, disegna normalmente
-                                    ctx.drawImage(layer.mediaElement, x - width/2, y - height/2, width, height);
-                                }
-
+                                ctx.drawImage(layer.mediaElement, x - width/2, y - height/2, width, height);
                                 ctx.restore();
 
                                 // Disegna controlli se selezionato
@@ -3942,33 +3548,10 @@
             let layerStartX, layerStartY;
             let layerStartScale;
 
-            // Helper per calcolare dimensioni layer considerando keepAspectRatio
-            function getLayerDimensions(layer) {
-                const scalePercent = layer.scale / 100;
-                let width, height;
-
-                if (layer.keepAspectRatio && layer.mediaElement) {
-                    const originalWidth = layer.mediaElement.videoWidth || layer.mediaElement.naturalWidth || layer.mediaElement.width;
-                    const originalHeight = layer.mediaElement.videoHeight || layer.mediaElement.naturalHeight || layer.mediaElement.height;
-                    const aspectRatio = originalWidth / originalHeight;
-
-                    if (aspectRatio >= 1) {
-                        width = canvas.width * scalePercent;
-                        height = width / aspectRatio;
-                    } else {
-                        height = canvas.height * scalePercent;
-                        width = height * aspectRatio;
-                    }
-                } else {
-                    width = canvas.width * scalePercent;
-                    height = canvas.height * scalePercent;
-                }
-
-                return { width, height };
-            }
-
             function checkResizeHandle(mouseX, mouseY, layer) {
-                const { width, height } = getLayerDimensions(layer);
+                const scalePercent = layer.scale / 100;
+                const width = canvas.width * scalePercent;
+                const height = canvas.height * scalePercent;
                 const x = (canvas.width / 2) + layer.posX;
                 const y = (canvas.height / 2) + layer.posY;
                 const handleSize = 10;
@@ -4005,9 +3588,12 @@
                     const layer = layersState.layers[i];
                     if (!layer.mediaElement || !layer.mediaLoaded) continue;
 
-                    const { width, height } = getLayerDimensions(layer);
+                    const scalePercent = layer.scale / 100;
+                    
                     const x = (canvas.width / 2) + layer.posX;
                     const y = (canvas.height / 2) + layer.posY;
+                    const width = canvas.width * scalePercent;
+                    const height = canvas.height * scalePercent;
 
                     // Prima controlla se stiamo cliccando un handle di resize
                     const handle = checkResizeHandle(mouseX, mouseY, layer);
@@ -4069,9 +3655,12 @@
                             }
                         }
 
-                        const { width, height } = getLayerDimensions(layer);
+                        const scalePercent = layer.scale / 100;
+                        
                         const x = (canvas.width / 2) + layer.posX;
                         const y = (canvas.height / 2) + layer.posY;
+                        const width = canvas.width * scalePercent;
+                        const height = canvas.height * scalePercent;
 
                         if (mouseX >= x - width/2 && mouseX <= x + width/2 &&
                             mouseY >= y - height/2 && mouseY <= y + height/2) {
@@ -4186,21 +3775,16 @@
         }
 
         // ==================== CONTROLLO AUTENTICAZIONE ====================
-        async function checkAuthentication() {
+        function checkAuthentication() {
             /**
              * Controlla se l'utente è loggato verificando la presenza del token JWT
              * @returns {boolean} true se loggato, false altrimenti
              */
             const token = localStorage.getItem('auth_token');
             if (!token) {
-                // Salva lo stato dei layer prima di chiedere il login
-                if (layersState.layers.length > 0) {
-                    await saveLayersStateBeforeLogin();
-                    showError('Devi essere loggato per elaborare i video. <strong>I tuoi file e impostazioni sono stati salvati!</strong><br><br><a href="#" onclick="event.preventDefault(); showLoginModal();" style="color: #fff; text-decoration: underline; font-weight: bold;">Clicca qui per accedere</a>');
-                } else {
-                    const loginLink = '<a href="#" onclick="event.preventDefault(); showLoginModal();" style="color: #fff; text-decoration: underline; font-weight: bold;">Clicca qui per accedere</a>';
-                    showError(`Devi essere loggato per poter usare questa funzionalità. ${loginLink}`);
-                }
+                // Mostra errore con link al login (senza redirect automatico per non perdere lo stato)
+                const loginLink = '<a href="/login" style="color: #fff; text-decoration: underline; font-weight: bold;" target="_blank">Clicca qui per accedere</a>';
+                showError(`Devi essere loggato per poter usare questa funzionalità. ${loginLink}`);
                 return false;
             }
             return true;
@@ -4208,7 +3792,7 @@
 
         async function processChromakey() {
             // Controlla autenticazione
-            if (!await checkAuthentication()) return;
+            if (!checkAuthentication()) return;
 
             // Verifica che ci sia un video principale
             const mainVideo = document.getElementById('chromakeyBackgroundPreview');
@@ -4217,73 +3801,66 @@
                 return;
             }
 
-            // Verifica che ci siano layer
-            if (layersState.layers.length === 0) {
-                showWarning('Aggiungi almeno un file da sovrapporre (video, immagine o audio)');
+            // Verifica che ci siano layer con chromakey attivo
+            const layersWithChromakey = layersState.layers.filter(l => l.chromakey && (l.type === 'video' || l.type === 'image'));
+            if (layersWithChromakey.length === 0) {
+                showWarning('Nessun layer con chromakey attivo. Attiva "Rimuovi Sfondo Verde" per almeno un file.');
                 return;
             }
 
-            showInfo('Sto preparando il tuo video...');
+            // Per ora, elaboriamo solo il primo layer con chromakey
+            // TODO: supportare multi-layer chromakey
+            const layer = layersWithChromakey[0];
+
+            if (layersWithChromakey.length > 1) {
+                showInfo(`Elaborazione chromakey per "${layer.name}". Altri ${layersWithChromakey.length - 1} layer verranno processati nelle prossime versioni.`);
+            }
+
+            // Prepara FormData
+            const formData = new FormData();
+
+            // Aggiungi file foreground (layer con green screen)
+            // Usa direttamente il file originale salvato nel layer
+            if (layer.file) {
+                formData.append('foreground', layer.file, layer.name);
+            } else {
+                showError('File originale non disponibile per il layer');
+                return;
+            }
+
+            // Aggiungi file background (video principale)
+            // Recupera il file originale dal video principale
+            const backgroundInput = document.getElementById('chromakeyBackground');
+            if (!backgroundInput || !backgroundInput.files || backgroundInput.files.length === 0) {
+                showError('File video principale non disponibile');
+                return;
+            }
+            formData.append('background', backgroundInput.files[0], backgroundInput.files[0].name);
+
+            // Parametri
+            formData.append('output_name', `chromakey_${Date.now()}.mp4`);
+            formData.append('audio_mode', 'synced');
+            formData.append('position_x', Math.round(layer.posX));
+            formData.append('position_y', Math.round(layer.posY));
+            formData.append('scale', layer.scale);
+            formData.append('opacity', layer.opacity);
+            formData.append('green_threshold', layer.threshold);
+            formData.append('tolerance', layer.tolerance);
+            formData.append('quality', 'high');
+
+            showInfo('Avvio elaborazione chromakey...');
 
             try {
-                // Prepara FormData
-                const formData = new FormData();
+                // Recupera CSRF token
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
-                // Aggiungi video principale
-                const backgroundInput = document.getElementById('chromakeyBackground');
-                if (!backgroundInput || !backgroundInput.files || backgroundInput.files.length === 0) {
-                    showError('Il video principale non è stato caricato. Riprova.');
-                    return;
-                }
-                formData.append('main_video', backgroundInput.files[0]);
-
-                // Aggiungi tutti i layer files
-                const layersConfig = [];
-                for (const layer of layersState.layers) {
-                    if (!layer.file) {
-                        console.warn(`Layer "${layer.name}" non ha file, saltato`);
-                        continue;
-                    }
-
-                    // Aggiungi file
-                    formData.append('layer_files', layer.file);
-
-                    // Configura layer
-                    layersConfig.push({
-                        type: layer.type,
-                        filename: layer.name,
-                        posX: Math.round(layer.posX),
-                        posY: Math.round(layer.posY),
-                        scale: layer.scale,  // Già in percentuale
-                        opacity: layer.opacity,
-                        chromakey: layer.chromakey,
-                        keepAspectRatio: layer.keepAspectRatio,
-                        threshold: layer.threshold,
-                        tolerance: layer.tolerance,
-                        startTime: layer.startTime
-                    });
-                }
-
-                // Aggiungi configurazione layer come JSON
-                formData.append('layers_config', JSON.stringify(layersConfig));
-
-                console.log(`🚀 Invio compositor: ${layersConfig.length} layer`);
-                console.log('Layers config:', layersConfig);
-
-                // Mostra modale SUBITO (prima della richiesta che può essere lenta)
-                showChromakeyProcessingModal('uploading');
-
-                // Crea AbortController per permettere cancellazione upload
-                currentUploadAbortController = new AbortController();
-
-                // Chiama nuovo endpoint compositor
-                const response = await fetch('/api/v1/compositor/upload', {
+                const response = await fetch('/api/v1/chromakey/upload', {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+                        'X-CSRF-Token': csrfToken
                     },
-                    body: formData,
-                    signal: currentUploadAbortController.signal
+                    body: formData
                 });
 
                 if (!response.ok) {
@@ -4291,65 +3868,38 @@
 
                     // Gestisci errore di autenticazione
                     if (response.status === 401 || error.detail?.includes('credentials')) {
+                        // Rimuovi token scaduto
                         localStorage.removeItem('auth_token');
+
+                        // Mostra errore con link (senza redirect per non perdere lo stato)
                         const loginLink = '<a href="/login" style="color: #fff; text-decoration: underline; font-weight: bold;" target="_blank">Clicca qui per accedere</a>';
-                        showError(`La tua sessione è scaduta. Effettua nuovamente l'accesso. ${loginLink}`);
+                        showError(`Sessione scaduta. ${loginLink}`);
                         return;
                     }
 
-                    throw new Error(error.detail || 'Si è verificato un errore durante l\'elaborazione');
+                    throw new Error(error.detail || 'Errore nell\'elaborazione');
                 }
 
                 const result = await response.json();
-                console.log('Job compositor avviato:', result);
-                console.log('Job ID ricevuto:', result.job_id);
+                console.log('Job chromakey avviato:', result);
 
-                if (!result.job_id) {
-                    console.error('❌ Job ID mancante nella risposta!');
-                    showError('Si è verificato un problema. Riprova tra qualche istante.');
-                    return;
-                }
-
-                // Aggiorna modale con job ID reale e avvia polling
-                document.getElementById('chromakeyJobId').textContent = result.job_id;
-                document.getElementById('chromakeyJobStatus').textContent = 'Avviato';
-                startCompositorJobPolling(result.job_id);
-
-                // Pulisci AbortController
-                currentUploadAbortController = null;
+                // Mostra modale di processing e avvia polling
+                showChromakeyProcessingModal(result.job_id);
+                startChromakeyJobPolling(result.job_id);
 
             } catch (error) {
-                console.error('Errore compositor:', error);
-
-                // Pulisci AbortController
-                currentUploadAbortController = null;
-
-                // Se l'errore è dovuto a abort, non mostrare errore (è intenzionale)
-                if (error.name === 'AbortError') {
-                    console.log('Upload cancellato dall\'utente');
-                    hideChromakeyProcessingModal();
-                    return;
-                }
-
-                hideChromakeyProcessingModal();
-                showError('Si è verificato un errore durante l\'elaborazione. Riprova.');
+                console.error('Errore chromakey:', error);
+                showError(`Errore: ${error.message}`);
             }
         }
 
         // ==================== CHROMAKEY PROCESSING MODAL ====================
         let chromakeyPollingInterval = null;
         let chromakeyStartTime = null;
-        let currentUploadAbortController = null;  // Per cancellare upload in corso
 
         function showChromakeyProcessingModal(jobId) {
-            console.log('🎬 Mostrando modale processing per job:', jobId);
             const modal = document.getElementById('chromakeyProcessingModal');
-            if (!modal) {
-                console.error('❌ Modale chromakeyProcessingModal non trovato!');
-                return;
-            }
             modal.style.display = 'flex';
-            console.log('✅ Modale display impostato a flex');
 
             // Reset progress
             document.getElementById('chromakeyProgressBar').style.width = '0%';
@@ -4374,96 +3924,7 @@
             }
         }
 
-        // Funzione per interrompere il job chromakey
-        async function cancelChromakeyJob() {
-            const jobId = document.getElementById('chromakeyJobId').textContent;
-
-            console.log('🛑 ===== INIZIO CANCELLAZIONE JOB =====');
-            console.log('Job ID:', jobId);
-
-            if (!jobId || jobId === '-') {
-                console.error('❌ Nessun job ID valido');
-                showError('Nessun job da interrompere');
-                return;
-            }
-
-            // Caso 1: Upload in corso (job ID = "uploading")
-            if (jobId === 'uploading') {
-                console.log('🛑 Interruzione upload in corso...');
-
-                // Cancella la richiesta fetch se esiste
-                if (currentUploadAbortController) {
-                    currentUploadAbortController.abort();
-                    currentUploadAbortController = null;
-                    console.log('✅ Upload cancellato');
-                }
-
-                // Stop polling (se attivo)
-                if (chromakeyPollingInterval) {
-                    clearInterval(chromakeyPollingInterval);
-                    chromakeyPollingInterval = null;
-                    console.log('✅ Polling fermato');
-                }
-
-                // Chiudi modale
-                hideChromakeyProcessingModal();
-                showInfo('Upload interrotto');
-                console.log('✅ Upload interrotto con successo');
-                return;
-            }
-
-            // Caso 2: Job già avviato (ha un UUID)
-            try {
-                console.log('📤 Invio richiesta DELETE a:', `/api/v1/compositor/jobs/${jobId}`);
-                console.log('📤 Token auth:', localStorage.getItem('auth_token') ? 'Presente' : 'MANCANTE');
-
-                const response = await fetch(`/api/v1/compositor/jobs/${jobId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                    }
-                });
-
-                console.log('📥 Risposta DELETE ricevuta:');
-                console.log('   Status:', response.status);
-                console.log('   StatusText:', response.statusText);
-                console.log('   OK:', response.ok);
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('❌ Errore risposta:', errorText);
-                    throw new Error(`Errore ${response.status}: ${errorText}`);
-                }
-
-                const result = await response.json();
-                console.log('✅ Risultato cancellazione:', result);
-
-                // Stop polling
-                if (chromakeyPollingInterval) {
-                    console.log('🛑 Fermo polling interval...');
-                    clearInterval(chromakeyPollingInterval);
-                    chromakeyPollingInterval = null;
-                    console.log('✅ Polling fermato');
-                }
-
-                // Chiudi modal
-                console.log('🚪 Chiudo modale...');
-                hideChromakeyProcessingModal();
-
-                // Mostra messaggio
-                showInfo('Elaborazione interrotta con successo');
-                console.log('✅ ===== JOB CANCELLATO CON SUCCESSO =====');
-
-            } catch (error) {
-                console.error('❌ ===== ERRORE INTERRUZIONE JOB =====');
-                console.error('Errore:', error);
-                console.error('Stack:', error.stack);
-                showError(`Non è stato possibile interrompere l'elaborazione: ${error.message}`);
-            }
-        }
-
-        // Alias per compatibilità (usa compositor)
-        async function startCompositorJobPolling(jobId) {
+        async function startChromakeyJobPolling(jobId) {
             // Stop previous polling if exists
             if (chromakeyPollingInterval) {
                 clearInterval(chromakeyPollingInterval);
@@ -4472,7 +3933,7 @@
             // Poll ogni 2 secondi
             chromakeyPollingInterval = setInterval(async () => {
                 try {
-                    const response = await fetch(`/api/v1/compositor/jobs/${jobId}`, {
+                    const response = await fetch(`/api/v1/chromakey/jobs/${jobId}`, {
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
                         }
@@ -4493,26 +3954,11 @@
                         if (jobStatus.status === 'completed') {
                             setTimeout(() => {
                                 hideChromakeyProcessingModal();
-                                showSuccess('🎉 Il tuo video è pronto! Vai alla sezione "Scarica Video" per scaricarlo.');
+                                showSuccess('Elaborazione completata con successo! Il video è pronto.');
                             }, 2000);
                         } else {
                             hideChromakeyProcessingModal();
-                            // Mostra errore user-friendly
-                            const errorMsg = jobStatus.error || '';
-                            let userMessage = 'L\'elaborazione del video non è riuscita. ';
-
-                            // Converti errori tecnici in messaggi comprensibili
-                            if (errorMsg.includes('FFmpeg') || errorMsg.includes('frame=')) {
-                                userMessage += 'Il formato del video potrebbe non essere compatibile. Prova con un altro video.';
-                            } else if (errorMsg.includes('memory') || errorMsg.includes('size')) {
-                                userMessage += 'Il file è troppo grande. Prova con un video più piccolo.';
-                            } else if (errorMsg.includes('timeout')) {
-                                userMessage += 'L\'elaborazione sta richiedendo troppo tempo. Prova con un video più breve.';
-                            } else {
-                                userMessage += 'Riprova o contatta l\'assistenza se il problema persiste.';
-                            }
-
-                            showError(userMessage);
+                            showError(`Elaborazione fallita: ${jobStatus.error || 'Errore sconosciuto'}`);
                         }
                     }
 
@@ -4521,7 +3967,7 @@
                     clearInterval(chromakeyPollingInterval);
                     chromakeyPollingInterval = null;
                     hideChromakeyProcessingModal();
-                    showError('Si è verificato un problema durante l\'elaborazione. Riprova.');
+                    showError('Errore nel monitoraggio del job');
                 }
             }, 2000);
         }
@@ -4573,10 +4019,17 @@
         // ==================== TOGGLE CHROMAKEY SETTINGS ====================
         function toggleChromakeySettings(enabled) {
             const advancedSettings = document.getElementById('chromakeyAdvancedSettings');
+            const toggleSwitch = document.querySelector('.toggle-switch');
+            const toggleSlider = document.querySelector('.toggle-slider');
+
             if (enabled) {
                 advancedSettings.style.display = 'block';
+                toggleSwitch.style.background = '#667eea';
+                toggleSlider.style.transform = 'translateX(30px)';
             } else {
                 advancedSettings.style.display = 'none';
+                toggleSwitch.style.background = '#ccc';
+                toggleSlider.style.transform = 'translateX(0)';
             }
         }
 
@@ -4608,7 +4061,7 @@
 
         // Tolerance
         document.getElementById('chromakeyTolerance')?.addEventListener('input', function() {
-            document.getElementById('chromakeyToleranceValue').textContent = parseFloat(this.value).toFixed(2);
+            document.getElementById('chromakeyToleranceValue').textContent = this.value;
         });
 
         // ==================== CTA DRAG & DROP FUNCTIONS ====================
@@ -4808,7 +4261,7 @@
             document.getElementById('chromakeyPosYValue').textContent = '0';
             document.getElementById('chromakeyScaleValue').textContent = '1.0';
 
-            showInfo('Le posizioni sono state riportate al centro.');
+            showInfo('Posizioni resettate.');
         }
 
         // Sync sliders with overlay position
@@ -4989,6 +4442,462 @@
             } catch (error) {
                 progressText.innerHTML = `<i class="fas fa-times-circle"></i> Errore di connessione`;
                 progressBar.style.background = '#dc3545';
+            }
+        }
+
+        // ==================== LOGO OVERLAY FUNCTIONS ====================
+
+        // Upload handlers
+        document.getElementById('logoVideoUpload').addEventListener('click', function() {
+            document.getElementById('logoVideo').click();
+        });
+
+        document.getElementById('logoImageUpload').addEventListener('click', function() {
+            document.getElementById('logoImage').click();
+        });
+
+        document.getElementById('logoVideo').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                const fileName = file.name;
+                const fileSize = (file.size / (1024 * 1024)).toFixed(2); // MB
+
+                // Mostra preview video
+                const preview = document.getElementById('logoVideoPreview');
+                const previewContainer = document.getElementById('logoVideoPreviewContainer');
+                const placeholder = document.getElementById('logoVideoPlaceholder');
+                const url = URL.createObjectURL(file);
+                preview.src = url;
+
+                // Quando il video è caricato, ottieni dimensioni e durata
+                preview.onloadedmetadata = function() {
+                    const duration = Math.floor(preview.duration);
+                    const minutes = Math.floor(duration / 60);
+                    const seconds = duration % 60;
+                    const durationStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                    const resolution = `${preview.videoWidth}x${preview.videoHeight}`;
+
+                    // Aggiorna il testo con tutte le info
+                    document.getElementById('logoVideoName').innerHTML = `
+                        <strong>${fileName}</strong><br>
+                        <small style="color: #666;">
+                            📏 ${resolution} • ⏱️ ${durationStr} • 💾 ${fileSize} MB
+                        </small>
+                    `;
+
+                    // Nascondi placeholder e mostra preview
+                    placeholder.style.display = 'none';
+                    previewContainer.style.display = 'block';
+
+                    // Avvia rendering canvas
+                    startLogoCanvasRendering();
+                };
+            }
+        });
+
+        document.getElementById('logoImage').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                const fileName = file.name;
+                const fileSize = (file.size / (1024 * 1024)).toFixed(2); // MB
+
+                // Mostra preview immagine
+                const preview = document.getElementById('logoImagePreview');
+                const previewContainer = document.getElementById('logoImagePreviewContainer');
+                const placeholder = document.getElementById('logoImagePlaceholder');
+                const url = URL.createObjectURL(file);
+                preview.src = url;
+
+                // Quando l'immagine è caricata
+                preview.onload = function() {
+                    const resolution = `${preview.naturalWidth}x${preview.naturalHeight}`;
+
+                    // Aggiorna il testo con tutte le info
+                    document.getElementById('logoImageName').innerHTML = `
+                        <strong>${fileName}</strong><br>
+                        <small style="color: #666;">
+                            📏 ${resolution} • 💾 ${fileSize} MB
+                        </small>
+                    `;
+
+                    // Nascondi placeholder e mostra preview
+                    placeholder.style.display = 'none';
+                    previewContainer.style.display = 'block';
+
+                    // Avvia rendering canvas
+                    startLogoCanvasRendering();
+                };
+            }
+        });
+
+        // Clear image preview function
+        function clearImagePreview(inputId, event) {
+            // Ferma la propagazione per evitare di aprire il file dialog
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+
+            const previewElement = document.getElementById(inputId + 'Preview');
+            const previewContainer = document.getElementById(inputId + 'PreviewContainer');
+            const placeholder = document.getElementById(inputId + 'Placeholder');
+            const inputElement = document.getElementById(inputId);
+
+            if (previewElement && previewContainer && placeholder && inputElement) {
+                // Pulisci l'immagine
+                previewElement.src = '';
+
+                // Pulisci l'input file
+                inputElement.value = '';
+
+                // Mostra placeholder e nascondi preview
+                previewContainer.style.display = 'none';
+                placeholder.style.display = 'flex';
+
+                console.log(`🗑️ Immagine rimossa per ${inputId}`);
+
+                // Controlla se ci sono ancora file caricati
+                const mainVideo = document.getElementById('logoVideoPreview');
+                const logoImage = document.getElementById('logoImagePreview');
+                const logoOverlay = document.getElementById('logoDragOverlay');
+
+                if (!mainVideo.src && !logoImage.src) {
+                    // Nessun file caricato, ferma rendering e nascondi overlay
+                    stopLogoCanvasRendering();
+                    if (logoOverlay) {
+                        logoOverlay.style.display = 'none';
+                    }
+                } else {
+                    // Riavvia rendering con i file rimasti
+                    startLogoCanvasRendering();
+                }
+            }
+        }
+
+        // ==================== LOGO CANVAS RENDERING FUNCTIONS ====================
+
+        let logoCanvasRenderingActive = false;
+        let logoAnimationFrameId = null;
+
+        function startLogoCanvasRendering() {
+            const canvas = document.getElementById('logoPreviewCanvas');
+            const ctx = canvas.getContext('2d');
+            const mainVideo = document.getElementById('logoVideoPreview');
+            const logoImage = document.getElementById('logoImagePreview');
+            const logoOverlay = document.getElementById('logoDragOverlay');
+
+            if (!canvas || !ctx) return;
+
+            // Set canvas resolution
+            canvas.width = 1280;
+            canvas.height = 720;
+
+            // Stop previous rendering if active
+            if (logoAnimationFrameId) {
+                cancelAnimationFrame(logoAnimationFrameId);
+            }
+
+            logoCanvasRenderingActive = true;
+
+            function render() {
+                if (!logoCanvasRenderingActive) return;
+
+                // Clear canvas
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Render main video (background) if loaded
+                if (mainVideo && mainVideo.src && mainVideo.readyState >= 2) {
+                    ctx.drawImage(mainVideo, 0, 0, canvas.width, canvas.height);
+                }
+
+                // Render logo image (overlay) if loaded
+                if (logoImage && logoImage.src && logoImage.complete) {
+                    const overlayRect = logoOverlay.getBoundingClientRect();
+                    const canvasRect = canvas.getBoundingClientRect();
+
+                    // Calculate logo position and size on canvas
+                    const scaleX = canvas.width / canvasRect.width;
+                    const scaleY = canvas.height / canvasRect.height;
+
+                    const logoX = (overlayRect.left - canvasRect.left) * scaleX;
+                    const logoY = (overlayRect.top - canvasRect.top) * scaleY;
+                    const logoWidth = overlayRect.width * scaleX;
+                    const logoHeight = overlayRect.height * scaleY;
+
+                    // Apply opacity from slider
+                    const opacity = parseFloat(document.getElementById('logoOpacity').value) / 100;
+                    ctx.globalAlpha = opacity;
+
+                    // Draw logo image
+                    ctx.drawImage(logoImage, logoX, logoY, logoWidth, logoHeight);
+
+                    // Reset opacity
+                    ctx.globalAlpha = 1.0;
+                }
+
+                logoAnimationFrameId = requestAnimationFrame(render);
+            }
+
+            // Show overlay only if logo image is loaded
+            if (logoImage.src) {
+                logoOverlay.style.display = 'block';
+            } else {
+                logoOverlay.style.display = 'none';
+            }
+
+            // Start rendering if any file is loaded
+            if (mainVideo.src || logoImage.src) {
+                render();
+            }
+        }
+
+        function stopLogoCanvasRendering() {
+            logoCanvasRenderingActive = false;
+            if (logoAnimationFrameId) {
+                cancelAnimationFrame(logoAnimationFrameId);
+                logoAnimationFrameId = null;
+            }
+        }
+
+        // ==================== LOGO DRAG & DROP FUNCTIONS ====================
+
+        let logoDragState = {
+            isDragging: false,
+            isResizing: false,
+            startX: 0,
+            startY: 0,
+            startLeft: 0,
+            startTop: 0,
+            startWidth: 0,
+            startHeight: 0,
+            resizeHandle: null
+        };
+
+        function initLogoDragAndDrop() {
+            const logoOverlay = document.getElementById('logoDragOverlay');
+            if (!logoOverlay) return;
+
+            // Drag functionality
+            logoOverlay.addEventListener('mousedown', function(e) {
+                if (e.target.classList.contains('resize-handle')) {
+                    return; // Let resize handle it
+                }
+
+                logoDragState.isDragging = true;
+                logoDragState.startX = e.clientX;
+                logoDragState.startY = e.clientY;
+
+                const rect = logoOverlay.getBoundingClientRect();
+                const parent = logoOverlay.parentElement.getBoundingClientRect();
+
+                logoDragState.startLeft = ((rect.left - parent.left) / parent.width) * 100;
+                logoDragState.startTop = ((rect.top - parent.top) / parent.height) * 100;
+
+                // Visual feedback
+                logoOverlay.style.background = 'rgba(102, 126, 234, 0.3)';
+                logoOverlay.style.borderColor = '#764ba2';
+
+                e.preventDefault();
+            });
+
+            // Resize functionality
+            const resizeHandles = logoOverlay.querySelectorAll('.resize-handle');
+            resizeHandles.forEach(handle => {
+                handle.addEventListener('mousedown', function(e) {
+                    logoDragState.isResizing = true;
+                    logoDragState.resizeHandle = handle.classList[1];
+                    logoDragState.startX = e.clientX;
+                    logoDragState.startY = e.clientY;
+
+                    const rect = logoOverlay.getBoundingClientRect();
+                    const parent = logoOverlay.parentElement.getBoundingClientRect();
+
+                    logoDragState.startLeft = ((rect.left - parent.left) / parent.width) * 100;
+                    logoDragState.startTop = ((rect.top - parent.top) / parent.height) * 100;
+                    logoDragState.startWidth = (rect.width / parent.width) * 100;
+                    logoDragState.startHeight = (rect.height / parent.height) * 100;
+
+                    e.stopPropagation();
+                    e.preventDefault();
+                });
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (logoDragState.isDragging) {
+                    const parent = logoOverlay.parentElement.getBoundingClientRect();
+                    const deltaX = ((e.clientX - logoDragState.startX) / parent.width) * 100;
+                    const deltaY = ((e.clientY - logoDragState.startY) / parent.height) * 100;
+
+                    let newLeft = logoDragState.startLeft + deltaX;
+                    let newTop = logoDragState.startTop + deltaY;
+
+                    // Constrain to parent
+                    newLeft = Math.max(0, Math.min(100 - parseFloat(logoOverlay.style.width), newLeft));
+                    newTop = Math.max(0, Math.min(100 - parseFloat(logoOverlay.style.height), newTop));
+
+                    logoOverlay.style.left = newLeft + '%';
+                    logoOverlay.style.top = newTop + '%';
+                }
+
+                if (logoDragState.isResizing) {
+                    const parent = logoOverlay.parentElement.getBoundingClientRect();
+                    const deltaX = ((e.clientX - logoDragState.startX) / parent.width) * 100;
+                    const deltaY = ((e.clientY - logoDragState.startY) / parent.height) * 100;
+
+                    let newWidth = logoDragState.startWidth;
+                    let newHeight = logoDragState.startHeight;
+                    let newLeft = logoDragState.startLeft;
+                    let newTop = logoDragState.startTop;
+
+                    // Calculate new dimensions based on handle
+                    if (logoDragState.resizeHandle.includes('e')) {
+                        newWidth = Math.max(5, logoDragState.startWidth + deltaX);
+                    }
+                    if (logoDragState.resizeHandle.includes('w')) {
+                        newWidth = Math.max(5, logoDragState.startWidth - deltaX);
+                        newLeft = logoDragState.startLeft + deltaX;
+                    }
+                    if (logoDragState.resizeHandle.includes('s')) {
+                        newHeight = Math.max(5, logoDragState.startHeight + deltaY);
+                    }
+                    if (logoDragState.resizeHandle.includes('n')) {
+                        newHeight = Math.max(5, logoDragState.startHeight - deltaY);
+                        newTop = logoDragState.startTop + deltaY;
+                    }
+
+                    // Constrain to parent
+                    newWidth = Math.min(100 - newLeft, newWidth);
+                    newHeight = Math.min(100 - newTop, newHeight);
+
+                    logoOverlay.style.width = newWidth + '%';
+                    logoOverlay.style.height = newHeight + '%';
+                    logoOverlay.style.left = newLeft + '%';
+                    logoOverlay.style.top = newTop + '%';
+
+                    // Update scale slider
+                    updateLogoScaleFromOverlay();
+                }
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (logoDragState.isDragging || logoDragState.isResizing) {
+                    // Reset visual feedback
+                    logoOverlay.style.background = 'rgba(102, 126, 234, 0.1)';
+                    logoOverlay.style.borderColor = '#667eea';
+                }
+
+                logoDragState.isDragging = false;
+                logoDragState.isResizing = false;
+                logoDragState.resizeHandle = null;
+            });
+        }
+
+        function updateLogoScaleFromOverlay() {
+            const logoOverlay = document.getElementById('logoDragOverlay');
+            const currentWidth = parseFloat(logoOverlay.style.width);
+
+            // Convert to percentage scale (15% baseline)
+            const scale = Math.round((currentWidth / 15) * 15);
+
+            const scaleSlider = document.getElementById('logoScale');
+            if (scaleSlider) {
+                scaleSlider.value = scale;
+                document.getElementById('logoScaleValue').textContent = scale;
+            }
+        }
+
+        function updateLogoPreview() {
+            const videoPreview = document.getElementById('logoVideoPreview');
+            const imagePreview = document.getElementById('logoImagePreview');
+
+            if (videoPreview.src || imagePreview.src) {
+                startLogoCanvasRendering();
+                showInfo('Anteprima logo aggiornata! Trascina il logo per posizionarlo.');
+            } else {
+                showWarning('Carica almeno un file per vedere l\'anteprima.');
+            }
+        }
+
+        function resetLogoPosition() {
+            const logoOverlay = document.getElementById('logoDragOverlay');
+            logoOverlay.style.top = '5%';
+            logoOverlay.style.right = '5%';
+            logoOverlay.style.left = 'auto';
+            logoOverlay.style.width = '15%';
+            logoOverlay.style.height = '15%';
+
+            // Reset sliders
+            document.getElementById('logoScale').value = 15;
+            document.getElementById('logoScaleValue').textContent = '15';
+
+            showInfo('Posizione logo resettata.');
+        }
+
+        // Sync logo opacity slider with rendering
+        document.getElementById('logoOpacity').addEventListener('input', function() {
+            document.getElementById('logoOpacityValue').textContent = this.value;
+            // Rendering already applies opacity, no need to restart
+        });
+
+        // Slider updates
+        document.getElementById('logoMargin').addEventListener('input', function() {
+            document.getElementById('logoMarginValue').textContent = this.value;
+        });
+
+        document.getElementById('logoScale').addEventListener('input', function() {
+            const scale = this.value;
+            document.getElementById('logoScaleValue').textContent = scale;
+
+            // Update overlay size
+            const logoOverlay = document.getElementById('logoDragOverlay');
+            const newSize = (scale / 15) * 15; // Relative to 15% baseline
+            logoOverlay.style.width = newSize + '%';
+            logoOverlay.style.height = newSize + '%';
+        });
+
+        // Initialize drag & drop when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initLogoDragAndDrop();
+        });
+
+        async function processLogoOverlay() {
+            // Controlla autenticazione
+            if (!checkAuthentication()) return;
+
+            const videoFile = document.getElementById('logoVideo').files[0];
+            const logoFile = document.getElementById('logoImage').files[0];
+
+            if (!videoFile || !logoFile) {
+                showWarning('Carica sia il video che il logo');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('video', videoFile);
+            formData.append('logo', logoFile);
+            formData.append('position', document.getElementById('logoPosition').value);
+            formData.append('margin', document.getElementById('logoMargin').value);
+            formData.append('logo_scale', parseFloat(document.getElementById('logoScale').value) / 100);
+            formData.append('opacity', parseFloat(document.getElementById('logoOpacity').value) / 100);
+            formData.append('quality', document.getElementById('logoQuality').value);
+            formData.append('output_name', 'logo_output.mp4');
+
+            try {
+                const response = await fetch('/api/v1/logo/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showSuccess(`Job avviato! ID: ${data.job_id}<br>Monitora il progresso in Dashboard.`);
+                } else {
+                    const error = await response.json();
+                    showError(`Errore: ${error.detail || 'Impossibile avviare job'}`);
+                }
+            } catch (error) {
+                showError('Errore di connessione: ' + error.message);
             }
         }
 
@@ -5393,16 +5302,14 @@
                         break;
                 }
 
-                // Request screen capture with cursor
+                // Request screen capture
                 const displayStream = await navigator.mediaDevices.getDisplayMedia({
                     video: {
                         width: { ideal: width },
                         height: { ideal: height },
-                        frameRate: { ideal: fps },
-                        cursor: 'always'  // Mostra sempre il cursore
+                        frameRate: { ideal: fps }
                     },
-                    audio: audioSource === 'system' || audioSource === 'both',
-                    preferCurrentTab: false
+                    audio: audioSource === 'system' || audioSource === 'both'
                 });
 
                 // Add microphone if needed
@@ -5975,14 +5882,8 @@
         async function startPipelineRecording() {
             try {
                 const displayStream = await navigator.mediaDevices.getDisplayMedia({
-                    video: {
-                        width: { ideal: 1920 },
-                        height: { ideal: 1080 },
-                        frameRate: { ideal: 30 },
-                        cursor: 'always'  // Mostra sempre il cursore
-                    },
-                    audio: true,
-                    preferCurrentTab: false
+                    video: { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } },
+                    audio: true
                 });
 
                 pipelineRecordingStream = displayStream;
@@ -6143,6 +6044,7 @@
 
                 const stepNames = {
                     'chromakey': '🎬 Chromakey',
+                    'logo_overlay': '🖼️ Logo Overlay',
                     'transcription': '📝 Trascrizione',
                     'translation': '🌍 Traduzione',
                     'seo_metadata': '🤖 SEO AI',
@@ -6173,7 +6075,7 @@
 
             // Load template
             const templates = {
-                'video-completo': ['chromakey', 'seo_metadata', 'youtube_upload'],
+                'video-completo': ['chromakey', 'logo_overlay', 'seo_metadata', 'youtube_upload'],
                 'quick-seo': ['seo_metadata', 'youtube_upload'],
                 'traduzione': ['transcription', 'translation', 'youtube_upload']
             };
@@ -6290,6 +6192,7 @@
             const container = document.getElementById('pipelineStepsProgress');
             const stepNames = {
                 'chromakey': 'Chromakey',
+                'logo_overlay': 'Logo Overlay',
                 'transcription': 'Trascrizione',
                 'translation': 'Traduzione',
                 'seo_metadata': 'SEO AI',
@@ -6396,6 +6299,7 @@
                 current_subtab: null
             },
             chromakey: {},
+            logo: {},
             translation: {},
             transcription: {},
             seo_metadata: {},
@@ -6530,7 +6434,7 @@
                             localStorage.removeItem('aivideomaker_settings');
                             userSettings = {
                                 ui_state: { current_tab: 'dashboard', current_subtab: null },
-                                chromakey: {}, translation: {}, transcription: {},
+                                chromakey: {}, logo: {}, translation: {}, transcription: {},
                                 seo_metadata: {}, youtube: {}, video_download: {},
                                 screen_recorder: {}, pipeline: {}, thumbnail: {}
                             };
@@ -7222,10 +7126,6 @@
                     // Chiudi modal e aggiorna UI
                     closeLoginModal();
                     await checkAuthStatus();
-
-                    // Ripristina stato layer se presente
-                    await restoreLayersStateAfterLogin();
-
                     showSuccess('Login effettuato con successo! Bentornato!');
                 } else {
                     // Errore dal server
@@ -7410,6 +7310,8 @@
 
             const uploadAreas = [
                 { area: 'chromakeyBackgroundUpload', input: 'chromakeyBackground' },
+                { area: 'logoVideoUpload', input: 'logoVideo' },
+                { area: 'logoImageUpload', input: 'logoImage' },
                 { area: 'transcriptionFileUpload', input: 'transcriptionFile' },
                 { area: 'translationFileUpload', input: 'translationFile' },
                 { area: 'thumbnailImageUpload', input: 'thumbnailImage' },
@@ -7530,18 +7432,6 @@
 
         // Page load: carica settings e ripristina UI
         document.addEventListener('DOMContentLoaded', async function() {
-            // Hide processing modal on page load to prevent errors after reload
-            const modal = document.getElementById('chromakeyProcessingModal');
-            if (modal) {
-                modal.style.display = 'none';
-            }
-
-            // Stop any existing polling
-            if (chromakeyPollingInterval) {
-                clearInterval(chromakeyPollingInterval);
-                chromakeyPollingInterval = null;
-            }
-
             // Verifica stato autenticazione
             await checkAuthStatus();
 
@@ -7787,7 +7677,7 @@
     </div>
 
     <!-- Modal Processing Chromakey -->
-    <div id="chromakeyProcessingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center;">
+    <div id="chromakeyProcessingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; align-items: center; justify-content: center;">
         <div style="background: #2c3e50; border-radius: 20px; padding: 40px; max-width: 600px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
             <!-- Header -->
             <h2 style="color: white; margin: 0 0 30px 0; text-align: center; font-size: 1.8rem;">
@@ -7813,9 +7703,9 @@
 
             <!-- Details -->
             <div id="chromakeyProcessingDetails" style="background: rgba(0,0,0,0.2); border-radius: 10px; padding: 20px; margin-top: 25px; color: rgba(255,255,255,0.8); font-size: 0.9rem;">
-                <!-- Job ID nascosto, solo per debug in console -->
-                <div style="display: none;">
-                    <span id="chromakeyJobId">-</span>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span><i class="fas fa-file-video"></i> Job ID:</span>
+                    <span id="chromakeyJobId" style="font-family: monospace; color: #00d4aa;">-</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                     <span><i class="fas fa-info-circle"></i> Stato:</span>
@@ -7827,12 +7717,9 @@
                 </div>
             </div>
 
-            <!-- Action Buttons -->
-            <div style="display: flex; gap: 15px; justify-content: center; margin-top: 25px;">
-                <button onclick="cancelChromakeyJob()" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; border: none; padding: 12px 30px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.3s; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(231, 76, 60, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(231, 76, 60, 0.3)'">
-                    <i class="fas fa-stop"></i> Interrompi Elaborazione
-                </button>
-                <button onclick="hideChromakeyProcessingModal()" style="background: rgba(255,255,255,0.1); color: white; border: 2px solid rgba(255,255,255,0.3); padding: 12px 30px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+            <!-- Cancel Button (opzionale) -->
+            <div style="text-align: center; margin-top: 25px;">
+                <button onclick="hideChromakeyProcessingModal()" style="background: rgba(255,255,255,0.1); color: white; border: 2px solid rgba(255,255,255,0.3); padding: 10px 25px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
                     <i class="fas fa-times"></i> Chiudi (continua in background)
                 </button>
             </div>

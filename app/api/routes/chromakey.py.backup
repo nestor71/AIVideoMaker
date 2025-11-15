@@ -9,8 +9,6 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, BackgroundTasks
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-import subprocess
-import signal
 
 from app.core.database import get_db
 from app.core.security import get_current_user
@@ -31,10 +29,10 @@ class ChromakeyRequest(BaseModel):
     background_video: str  # Path o URL
     output_name: Optional[str] = "chromakey_output.mp4"
 
-    # Parametri temporali
+    # Parametri opzionali chromakey
     start_time: float = 0.0
     end_time: Optional[float] = None
-    audio_mode: str = "synced"  # "synced", "foreground", "background", "both", "timed", "none"
+    audio_mode: str = "synced"  # "synced", "foreground", "background", "none"
 
     # Parametri posizionamento e dimensioni
     position_x: int = 0  # Offset orizzontale dal centro (pixel, negativo = sinistra, positivo = destra)
@@ -42,17 +40,16 @@ class ChromakeyRequest(BaseModel):
     scale: float = 1.0  # Scala foreground (0.1 = 10%, 1.0 = 100%, 2.0 = 200%)
     opacity: float = 1.0  # Opacità foreground (0.0 = trasparente, 1.0 = opaco)
 
-    # Parametri chromakey (selezione colore)
-    chroma_color: str = "green"  # "green", "blue", "custom"
-    # Per chroma_color="custom", specifica range HSV personalizzato
-    # Valori standard chromakey
-    custom_lower_h: int = 63   # Hue min (0-180)
-    custom_lower_s: int = 40   # Saturation min (0-255)
-    custom_lower_v: int = 40   # Value min (0-255)
-    custom_upper_h: int = 93   # Hue max (0-180)
-    custom_upper_s: int = 255  # Saturation max (0-255)
-    custom_upper_v: int = 255  # Value max (0-255)
-    blur_kernel: int = 5       # Kernel blur maschera (3, 5, 7, 9...)
+    # Parametri green screen
+    green_threshold: int = 100
+    tolerance: int = 50
+    edge_blur: int = 5
+    spill_reduction: float = 0.5
+
+    # Parametri video
+    fps: Optional[int] = None
+    resolution: Optional[tuple[int, int]] = None
+    quality: str = "high"  # "low", "medium", "high", "ultra"
 
 
 class ChromakeyResponse(BaseModel):
@@ -86,38 +83,6 @@ class ChromakeyJobListResponse(BaseModel):
 
 
 # ==================== Helper Functions ====================
-
-def get_chromakey_hsv_ranges(params: ChromakeyRequest):
-    """
-    Converte parametri colore in range HSV per chromakey
-
-    Returns:
-        tuple: (lower_hsv, upper_hsv, blur_kernel)
-    """
-    import numpy as np
-
-    if params.chroma_color == "green":
-        # Verde standard ottimizzato
-        # Range HSV: [155-30, 155+30] = [125, 185] in scala 0-360
-        # In OpenCV (0-180): [62.5, 92.5] -> arrotondiamo a [63, 93]
-        lower_hsv = (63, 40, 40)   # Valori standard chromakey
-        upper_hsv = (93, 255, 255)
-    elif params.chroma_color == "blue":
-        # Blu standard: Soglia 220, Tolleranza 50
-        # Range: [170-270] in 0-360 = [85-135] in OpenCV
-        lower_hsv = (85, 40, 40)
-        upper_hsv = (135, 255, 255)
-    elif params.chroma_color == "custom":
-        # Range personalizzato
-        lower_hsv = (params.custom_lower_h, params.custom_lower_s, params.custom_lower_v)
-        upper_hsv = (params.custom_upper_h, params.custom_upper_s, params.custom_upper_v)
-    else:
-        # Default verde standard
-        lower_hsv = (63, 40, 40)
-        upper_hsv = (93, 255, 255)
-
-    return lower_hsv, upper_hsv, params.blur_kernel
-
 
 def create_chromakey_job(
     user: User,
@@ -160,10 +125,7 @@ def process_chromakey_task(job_id: str, params: ChromakeyRequest):
         # Configura servizio
         service = ChromakeyService(settings)
 
-        # Ottieni range HSV in base al colore scelto
-        lower_hsv, upper_hsv, blur_kernel = get_chromakey_hsv_ranges(params)
-
-        # Prepara parametri per chromakey service
+        # Prepara parametri (solo quelli supportati da ChromakeyParams)
         chromakey_params = ChromakeyParams(
             foreground_path=Path(params.foreground_video),
             background_path=Path(params.background_video),
@@ -173,10 +135,8 @@ def process_chromakey_task(job_id: str, params: ChromakeyRequest):
             audio_mode=params.audio_mode,
             position=(params.position_x, params.position_y),
             scale=params.scale,
-            opacity=params.opacity,
-            lower_hsv=lower_hsv,
-            upper_hsv=upper_hsv,
-            blur_kernel=blur_kernel
+            opacity=params.opacity
+            # Altri parametri (green_threshold, etc) non ancora implementati nel servizio
         )
 
         # Callback per aggiornare progresso
@@ -214,38 +174,15 @@ async def process_chromakey(
     """
     Elabora video con chromakey (green screen)
 
-    **Parametri video:**
     - **foreground_video**: Path video con green screen
     - **background_video**: Path video sfondo
     - **output_name**: Nome file output (default: chromakey_output.mp4)
-
-    **Parametri temporali:**
-    - **start_time**: Inizio sovrapposizione in secondi (default: 0.0)
-    - **end_time**: Fine sovrapposizione in secondi (null = fino alla fine)
-
-    **Parametri audio:**
-    - **audio_mode**: Modalità audio (default: "synced")
-      - "synced": Mix audio foreground e background sincronizzato
-      - "background": Solo audio background
-      - "foreground": Solo audio foreground
-      - "both": Mix audio foreground e background
-      - "timed": Mix con timing preciso
-      - "none": Nessun audio
-
-    **Parametri posizionamento:**
-    - **position_x**: Offset orizzontale dal centro in pixel (0=centro, negativo=sinistra, positivo=destra)
-    - **position_y**: Offset verticale dal centro in pixel (0=centro, negativo=alto, positivo=basso)
-    - **scale**: Scala foreground (0.1=10%, 1.0=100%, 2.0=200%)
-    - **opacity**: Opacità foreground (0.0=trasparente, 1.0=opaco)
-
-    **Parametri chromakey:**
-    - **chroma_color**: Colore da rimuovere (default: "green")
-      - "green": Verde standard (green screen)
-      - "blue": Blu standard (blue screen)
-      - "custom": Range HSV personalizzato
-    - **custom_lower_h/s/v**: Range HSV minimo (solo per custom)
-    - **custom_upper_h/s/v**: Range HSV massimo (solo per custom)
-    - **blur_kernel**: Sfocatura bordi maschera (3, 5, 7, 9)
+    - **audio_mode**: Modalità audio ("synced", "foreground", "background", "none")
+    - **green_threshold**: Soglia verde (0-255, default: 100)
+    - **tolerance**: Tolleranza colore (0-255, default: 50)
+    - **edge_blur**: Blur bordi (0-20, default: 5)
+    - **spill_reduction**: Riduzione spill verde (0.0-1.0, default: 0.5)
+    - **quality**: Qualità output ("low", "medium", "high", "ultra")
 
     Richiede JWT token. Elaborazione asincrona in background.
     """
@@ -264,8 +201,7 @@ async def process_chromakey(
         action_details={
             'job_id': str(job.id),
             'audio_mode': request.audio_mode,
-            'scale': request.scale,
-            'opacity': request.opacity
+            'quality': request.quality
         }
     )
 
@@ -282,24 +218,22 @@ async def upload_and_process(
     foreground: UploadFile = File(..., description="Video con green screen"),
     background: UploadFile = File(..., description="Video sfondo"),
     output_name: str = Form("chromakey_output.mp4"),
-    audio_mode: str = Form("synced", description="Modalità audio (synced, foreground, background, both, timed, none)"),
+    audio_mode: str = Form("synced"),
     # Parametri posizionamento e dimensioni
     position_x: int = Form(0, description="Offset orizzontale dal centro (px, negativo=sinistra, positivo=destra)"),
     position_y: int = Form(0, description="Offset verticale dal centro (px, negativo=alto, positivo=basso)"),
     scale: float = Form(1.0, description="Scala foreground (0.1=10%, 1.0=100%, 2.0=200%)"),
     opacity: float = Form(1.0, description="Opacità foreground (0.0=trasparente, 1.0=opaco)"),
+    # Parametri green screen
+    green_threshold: int = Form(100),
+    tolerance: int = Form(50),
+    edge_blur: int = Form(5),
+    spill_reduction: float = Form(0.5, description="Riduzione riflessi verdi (0.0-1.0)"),
     # Parametri temporali
     start_time: float = Form(0.0, description="Inizio clip in secondi"),
     end_time: Optional[float] = Form(None, description="Fine clip in secondi (null=tutto il video)"),
-    # Parametri chromakey (selezione colore) - Standard
-    chroma_color: str = Form("green", description="Colore chromakey (green, blue, custom)"),
-    custom_lower_h: int = Form(63, description="HSV Hue min (0-180, solo per custom)"),
-    custom_lower_s: int = Form(40, description="HSV Saturation min (0-255, solo per custom)"),
-    custom_lower_v: int = Form(40, description="HSV Value min (0-255, solo per custom)"),
-    custom_upper_h: int = Form(93, description="HSV Hue max (0-180, solo per custom)"),
-    custom_upper_s: int = Form(255, description="HSV Saturation max (0-255, solo per custom)"),
-    custom_upper_v: int = Form(255, description="HSV Value max (0-255, solo per custom)"),
-    blur_kernel: int = Form(5, description="Kernel blur maschera (3, 5, 7, 9)"),
+    # Parametri video
+    quality: str = Form("high"),
     background_tasks: BackgroundTasks = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -334,7 +268,7 @@ async def upload_and_process(
         content = await background.read()
         f.write(content)
 
-    # Crea request con parametri supportati
+    # Crea request con tutti i parametri
     request = ChromakeyRequest(
         foreground_video=str(foreground_path),
         background_video=str(background_path),
@@ -344,16 +278,13 @@ async def upload_and_process(
         position_y=position_y,
         scale=scale,
         opacity=opacity,
+        green_threshold=green_threshold,
+        tolerance=tolerance,
+        edge_blur=edge_blur,
+        spill_reduction=spill_reduction,
         start_time=start_time,
         end_time=end_time,
-        chroma_color=chroma_color,
-        custom_lower_h=custom_lower_h,
-        custom_lower_s=custom_lower_s,
-        custom_lower_v=custom_lower_v,
-        custom_upper_h=custom_upper_h,
-        custom_upper_s=custom_upper_s,
-        custom_upper_v=custom_upper_v,
-        blur_kernel=blur_kernel
+        quality=quality
     )
 
     # Crea job
@@ -502,37 +433,17 @@ async def delete_chromakey_job(
             detail="Job non trovato"
         )
 
-    # Se il job è in processing, marcalo come cancelled invece di eliminarlo
+    # Non permettere cancellazione job in processing
     if job.status == JobStatus.PROCESSING:
-        # Killa tutti i processi FFmpeg attivi per interrompere l'elaborazione
-        try:
-            # Trova e killa tutti i processi ffmpeg
-            result = subprocess.run(
-                ['pkill', '-9', 'ffmpeg'],
-                capture_output=True,
-                timeout=5
-            )
-            print(f"FFmpeg processes killed: {result.returncode}")
-        except Exception as e:
-            print(f"Errore killing FFmpeg: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Impossibile cancellare job in elaborazione. Attendere completamento."
+        )
 
-        job.status = JobStatus.FAILED
-        job.error = "Elaborazione interrotta dall'utente"
-        job.progress = 0
-        db.commit()
-
-        return {
-            "message": "Elaborazione interrotta con successo",
-            "job_id": str(job_id),
-            "cancelled": True
-        }
-
-    # Altrimenti elimina il job completamente
     db.delete(job)
     db.commit()
 
     return {
         "message": "Job cancellato con successo",
-        "job_id": str(job_id),
-        "cancelled": False
+        "job_id": str(job_id)
     }
