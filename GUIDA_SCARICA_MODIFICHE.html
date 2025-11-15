@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guida: Scaricare Modifiche da GitHub sul PC</title>
+    <style>
+        @media print {
+            body { margin: 1.5cm; }
+            .no-print { display: none; }
+            a { color: #000; text-decoration: none; }
+            a[href]:after { content: " (" attr(href) ")"; font-size: 0.8em; }
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            color: #333;
+            background: #f9f9f9;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: #764ba2;
+            margin-top: 35px;
+            margin-bottom: 15px;
+            padding-left: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        h3 {
+            color: #555;
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .info-box strong {
+            display: block;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border-left: 5px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #c7254e;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        pre code {
+            background: transparent;
+            color: #f8f8f2;
+            padding: 0;
+        }
+
+        .step {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            line-height: 35px;
+            border-radius: 50%;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        ul {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        .command-label {
+            font-weight: bold;
+            color: #667eea;
+            margin-top: 15px;
+            display: block;
+        }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e9ecef;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+            transition: transform 0.2s;
+        }
+
+        .print-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102,126,234,0.6);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button no-print" onclick="window.print()">📄 Stampa / Salva PDF</button>
+
+    <div class="container">
+        <h1>📥 Guida: Scaricare Modifiche da GitHub sul PC</h1>
+
+        <div class="info-box">
+            <strong>📌 Informazioni Progetto</strong>
+            Progetto: <code>AIVideoMaker</code><br>
+            Repository: <code>nestor71/AIVideoMaker</code><br>
+            Branch: <code>claude/green-screen-overlay-feature-01MVe1LE6jSimz8VRYuLKCF5</code><br>
+            Ultima modifica: Traduzioni interfaccia (green screen → sfondo)
+        </div>
+
+        <h2>🎯 Scenario: Quale Situazione Descrive il Tuo Caso?</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Situazione</th>
+                    <th>Vai a</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Ho già clonato il repository sul mio PC</td>
+                    <td><a href="#scenario-1">Scenario 1</a></td>
+                </tr>
+                <tr>
+                    <td>Non ho ancora il repository sul PC</td>
+                    <td><a href="#scenario-2">Scenario 2</a></td>
+                </tr>
+                <tr>
+                    <td>Voglio portare le modifiche sul branch principale (main/master)</td>
+                    <td><a href="#scenario-3">Scenario 3</a></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- SCENARIO 1 -->
+        <h2 id="scenario-1">📂 Scenario 1: Repository Già Clonato</h2>
+
+        <p>Se hai già il repository sul tuo PC e vuoi scaricare gli ultimi aggiornamenti.</p>
+
+        <div class="step">
+            <h3><span class="step-number">1</span> Apri il Terminale/Prompt dei Comandi</h3>
+            <ul>
+                <li><strong>Windows:</strong> Apri "Git Bash" o "PowerShell"</li>
+                <li><strong>Mac/Linux:</strong> Apri "Terminale"</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">2</span> Naviga nella Cartella del Progetto</h3>
+            <span class="command-label">Comando:</span>
+            <pre><code>cd percorso/della/tua/cartella/AIVideoMaker</code></pre>
+
+            <div class="warning-box">
+                <strong>⚠️ Esempio Windows:</strong>
+                <code>cd C:\Users\Ettore\Documents\AIVideoMaker</code>
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ Esempio Mac/Linux:</strong>
+                <code>cd ~/Documents/AIVideoMaker</code>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">3</span> Scarica le Informazioni dei Branch Remoti</h3>
+            <span class="command-label">Comando:</span>
+            <pre><code>git fetch origin</code></pre>
+            <p>Questo comando aggiorna la lista dei branch disponibili sul server.</p>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">4</span> Passa al Branch con le Modifiche</h3>
+            <span class="command-label">Comando:</span>
+            <pre><code>git checkout claude/green-screen-overlay-feature-01MVe1LE6jSimz8VRYuLKCF5</code></pre>
+
+            <div class="success-box">
+                <strong>✅ Risultato Atteso:</strong> Vedrai un messaggio tipo:<br>
+                <code>Switched to branch 'claude/green-screen-overlay-feature-01MVe1LE6jSimz8VRYuLKCF5'</code>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">5</span> Scarica le Modifiche</h3>
+            <span class="command-label">Comando:</span>
+            <pre><code>git pull</code></pre>
+
+            <div class="success-box">
+                <strong>✅ Fatto!</strong> Le modifiche sono ora sul tuo PC nella cartella:<br>
+                <code>templates/index_new.html</code>
+            </div>
+        </div>
+
+        <!-- SCENARIO 2 -->
+        <h2 id="scenario-2">🆕 Scenario 2: Repository Non Ancora Clonato</h2>
+
+        <p>Se NON hai ancora scaricato il repository sul tuo PC.</p>
+
+        <div class="step">
+            <h3><span class="step-number">1</span> Apri il Terminale nella Cartella Dove Vuoi il Progetto</h3>
+            <ul>
+                <li><strong>Windows:</strong> Vai nella cartella desiderata, tieni premuto <code>Shift</code>, click destro → "Apri PowerShell qui"</li>
+                <li><strong>Mac/Linux:</strong> Apri Terminale e usa <code>cd</code> per andare nella cartella</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">2</span> Clona il Repository</h3>
+            <span class="command-label">Comando:</span>
+            <pre><code>git clone https://github.com/nestor71/AIVideoMaker.git</code></pre>
+            <p>Questo scaricherà TUTTO il progetto nella cartella corrente.</p>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">3</span> Entra nella Cartella del Progetto</h3>
+            <span class="command-label">Comando:</span>
+            <pre><code>cd AIVideoMaker</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">4</span> Passa al Branch con le Modifiche</h3>
+            <span class="command-label">Comando:</span>
+            <pre><code>git checkout claude/green-screen-overlay-feature-01MVe1LE6jSimz8VRYuLKCF5</code></pre>
+
+            <div class="success-box">
+                <strong>✅ Fatto!</strong> Hai ora il progetto completo con tutte le modifiche più recenti.
+            </div>
+        </div>
+
+        <!-- SCENARIO 3 -->
+        <h2 id="scenario-3">🔀 Scenario 3: Integrare nel Branch Principale</h2>
+
+        <p>Se vuoi portare le modifiche dal branch di sviluppo al tuo branch principale (main/master).</p>
+
+        <div class="warning-box">
+            <strong>⚠️ ATTENZIONE:</strong> Questa operazione modifica il branch principale. Assicurati di volerlo fare!
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">1</span> Verifica di Essere nel Repository</h3>
+            <span class="command-label">Comando:</span>
+            <pre><code>cd percorso/AIVideoMaker
+git status</code></pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">2</span> Passa al Branch Principale</h3>
+            <span class="command-label">Comando (scegli quello corretto):</span>
+            <pre><code>git checkout main</code></pre>
+            <p><em>oppure</em></p>
+            <pre><code>git checkout master</code></pre>
+
+            <div class="warning-box">
+                <strong>💡 Come Sapere Quale Usare?</strong><br>
+                Esegui <code>git branch -a</code> per vedere tutti i branch. Cerca "main" o "master".
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">3</span> Aggiorna il Branch Principale</h3>
+            <span class="command-label">Comando:</span>
+            <pre><code>git pull origin main</code></pre>
+            <p><em>(sostituisci "main" con "master" se necessario)</em></p>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">4</span> Fai il Merge delle Modifiche</h3>
+            <span class="command-label">Comando:</span>
+            <pre><code>git merge claude/green-screen-overlay-feature-01MVe1LE6jSimz8VRYuLKCF5</code></pre>
+
+            <div class="success-box">
+                <strong>✅ Risultato Atteso:</strong><br>
+                Se non ci sono conflitti, vedrai: <code>Fast-forward</code> o <code>Merge made by...</code>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">5</span> (Opzionale) Invia al Server</h3>
+            <p>Se vuoi aggiornare anche il repository su GitHub:</p>
+            <span class="command-label">Comando:</span>
+            <pre><code>git push origin main</code></pre>
+            <p><em>(sostituisci "main" con "master" se necessario)</em></p>
+        </div>
+
+        <h2>🛠️ Comandi Utili Aggiuntivi</h2>
+
+        <div class="step">
+            <h3>📋 Vedere Su Quale Branch Sei</h3>
+            <pre><code>git branch</code></pre>
+            <p>Il branch corrente sarà evidenziato con un asterisco (*)</p>
+        </div>
+
+        <div class="step">
+            <h3>📝 Vedere Quali File Sono Stati Modificati</h3>
+            <pre><code>git status</code></pre>
+        </div>
+
+        <div class="step">
+            <h3>📜 Vedere la Storia dei Commit</h3>
+            <pre><code>git log --oneline -10</code></pre>
+            <p>Mostra gli ultimi 10 commit in formato compatto</p>
+        </div>
+
+        <div class="step">
+            <h3>🔍 Vedere Cosa È Cambiato in un File</h3>
+            <pre><code>git diff templates/index_new.html</code></pre>
+        </div>
+
+        <div class="step">
+            <h3>↩️ Tornare al Branch Precedente</h3>
+            <pre><code>git checkout -</code></pre>
+            <p>Scorciatoia per tornare al branch su cui eri prima</p>
+        </div>
+
+        <h2>❓ Risoluzione Problemi Comuni</h2>
+
+        <div class="step">
+            <h3>❌ Errore: "fatal: not a git repository"</h3>
+            <p><strong>Causa:</strong> Non sei nella cartella del progetto.</p>
+            <p><strong>Soluzione:</strong> Usa <code>cd</code> per navigare nella cartella corretta.</p>
+        </div>
+
+        <div class="step">
+            <h3>❌ Errore: "Your local changes would be overwritten"</h3>
+            <p><strong>Causa:</strong> Hai modifiche locali non salvate.</p>
+            <p><strong>Soluzione:</strong> Salva le modifiche prima:</p>
+            <pre><code>git add .
+git commit -m "Salvataggio modifiche locali"</code></pre>
+            <p><em>oppure</em> scarta le modifiche:</p>
+            <pre><code>git reset --hard</code></pre>
+        </div>
+
+        <div class="step">
+            <h3>❌ Errore: "Please commit your changes or stash them"</h3>
+            <p><strong>Causa:</strong> Hai modifiche in corso.</p>
+            <p><strong>Soluzione:</strong> Metti da parte temporaneamente le modifiche:</p>
+            <pre><code>git stash</code></pre>
+            <p>Per recuperarle dopo:</p>
+            <pre><code>git stash pop</code></pre>
+        </div>
+
+        <div class="step">
+            <h3>❌ Conflitti Durante il Merge</h3>
+            <p><strong>Sintomo:</strong> Git mostra "CONFLICT" e file con <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code></p>
+            <p><strong>Soluzione:</strong></p>
+            <ol>
+                <li>Apri i file in conflitto con un editor</li>
+                <li>Cerca le sezioni marcate con <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code> e <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code></li>
+                <li>Modifica manualmente scegliendo quale versione tenere</li>
+                <li>Rimuovi i marcatori di conflitto</li>
+                <li>Salva il file</li>
+                <li>Esegui:
+                    <pre><code>git add nome_file_risolto
+git commit -m "Risolto conflitto in nome_file"</code></pre>
+                </li>
+            </ol>
+        </div>
+
+        <h2>📊 Riepilogo Modifiche Recenti</h2>
+
+        <div class="info-box">
+            <strong>File Modificato:</strong> <code>templates/index_new.html</code><br><br>
+            <strong>Modifiche Applicate:</strong>
+            <ul style="margin: 10px 0; padding-left: 20px;">
+                <li>Linea 1225: "Rimuovi green screen" → "Rimuovi sfondo"</li>
+                <li>Linea 1395: Commento tradotto in italiano</li>
+                <li>Linea 2409: "Green screen removal" → "Rimozione sfondo"</li>
+            </ul>
+            <strong>Commit:</strong> <code>2f3d114</code><br>
+            <strong>Messaggio:</strong> "Translate: Sostituito 'green screen' con 'sfondo' nell'interfaccia utente"
+        </div>
+
+        <h2>📞 Hai Bisogno di Aiuto?</h2>
+
+        <p>Se riscontri problemi non elencati in questa guida:</p>
+        <ol>
+            <li>Copia l'errore esatto che vedi</li>
+            <li>Annota quale comando hai eseguito</li>
+            <li>Verifica di essere nella cartella corretta con <code>pwd</code> (Mac/Linux) o <code>cd</code> (Windows)</li>
+        </ol>
+
+        <footer>
+            <p><strong>AIVideoMaker</strong> - Repository: nestor71/AIVideoMaker</p>
+            <p>Guida generata il: 15 Novembre 2025</p>
+            <p style="margin-top: 20px; font-size: 0.85em; color: #999;">
+                💡 <strong>Suggerimento:</strong> Premi <code>Ctrl+P</code> (Windows/Linux) o <code>Cmd+P</code> (Mac) per salvare questa pagina come PDF
+            </p>
+        </footer>
+    </div>
+</body>
+</html>
