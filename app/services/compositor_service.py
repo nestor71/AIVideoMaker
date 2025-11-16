@@ -219,16 +219,16 @@ class CompositorService:
             # Get timing info
             start_time = layer.get('startTime', 0)
 
-            # 0. Per i video, gestisci timing con tpad TRASPARENTE (non nero!)
+            # 0. Per i video, gestisci timing con setpts (ritarda il video senza frame neri)
             if layer['type'] == 'video':
                 if start_time > 0:
-                    # Converti in formato con alpha channel
-                    layer_filters.append('format=yuva420p')
-                    # Aggiungi padding trasparente all'inizio (black@0.0 = nero con alpha 0 = trasparente)
-                    # Questo ritarda il video di start_time secondi SENZA rettangoli neri!
-                    layer_filters.append(f'tpad=start_duration={start_time}:color=black@0.0')
-                # Resetta timestamp per sincronizzazione
-                layer_filters.append('setpts=PTS-STARTPTS')
+                    # Ritarda il video aggiungendo start_time ai timestamp
+                    # PTS+{delay}/TB: aggiunge delay secondi ai timestamp
+                    # Questo fa partire il video dopo start_time secondi SENZA frame neri!
+                    layer_filters.append(f'setpts=PTS+{start_time}/TB')
+                else:
+                    # Resetta timestamp per sincronizzazione
+                    layer_filters.append('setpts=PTS-STARTPTS')
 
             # 1. Scala (con o senza aspect ratio)
             if keep_aspect:
@@ -275,12 +275,11 @@ class CompositorService:
 
             if end_time is not None:
                 # Nascondi il layer dopo endTime
-                # Nota: startTime è già gestito da tpad, quindi il layer apparirà automaticamente
-                # quando il padding trasparente finisce
+                # Nota: startTime è già gestito da setpts (ritardo timestamp)
                 overlay_filter += f":enable='lt(t,{end_time})'"
-                logger.info(f"   ⏰ Layer visibile fino a {end_time}s (startTime={start_time}s gestito da tpad)")
+                logger.info(f"   ⏰ Layer visibile fino a {end_time}s (startTime={start_time}s gestito da setpts)")
             elif start_time > 0:
-                logger.info(f"   ⏰ Layer apparirà dopo {start_time}s (via tpad trasparente)")
+                logger.info(f"   ⏰ Layer apparirà dopo {start_time}s (via setpts timestamp delay)")
 
             output_label = f'[out{idx}]'
             filter_parts.append(
