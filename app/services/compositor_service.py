@@ -11,6 +11,7 @@ Supporta sovrapposizione illimitata di video, immagini e audio con:
 import logging
 import subprocess
 import os
+import signal
 import json
 from pathlib import Path
 from typing import List, Dict, Any, Optional
@@ -25,6 +26,8 @@ class CompositorService:
     def __init__(self):
         self.output_dir = Path("output")
         self.output_dir.mkdir(exist_ok=True)
+        # Traccia processi FFmpeg attivi per job_id
+        self.active_jobs = {}  # {job_id: subprocess.Popen}
 
     def check_ffmpeg(self) -> bool:
         """Verifica disponibilità FFmpeg"""
@@ -39,6 +42,44 @@ class CompositorService:
         except Exception as e:
             logger.error(f"FFmpeg non disponibile: {e}")
             return False
+
+    def cancel_job(self, job_id: str) -> bool:
+        """
+        Cancella job FFmpeg in esecuzione
+
+        Args:
+            job_id: ID del job da cancellare
+
+        Returns:
+            True se il processo è stato killato, False se non trovato
+        """
+        process = self.active_jobs.get(job_id)
+        if not process:
+            logger.warning(f"⚠️ Processo FFmpeg per job {job_id} non trovato (già completato o non esistente)")
+            return False
+
+        try:
+            logger.info(f"🛑 Killing processo FFmpeg per job {job_id} (PID: {process.pid})")
+            process.kill()  # SIGKILL
+            process.wait(timeout=5)  # Aspetta che termini
+            logger.info(f"✅ Processo FFmpeg killato con successo")
+            return True
+        except subprocess.TimeoutExpired:
+            logger.error(f"❌ Timeout killing processo FFmpeg (PID: {process.pid})")
+            # Force kill
+            try:
+                import signal
+                os.kill(process.pid, signal.SIGKILL)
+            except:
+                pass
+            return False
+        except Exception as e:
+            logger.error(f"❌ Errore killing processo FFmpeg: {e}")
+            return False
+        finally:
+            # Rimuovi dalla lista anche in caso di errore
+            if job_id in self.active_jobs:
+                del self.active_jobs[job_id]
 
     def get_video_info(self, video_path: str) -> Dict[str, Any]:
         """Ottieni informazioni video usando ffprobe"""
@@ -262,7 +303,8 @@ class CompositorService:
         self,
         main_video_path: str,
         layers: List[Dict[str, Any]],
-        output_filename: Optional[str] = None
+        output_filename: Optional[str] = None,
+        job_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Processa composizione multi-layer
@@ -271,6 +313,7 @@ class CompositorService:
             main_video_path: Percorso video principale
             layers: Lista di layer (vedi build_filter_complex)
             output_filename: Nome file output (opzionale)
+            job_id: ID del job (opzionale, per tracking processo FFmpeg)
 
         Returns:
             Dict con info sul video generato
@@ -447,16 +490,27 @@ class CompositorService:
                 universal_newlines=True
             )
 
-            # Leggi output
-            stderr_output = []
-            for line in process.stderr:
-                stderr_output.append(line)
-                # Log progress ogni 50 righe
-                if len(stderr_output) % 50 == 0:
-                    logger.info(f"   FFmpeg processing... ({len(stderr_output)} lines)")
+            # Salva processo per permettere cancellazione
+            if job_id:
+                self.active_jobs[job_id] = process
+                logger.info(f"   📝 Processo FFmpeg registrato per job {job_id} (PID: {process.pid})")
 
-            # Attendi completamento
-            returncode = process.wait()
+            try:
+                # Leggi output
+                stderr_output = []
+                for line in process.stderr:
+                    stderr_output.append(line)
+                    # Log progress ogni 50 righe
+                    if len(stderr_output) % 50 == 0:
+                        logger.info(f"   FFmpeg processing... ({len(stderr_output)} lines)")
+
+                # Attendi completamento
+                returncode = process.wait()
+            finally:
+                # Rimuovi processo dalla lista attivi
+                if job_id and job_id in self.active_jobs:
+                    del self.active_jobs[job_id]
+                    logger.info(f"   📝 Processo FFmpeg rimosso per job {job_id}")
 
             if returncode != 0:
                 # Log TUTTO lo stderr per debug

@@ -10,7 +10,6 @@ import json
 import uuid
 from pathlib import Path
 from datetime import datetime
-import subprocess
 
 from app.core.security import get_current_user
 from app.services.compositor_service import compositor_service
@@ -59,10 +58,11 @@ async def process_compositor_job(
         job.progress = 30
         job.message = 'Analisi video principale...'
 
-        # Processa composizione
+        # Processa composizione (passa job_id per tracking processo FFmpeg)
         result = await compositor_service.process_composition(
             main_video_path=main_video_path,
-            layers=layers_data
+            layers=layers_data,
+            job_id=job_id
         )
 
         job.progress = 90
@@ -293,23 +293,15 @@ async def cancel_compositor_job(
 
     logger.info(f"   Job trovato - Status: {job.status}")
 
-    # Se il job è in processing, killa FFmpeg e marca come failed
+    # Se il job è in processing, killa il processo FFmpeg specifico
     if job.status == 'processing':
-        logger.info("   🔪 Job in processing - killing FFmpeg...")
-        # Killa tutti i processi FFmpeg attivi per interrompere l'elaborazione
-        try:
-            result = subprocess.run(
-                ['pkill', '-9', 'ffmpeg'],
-                capture_output=True,
-                timeout=5
-            )
-            logger.info(f"   ✅ FFmpeg processes killed: returncode={result.returncode}")
-            if result.stdout:
-                logger.info(f"   stdout: {result.stdout.decode()}")
-            if result.stderr:
-                logger.info(f"   stderr: {result.stderr.decode()}")
-        except Exception as e:
-            logger.error(f"   ❌ Errore killing FFmpeg: {e}")
+        logger.info("   🔪 Job in processing - killing FFmpeg processo...")
+        # Killa il processo FFmpeg SPECIFICO di questo job (non tutti!)
+        killed = compositor_service.cancel_job(job_id)
+        if killed:
+            logger.info(f"   ✅ Processo FFmpeg killato con successo")
+        else:
+            logger.warning(f"   ⚠️ Processo FFmpeg non trovato (forse già terminato)")
 
         # Elimina SOLO il file output di QUESTO job (se esiste e non è completato)
         if job.output_path and Path(job.output_path).exists():
