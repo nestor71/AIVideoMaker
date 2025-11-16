@@ -17,6 +17,7 @@ from app.core.config import settings
 from app.models.user import User
 from app.models.pipeline import Pipeline, PipelineStatus
 from app.pipelines.orchestrator import PipelineOrchestrator
+from app.services.file_service import cleanup_upload_folder
 
 router = APIRouter()
 
@@ -114,6 +115,9 @@ def execute_pipeline_task(pipeline_id: str, db: Session):
         return
 
     try:
+        # 🗑️ CLEANUP: Elimina vecchi file dalla cartella upload mantenendo solo quelli necessari
+        cleanup_result = cleanup_upload_folder(pipeline, db)
+
         # Aggiorna status
         pipeline.status = PipelineStatus.RUNNING
         pipeline.current_step = 0
