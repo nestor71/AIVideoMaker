@@ -356,3 +356,4 @@ if __name__ == "__main__":
 
 # 4. Carica le modifiche su Github
 #   git push origin claude/project-review-improvements-011CUpkeELM78WpjRDQLfS6q
+#  pkill -9 ffmpeg

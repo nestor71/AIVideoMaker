@@ -4276,7 +4276,7 @@
                 // Crea AbortController per permettere cancellazione upload
                 currentUploadAbortController = new AbortController();
 
-                // Chiama nuovo endpoint compositor
+                // Chiama nuovo endpoint compositor (temporaneamente su upload per debug)
                 const response = await fetch('/api/v1/compositor/upload', {
                     method: 'POST',
                     headers: {
@@ -4541,6 +4541,18 @@
                 'failed': 'Errore'
             };
             document.getElementById('chromakeyJobStatus').textContent = statusMap[jobStatus.status] || jobStatus.status;
+
+            // Update layers processed count based on progress
+            const totalLayers = layersState.layers.length;
+            let processedLayers = 0;
+            if (progress >= 100) {
+                processedLayers = totalLayers;
+            } else if (progress > 0) {
+                // Calcola quanti layer sono stati processati in base al progress
+                // Assumiamo che il progress sia distribuito uniformemente tra i layer
+                processedLayers = Math.floor((progress / 100) * totalLayers);
+            }
+            document.getElementById('chromakeyLayersProcessed').textContent = `${processedLayers} / ${totalLayers}`;
 
             // Update message
             if (jobStatus.status === 'processing') {
@@ -7822,7 +7834,7 @@
                     <span id="chromakeyJobStatus" style="color: #ffd700;">-</span>
                 </div>
                 <div style="display: flex; justify-content: space-between;">
-                    <span><i class="fas fa-layer-group"></i> Layer processati:</span>
+                    <span><i class="fas fa-layer-group"></i> File processati:</span>
                     <span id="chromakeyLayersProcessed" style="color: #00d4aa;">0 / 0</span>
                 </div>
             </div>

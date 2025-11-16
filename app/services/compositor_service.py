@@ -178,12 +178,8 @@ class CompositorService:
             # Get timing info
             start_time = layer.get('startTime', 0)
 
-            # 0. Per i video, gestisci timing e PTS
+            # 0. Per i video, resetta PTS (NON usare tpad che crea rettangoli neri!)
             if layer['type'] == 'video':
-                if start_time > 0:
-                    # Aggiungi padding all'inizio per ritardare il video
-                    # tpad aggiunge frame neri all'inizio per ritardare la riproduzione
-                    layer_filters.append(f'tpad=start_duration={start_time}')
                 # Resetta timestamp per sincronizzazione
                 layer_filters.append('setpts=PTS-STARTPTS')
 
@@ -217,28 +213,31 @@ class CompositorService:
             if opacity < 1.0:
                 layer_filters.append(f'format=yuva420p,colorchannelmixer=aa={opacity}')
 
-            # 4. Loop per immagini (se durata > durata immagine)
-            if layer['type'] == 'image':
-                # Le immagini vengono looppate per tutta la durata del video
-                layer_filters.append(f'loop=loop=-1:size=1:start=0')
+            # 4. Per immagini, NO LOOP! Sarà gestito diversamente con -t e overlay=shortest=1
 
             # Combina filtri per questo layer
             layer_filter_str = ','.join(layer_filters)
             processed_label = f'[layer{idx}]'
             filter_parts.append(f'{layer_label}{layer_filter_str}{processed_label}')
 
-            # 5. Overlay sul video base
+            # 5. Overlay sul video base con timing via enable (NO tpad!)
             overlay_filter = f'overlay={pos_x}:{pos_y}'
 
-            # Aggiungi timing solo per endTime (startTime gestito da tpad)
+            # Gestisci timing con enable expression
             end_time = layer.get('endTime', None)
 
-            if end_time is not None:
-                # Nascondi il layer dopo endTime
+            if start_time > 0 and end_time is not None:
+                # Layer visibile solo tra startTime e endTime
+                overlay_filter += f":enable='between(t,{start_time},{end_time})'"
+                logger.info(f"   ⏰ Layer visibile da {start_time}s a {end_time}s")
+            elif start_time > 0:
+                # Layer visibile solo dopo startTime
+                overlay_filter += f":enable='gte(t,{start_time})'"
+                logger.info(f"   ⏰ Layer visibile da {start_time}s in poi")
+            elif end_time is not None:
+                # Layer visibile solo fino a endTime
                 overlay_filter += f":enable='lt(t,{end_time})'"
                 logger.info(f"   ⏰ Layer visibile fino a {end_time}s")
-            elif start_time > 0:
-                logger.info(f"   ⏰ Layer apparirà dopo {start_time}s (via tpad)")
 
             output_label = f'[out{idx}]'
             filter_parts.append(
@@ -331,7 +330,20 @@ class CompositorService:
 
             # Input 1-N: layer
             for layer in visual_layers:
-                cmd.extend(['-i', layer['path']])
+                if layer['type'] == 'image':
+                    # Per immagini: usa -loop 1 -framerate FPS -t DURATA
+                    # Questo crea un video dalla singola immagine (MOLTO più veloce del filtro loop!)
+                    fps = main_info.get('fps', 24)
+                    duration = max_duration  # Usa la durata massima calcolata
+                    cmd.extend([
+                        '-loop', '1',           # Loop dell'immagine
+                        '-framerate', str(fps), # FPS del video principale
+                        '-t', str(duration),    # Durata uguale al video principale
+                        '-i', layer['path']
+                    ])
+                else:
+                    # Video normali
+                    cmd.extend(['-i', layer['path']])
 
             # Audio layers
             for layer in audio_layers:
@@ -353,9 +365,6 @@ class CompositorService:
 
             # Audio mixing: main video audio + layer video audios + separate audio files
             audio_inputs = []
-
-            # Audio dal video principale (se presente)
-            audio_inputs.append('[0:a]')
 
             # Audio dai layer video (se presenti) con delay se startTime > 0
             for i, layer in enumerate(visual_layers):
@@ -383,16 +392,17 @@ class CompositorService:
                 else:
                     audio_inputs.append(f'[{layer_index}:a]')
 
-            # Crea filter per audio mix
-            if len(audio_inputs) > 1:
+            # Aggiungi audio dal video principale SOLO se ci sono altri audio da mixare
+            if len(audio_inputs) > 0:
+                # Se ci sono layer audio/video, aggiungi anche l'audio del video principale e mixa
+                audio_inputs.insert(0, '[0:a]')  # Metti il main audio per primo
                 # Mix multipli stream audio
                 audio_filter = f'{"".join(audio_inputs)}amix=inputs={len(audio_inputs)}:duration=longest[aout]'
                 filter_parts.append(audio_filter)
                 final_audio_output = '[aout]'
-            elif len(audio_inputs) == 1:
-                # Solo un audio stream
-                final_audio_output = audio_inputs[0]
             else:
+                # Nessun layer audio, usa direttamente l'audio del video principale (se esiste)
+                # Non serve filter_complex per l'audio, sarà mappato con -map 0:a?
                 final_audio_output = None
 
             # Applica filter_complex se ci sono filtri
@@ -401,9 +411,13 @@ class CompositorService:
                 cmd.extend(['-filter_complex', combined_filter])
                 # Mappa output video
                 cmd.extend(['-map', final_video_output])
-                # Mappa output audio se presente
+                # Mappa output audio
                 if final_audio_output:
+                    # Audio processato dal filter_complex (mix di più stream)
                     cmd.extend(['-map', final_audio_output])
+                else:
+                    # Nessun audio processato, usa direttamente l'audio del video principale (se esiste)
+                    cmd.extend(['-map', '0:a?'])  # Audio opzionale con ?
             else:
                 # Nessun filtro, mappa diretto
                 cmd.extend(['-map', '0:v'])
@@ -443,12 +457,25 @@ class CompositorService:
             returncode = process.wait()
 
             if returncode != 0:
-                error_msg = ''.join(stderr_output[-20:])  # Ultime 20 righe
-                logger.error(f"❌ FFmpeg fallito: {error_msg}")
+                # Log TUTTO lo stderr per debug
+                full_stderr = ''.join(stderr_output)
+                logger.error(f"❌ FFmpeg fallito - OUTPUT COMPLETO:")
+                logger.error(full_stderr)
+                # Prendi solo le ultime 50 righe per l'eccezione
+                error_msg = ''.join(stderr_output[-50:])
                 raise Exception(f"FFmpeg error: {error_msg}")
 
             # Verifica output
+            logger.info(f"🔍 Verifica output_path: {output_path}")
+            logger.info(f"🔍 output_path.exists(): {output_path.exists()}")
+            logger.info(f"🔍 output_path assoluto: {output_path.absolute()}")
+
             if not output_path.exists():
+                # Lista file nella directory output
+                logger.error(f"❌ File output non trovato: {output_path}")
+                logger.error(f"   Contenuto directory output:")
+                for f in self.output_dir.iterdir():
+                    logger.error(f"     - {f.name}")
                 raise Exception("File output non creato")
 
             file_size = output_path.stat().st_size

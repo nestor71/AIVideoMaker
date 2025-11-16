@@ -86,9 +86,9 @@ async def process_compositor_job(
 @router.post("/upload")
 async def upload_compositor_files(
     background_tasks: BackgroundTasks,
+    layers_config: str = Form(..., description="Configurazione layer (JSON)"),
     main_video: UploadFile = File(..., description="Video principale"),
     layer_files: List[UploadFile] = File(default=[], description="File layer (video, immagini, audio)"),
-    layers_config: str = Form(..., description="Configurazione layer (JSON)"),
     current_user: User = Depends(get_current_user)
 ):
     """
@@ -311,31 +311,13 @@ async def cancel_compositor_job(
         except Exception as e:
             logger.error(f"   ❌ Errore killing FFmpeg: {e}")
 
-        # Elimina file output parziale se esiste
+        # Elimina SOLO il file output di QUESTO job (se esiste e non è completato)
         if job.output_path and Path(job.output_path).exists():
             try:
                 Path(job.output_path).unlink()
-                logger.info(f"   🗑️ File output parziale eliminato: {job.output_path}")
+                logger.info(f"   🗑️ File output di questo job eliminato: {job.output_path}")
             except Exception as e:
                 logger.error(f"   ❌ Errore eliminazione file output: {e}")
-
-        # Elimina anche eventuali file parziali nella directory output
-        # (file creati negli ultimi 5 minuti con pattern compositor_*)
-        try:
-            import time
-            output_dir = Path("output")
-            if output_dir.exists():
-                current_time = time.time()
-                for file_path in output_dir.glob("compositor_*.mp4"):
-                    # Controlla se il file è stato creato negli ultimi 5 minuti
-                    if current_time - file_path.stat().st_mtime < 300:  # 5 minuti
-                        try:
-                            file_path.unlink()
-                            logger.info(f"   🗑️ File parziale eliminato: {file_path}")
-                        except Exception as e:
-                            logger.error(f"   ❌ Errore eliminazione {file_path}: {e}")
-        except Exception as e:
-            logger.error(f"   ❌ Errore pulizia directory output: {e}")
 
         job.status = 'failed'
         job.error = "Elaborazione interrotta dall'utente"
