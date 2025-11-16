@@ -178,8 +178,14 @@ class CompositorService:
             # Get timing info
             start_time = layer.get('startTime', 0)
 
-            # 0. Per i video, resetta PTS (NON usare tpad che crea rettangoli neri!)
+            # 0. Per i video, gestisci timing con tpad TRASPARENTE (non nero!)
             if layer['type'] == 'video':
+                if start_time > 0:
+                    # Converti in formato con alpha channel
+                    layer_filters.append('format=yuva420p')
+                    # Aggiungi padding trasparente all'inizio (black@0.0 = nero con alpha 0 = trasparente)
+                    # Questo ritarda il video di start_time secondi SENZA rettangoli neri!
+                    layer_filters.append(f'tpad=start_duration={start_time}:color=black@0.0')
                 # Resetta timestamp per sincronizzazione
                 layer_filters.append('setpts=PTS-STARTPTS')
 
@@ -220,24 +226,20 @@ class CompositorService:
             processed_label = f'[layer{idx}]'
             filter_parts.append(f'{layer_label}{layer_filter_str}{processed_label}')
 
-            # 5. Overlay sul video base con timing via enable (NO tpad!)
+            # 5. Overlay sul video base
             overlay_filter = f'overlay={pos_x}:{pos_y}'
 
-            # Gestisci timing con enable expression
+            # Gestisci timing (startTime gestito da tpad, qui solo endTime)
             end_time = layer.get('endTime', None)
 
-            if start_time > 0 and end_time is not None:
-                # Layer visibile solo tra startTime e endTime
-                overlay_filter += f":enable='between(t,{start_time},{end_time})'"
-                logger.info(f"   ⏰ Layer visibile da {start_time}s a {end_time}s")
-            elif start_time > 0:
-                # Layer visibile solo dopo startTime
-                overlay_filter += f":enable='gte(t,{start_time})'"
-                logger.info(f"   ⏰ Layer visibile da {start_time}s in poi")
-            elif end_time is not None:
-                # Layer visibile solo fino a endTime
+            if end_time is not None:
+                # Nascondi il layer dopo endTime
+                # Nota: startTime è già gestito da tpad, quindi il layer apparirà automaticamente
+                # quando il padding trasparente finisce
                 overlay_filter += f":enable='lt(t,{end_time})'"
-                logger.info(f"   ⏰ Layer visibile fino a {end_time}s")
+                logger.info(f"   ⏰ Layer visibile fino a {end_time}s (startTime={start_time}s gestito da tpad)")
+            elif start_time > 0:
+                logger.info(f"   ⏰ Layer apparirà dopo {start_time}s (via tpad trasparente)")
 
             output_label = f'[out{idx}]'
             filter_parts.append(
