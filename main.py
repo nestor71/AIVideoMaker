@@ -84,12 +84,29 @@ async def lifespan(app: FastAPI):
             directory.mkdir(parents=True, exist_ok=True)
             logger.info(f"✅ Directory creata: {directory}")
 
+    # Avvia scheduler per registrazioni programmate
+    try:
+        from app.services.scheduler_service import scheduler_service
+        scheduler_service.start()
+        logger.info("✅ APScheduler avviato (registrazioni programmate)")
+    except Exception as e:
+        logger.error(f"❌ Errore avvio scheduler: {e}")
+
     logger.info("✅ Startup completato\n")
 
     yield
 
     # ========== SHUTDOWN ==========
     logger.info("\n💤 Shutdown applicazione...")
+
+    # Ferma scheduler
+    try:
+        from app.services.scheduler_service import scheduler_service
+        scheduler_service.shutdown()
+        logger.info("✅ Scheduler fermato")
+    except Exception as e:
+        logger.warning(f"⚠️  Errore shutdown scheduler: {e}")
+
     logger.info("✅ Shutdown completato")
 
 
@@ -208,10 +225,11 @@ from app.api.routes import (
     metadata,
     logo,
     transcription,  # Abilitato - Whisper opzionale (graceful degradation)
-    # screen_record,  # Richiede PyGetWindow (non installato)
+    screen_record,  # Screen recording con browser API e FFmpeg scheduled
     seo_metadata,   # Abilitato - Whisper opzionale (graceful degradation)
     video_download,  # Download video da YouTube, TikTok, Vimeo, ecc.
-    user_settings   # User preferences e UI state persistence
+    user_settings,   # User preferences e UI state persistence
+    outputs  # Gestione file elaborati (outputs)
 )
 
 # Import file upload route
@@ -310,9 +328,8 @@ app.include_router(metadata.router, prefix=f"{settings.api_prefix}/metadata", ta
 app.include_router(transcription.router, prefix=f"{settings.api_prefix}/transcription", tags=["Transcription"])  # Abilitato - Whisper opzionale
 app.include_router(seo_metadata.router, prefix=f"{settings.api_prefix}/seo", tags=["SEO Metadata AI"])  # Abilitato - Whisper opzionale
 app.include_router(video_download.router, prefix=f"{settings.api_prefix}/video-download", tags=["Video Download"])  # Download da YouTube, TikTok, Vimeo, ecc.
-
-# Temporarily disabled routes
-# app.include_router(screen_record.router, prefix=f"{settings.api_prefix}/screen-record", tags=["Screen Recording"])  # Richiede PyGetWindow
+app.include_router(outputs.router, prefix=f"{settings.api_prefix}/outputs", tags=["Output Files Management"])  # Gestione file elaborati
+app.include_router(screen_record.router, prefix=f"{settings.api_prefix}/screen-record", tags=["Screen Recording"])  # Screen recording con browser API + FFmpeg scheduled
 
 # ==================== ERROR HANDLERS ====================
 

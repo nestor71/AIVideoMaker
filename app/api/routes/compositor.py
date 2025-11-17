@@ -8,6 +8,7 @@ from typing import List, Optional
 import logging
 import json
 import uuid
+import shutil
 from pathlib import Path
 from datetime import datetime
 
@@ -58,11 +59,12 @@ async def process_compositor_job(
         job.progress = 30
         job.message = 'Analisi video principale...'
 
-        # Processa composizione (passa job_id per tracking processo FFmpeg)
+        # Processa composizione (passa job object per aggiornamenti progress)
         result = await compositor_service.process_composition(
             main_video_path=main_video_path,
             layers=layers_data,
-            job_id=job_id
+            job_id=job_id,
+            job_object=job
         )
 
         job.progress = 90
@@ -134,6 +136,18 @@ async def upload_compositor_files(
         # Upload directory
         upload_dir = Path("uploads")
         upload_dir.mkdir(exist_ok=True)
+
+        # 🧹 PULIZIA: Elimina tutti i file precedenti nella cartella uploads
+        logger.info("🧹 Pulizia cartella uploads...")
+        files_deleted = 0
+        for old_file in upload_dir.iterdir():
+            if old_file.is_file():
+                try:
+                    old_file.unlink()
+                    files_deleted += 1
+                except Exception as e:
+                    logger.warning(f"⚠️ Impossibile eliminare {old_file}: {e}")
+        logger.info(f"✅ Eliminati {files_deleted} file vecchi dalla cartella uploads")
 
         # Salva video principale
         main_video_filename = f"main_{job_id}_{main_video.filename}"
@@ -236,6 +250,45 @@ async def get_compositor_job_status(
     return response
 
 
+@router.get("/jobs/active/list")
+async def list_active_jobs(
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Elenca tutti i job attivi (pending o processing) dell'utente corrente
+
+    Returns:
+        {
+            "jobs": [
+                {"job_id": "uuid", "status": "processing", "progress": 50},
+                ...
+            ]
+        }
+    """
+    active_jobs = []
+
+    for job_id, job in jobs.items():
+        # Solo job dell'utente corrente
+        if job.user_id != current_user.id:
+            continue
+
+        # Solo job attivi (non completed/failed)
+        if job.status in ['pending', 'processing']:
+            active_jobs.append({
+                'job_id': job.job_id,
+                'status': job.status,
+                'progress': job.progress,
+                'message': job.message
+            })
+
+    logger.info(f"📋 Lista job attivi per user {current_user.id}: {len(active_jobs)} job")
+
+    return {
+        'jobs': active_jobs,
+        'count': len(active_jobs)
+    }
+
+
 @router.get("/download/{job_id}")
 async def download_compositor_result(
     job_id: str,
@@ -276,14 +329,16 @@ async def cancel_compositor_job(
     Altrimenti lo rimuove dalla lista.
     """
 
-    logger.info(f"🛑 Richiesta cancellazione job: {job_id}")
+    logger.info(f"🛑 ========== RICHIESTA CANCELLAZIONE JOB ==========")
+    logger.info(f"   Job ID richiesto: {job_id}")
     logger.info(f"   User ID: {current_user.id}")
-    logger.info(f"   Job in memoria: {len(jobs)}")
+    logger.info(f"   Job totali in memoria: {len(jobs)}")
+    logger.info(f"   Job IDs disponibili: {list(jobs.keys())}")
 
     job = jobs.get(job_id)
     if not job:
-        logger.error(f"❌ Job {job_id} non trovato in memoria")
-        logger.info(f"   Job disponibili: {list(jobs.keys())}")
+        logger.error(f"❌ Job {job_id} NON TROVATO in memoria")
+        logger.error(f"   Questo job non esiste o è già stato completato/rimosso")
         raise HTTPException(status_code=404, detail="Job non trovato")
 
     # Verifica ownership
@@ -291,17 +346,24 @@ async def cancel_compositor_job(
         logger.error(f"❌ Utente {current_user.id} non autorizzato per job di utente {job.user_id}")
         raise HTTPException(status_code=403, detail="Non autorizzato")
 
-    logger.info(f"   Job trovato - Status: {job.status}")
+    logger.info(f"   ✅ Job trovato!")
+    logger.info(f"   Status attuale: {job.status}")
+    logger.info(f"   Progress: {job.progress}%")
+    logger.info(f"   Message: {job.message}")
 
     # Se il job è in processing, killa il processo FFmpeg specifico
     if job.status == 'processing':
-        logger.info("   🔪 Job in processing - killing FFmpeg processo...")
+        logger.info("   🔪 Job in PROCESSING - tentativo kill FFmpeg...")
+        logger.info(f"   Active jobs nel service: {list(compositor_service.active_jobs.keys())}")
+
         # Killa il processo FFmpeg SPECIFICO di questo job (non tutti!)
         killed = compositor_service.cancel_job(job_id)
+
         if killed:
-            logger.info(f"   ✅ Processo FFmpeg killato con successo")
+            logger.info(f"   ✅ Processo FFmpeg KILLATO con successo")
         else:
-            logger.warning(f"   ⚠️ Processo FFmpeg non trovato (forse già terminato)")
+            logger.warning(f"   ⚠️ Processo FFmpeg NON trovato in active_jobs")
+            logger.warning(f"   Possibile causa: processo già terminato o non ancora registrato")
 
         # Elimina SOLO il file output di QUESTO job (se esiste e non è completato)
         if job.output_path and Path(job.output_path).exists():

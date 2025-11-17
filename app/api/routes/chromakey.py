@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 import subprocess
 import signal
+import logging
 
 from app.core.database import get_db
 from app.core.security import get_current_user
@@ -21,6 +22,7 @@ from app.models.job import Job, JobType, JobStatus
 from app.services.chromakey_service import ChromakeyService, ChromakeyParams
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 # ==================== Pydantic Schemas ====================
@@ -321,6 +323,18 @@ async def upload_and_process(
 
     Richiede JWT token. Elaborazione asincrona in background.
     """
+    # 🧹 PULIZIA: Elimina tutti i file precedenti nella cartella uploads
+    logger.info("🧹 Pulizia cartella uploads...")
+    files_deleted = 0
+    for old_file in settings.upload_dir.iterdir():
+        if old_file.is_file():
+            try:
+                old_file.unlink()
+                files_deleted += 1
+            except Exception as e:
+                logger.warning(f"⚠️ Impossibile eliminare {old_file}: {e}")
+    logger.info(f"✅ Eliminati {files_deleted} file vecchi dalla cartella uploads")
+
     # Salva file upload
     foreground_path = settings.upload_dir / f"fg_{current_user.id}_{foreground.filename}"
     background_path = settings.upload_dir / f"bg_{current_user.id}_{background.filename}"

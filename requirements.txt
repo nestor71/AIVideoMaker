@@ -46,6 +46,9 @@ openai-whisper==20250625  # Versione aggiornata per compatibilità numpy 2.x
 pyautogui==0.9.54
 PyGetWindow==0.0.9
 
+# Task Scheduling
+APScheduler==3.10.4
+
 # Video Translation Dependencies
 # Google Translate API (traduzione testo)
 deep-translator==1.11.4

@@ -130,7 +130,7 @@
             background: white;
             border-radius: 0 0 15px 15px;
             padding: 30px;
-            min-height: 600px;
+            min-height: 300px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
 
@@ -950,6 +950,33 @@
             box-shadow: 0 0 0 4px rgba(255,255,255,0.3) !important;
             transform: scale(1.05);
         }
+
+        /* Recording Buttons Hover Effects */
+        #recorderStartBtn:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(40,167,69,0.5);
+        }
+
+        #recorderStopBtn:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(220,53,69,0.5);
+            opacity: 1;
+        }
+
+        #recorderStartBtn:active:not(:disabled),
+        #recorderStopBtn:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        /* Delete All Button Hover */
+        #deleteAllRecordingsBtn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 18px rgba(220,53,69,0.45);
+        }
+
+        #deleteAllRecordingsBtn:active {
+            transform: scale(0.98);
+        }
     </style>
 </head>
 <body>
@@ -1090,16 +1117,21 @@
             <!-- Sub-tabs for Video Editing -->
             <div class="sub-tabs" id="subTabs-video">
                 <button class="sub-tab active" onclick="showSubTab('video', 'chromakey')">
-                    <i class="fas fa-layer-group"></i> Video Compositor
+                    <i class="fas fa-layer-group"></i> Rimozione Sfondo
                 </button>
                 <button class="sub-tab" onclick="showSubTab('video', 'recorder')">
                     <i class="fas fa-record-vinyl"></i> Registrazione
                 </button>
             </div>
 
-            <!-- Sub-tabs for Download (single feature, no sub-tabs) -->
+            <!-- Sub-tabs for Download -->
             <div class="sub-tabs" id="subTabs-download">
-                <!-- Single feature, content directly in main pane -->
+                <button class="sub-tab active" onclick="showSubTab('download', 'web')">
+                    <i class="fas fa-globe"></i> Scarica da Web
+                </button>
+                <button class="sub-tab" onclick="showSubTab('download', 'outputs')">
+                    <i class="fas fa-folder-open"></i> Video Elaborati
+                </button>
             </div>
 
             <!-- Sub-tabs for Audio & Testi -->
@@ -1160,8 +1192,8 @@
                     <div class="dashboard-grid">
                         <div class="dashboard-card" onclick="showPrimaryTab('video'); showSubTab('video', 'chromakey');">
                             <i class="fas fa-layer-group"></i>
-                            <h3>Video Compositor</h3>
-                            <p>Sovrapponi file multipli con chromakey, posizionamento e timing precisi</p>
+                            <h3>Rimozione Sfondo</h3>
+                            <p>Sovrapponi video, immagini e loghi sul tuo video principale. Rimuovi sfondo file illimitati (video, immagini, audio) sul video base. Rimuovi sfondo per ogni file. Posiziona trascinando nell'anteprima.<br>Casi d'uso: CTA, Branding, Picture-in-Picture, Rimozione Sfondo</p>
                         </div>
 
                         <div class="dashboard-card" onclick="showPrimaryTab('video'); showSubTab('video', 'recorder');">
@@ -1216,15 +1248,15 @@
                         <i class="fas fa-layer-group"></i>
                         <h2>Video Compositor - Sovrapposizione Multi-File</h2>
                     </div>
-                    <p class="section-description">Sovrapponi video, immagini e loghi sul tuo video principale. Rimuovi lo sfondo verde, posiziona e ridimensiona ogni elemento con precisione.</p>
+                    <p class="section-description">Sovrapponi video, immagini e loghi sul tuo video principale. Rimuovi lo sfondo, posiziona e ridimensiona ogni elemento con precisione.</p>
 
                     <!-- Info Box compatto -->
                     <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(102,126,234,0.3);">
                         <p style="margin: 0; font-size: 0.95rem; line-height: 1.6;">
                             <i class="fas fa-info-circle"></i> <strong>Sovrapponi file illimitati</strong> (video, immagini, audio) sul video base.
-                            <strong>Rimuovi green screen</strong> per ogni file. <strong>Posiziona</strong> trascinando nell'anteprima.
+                            <strong>Rimuovi sfondo</strong> per ogni file. <strong>Posiziona</strong> trascinando nell'anteprima.
                             <br>
-                            <span style="font-size: 0.85rem; opacity: 0.9;">Casi d'uso: CTA, Branding, Picture-in-Picture, Green Screen</span>
+                            <span style="font-size: 0.85rem; opacity: 0.9;">Casi d'uso: CTA, Branding, Picture-in-Picture, Rimozione Sfondo</span>
                         </p>
                     </div>
 
@@ -1506,99 +1538,25 @@
                     </div>
                     <p class="section-description">Registra schermo, finestra o tab del browser con audio direttamente dal browser</p>
 
-                    <div style="max-width: 1000px; margin: 0 auto;">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-                            <!-- Settings Panel -->
-                            <div>
-                                <div style="background: #f8f9fa; padding: 25px; border-radius: 15px; margin-bottom: 20px;">
-                                    <h3 style="color: #2c3e50; margin-bottom: 20px;">
-                                        <i class="fas fa-cog"></i> Impostazioni Registrazione
-                                    </h3>
+                    <!-- Mode Toggle -->
+                    <div style="max-width: 1000px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                        <div style="display: flex; gap: 15px; justify-content: center;">
+                            <button id="quickRecordModeBtn" onclick="switchRecordMode('quick')" style="flex: 1; max-width: 300px; padding: 15px 30px; background: linear-gradient(135deg, #28a745 0%, #20923d 100%); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(40,167,69,0.3); transition: all 0.3s;">
+                                <i class="fas fa-bolt"></i> Registrazione Rapida
+                            </button>
+                            <button id="scheduledRecordModeBtn" onclick="switchRecordMode('scheduled')" style="flex: 1; max-width: 300px; padding: 15px 30px; background: #e0e0e0; color: #666; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                                <i class="fas fa-clock"></i> Registrazione Programmata
+                            </button>
+                        </div>
+                    </div>
 
-                                    <!-- Capture Type -->
-                                    <div style="margin-bottom: 20px;">
-                                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
-                                            <i class="fas fa-desktop"></i> Tipo di Cattura
-                                        </label>
-                                        <select id="recorderCaptureType" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px;">
-                                            <option value="screen">Schermo Intero</option>
-                                            <option value="window">Finestra Applicazione</option>
-                                            <option value="tab" selected>Tab Browser</option>
-                                        </select>
-                                    </div>
-
-                                    <!-- Audio Source -->
-                                    <div style="margin-bottom: 20px;">
-                                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
-                                            <i class="fas fa-microphone"></i> Sorgente Audio
-                                        </label>
-                                        <select id="recorderAudioSource" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px;">
-                                            <option value="none">Nessun Audio</option>
-                                            <option value="system" selected>Audio Sistema</option>
-                                            <option value="microphone">Microfono</option>
-                                            <option value="both">Sistema + Microfono</option>
-                                        </select>
-                                    </div>
-
-                                    <!-- Video Quality -->
-                                    <div style="margin-bottom: 20px;">
-                                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
-                                            <i class="fas fa-hd-video"></i> Qualità Video
-                                        </label>
-                                        <select id="recorderQuality" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px;">
-                                            <option value="1080p">1080p (Full HD)</option>
-                                            <option value="720p" selected>720p (HD)</option>
-                                            <option value="480p">480p (SD)</option>
-                                        </select>
-                                    </div>
-
-                                    <!-- Frame Rate -->
-                                    <div style="margin-bottom: 20px;">
-                                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
-                                            <i class="fas fa-film"></i> Frame Rate
-                                        </label>
-                                        <select id="recorderFPS" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px;">
-                                            <option value="30" selected>30 FPS</option>
-                                            <option value="60">60 FPS</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <!-- Recording Controls -->
-                                <div style="background: #f8f9fa; padding: 25px; border-radius: 15px;">
-                                    <h3 style="color: #2c3e50; margin-bottom: 20px;">
-                                        <i class="fas fa-video"></i> Controlli
-                                    </h3>
-
-                                    <div style="display: flex; flex-direction: column; gap: 15px;">
-                                        <button id="recorderStartBtn" onclick="startRecording()" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 1.1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(220,53,69,0.3);">
-                                            <i class="fas fa-circle"></i> Inizia Registrazione
-                                        </button>
-
-                                        <button id="recorderPauseBtn" onclick="pauseRecording()" disabled style="background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 1.1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(255,193,7,0.3); opacity: 0.5;">
-                                            <i class="fas fa-pause"></i> Pausa
-                                        </button>
-
-                                        <button id="recorderStopBtn" onclick="stopRecording()" disabled style="background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%); color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 1.1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(108,117,125,0.3); opacity: 0.5;">
-                                            <i class="fas fa-stop"></i> Stop Registrazione
-                                        </button>
-                                    </div>
-
-                                    <!-- Recording Timer -->
-                                    <div id="recorderTimer" style="text-align: center; margin-top: 20px; padding: 15px; background: white; border-radius: 10px; display: none;">
-                                        <div style="font-size: 2rem; font-weight: 700; color: #dc3545; font-family: monospace;" id="recorderTimerDisplay">00:00:00</div>
-                                        <div style="margin-top: 5px;">
-                                            <span id="recorderStatus" style="display: inline-block; padding: 5px 15px; background: #dc3545; color: white; border-radius: 20px; font-size: 0.9rem; font-weight: 600;">
-                                                <i class="fas fa-circle" style="animation: blink 1s infinite;"></i> REGISTRAZIONE
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Preview Panel -->
-                            <div>
-                                <div style="background: #000; border-radius: 15px; overflow: hidden; margin-bottom: 20px;">
+                    <div style="max-width: 1200px; margin: 0 auto;">
+                        <!-- QUICK RECORD MODE -->
+                        <div id="quickRecordSection" style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start;">
+                            <!-- Left Column: Preview + Controls -->
+                            <div style="display: flex; flex-direction: column; gap: 25px;">
+                                <!-- Preview Panel -->
+                                <div style="background: #000; border-radius: 15px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
                                     <div style="padding: 15px; background: #1a1a1a; border-bottom: 1px solid #333;">
                                         <h3 style="color: white; margin: 0; font-size: 1rem;">
                                             <i class="fas fa-eye"></i> Anteprima
@@ -1615,16 +1573,291 @@
                                     </div>
                                 </div>
 
-                                <!-- Recorded Videos List -->
-                                <div style="background: #f8f9fa; padding: 25px; border-radius: 15px;">
-                                    <h3 style="color: #2c3e50; margin-bottom: 20px;">
-                                        <i class="fas fa-film"></i> Registrazioni Salvate
+                                <!-- Recording Controls -->
+                                <div style="background: #f8f9fa; padding: 35px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                                    <h3 style="color: #2c3e50; margin-bottom: 30px; text-align: center; font-size: 1.4rem;">
+                                        <i class="fas fa-video"></i> Controlli
                                     </h3>
-                                    <div id="recorderVideosList" style="max-height: 300px; overflow-y: auto;">
-                                        <div style="text-align: center; padding: 40px 20px; color: #999;">
-                                            <i class="fas fa-inbox" style="font-size: 2rem; opacity: 0.3; margin-bottom: 10px;"></i>
-                                            <p style="margin: 0;">Nessuna registrazione salvata</p>
+
+                                    <div style="display: flex; gap: 15px;">
+                                        <button id="recorderStartBtn" onclick="startRecording()" style="flex: 1; background: linear-gradient(135deg, #28a745 0%, #218838 100%); color: white; border: none; padding: 18px 25px; border-radius: 30px; font-size: 1.1rem; font-weight: 600; cursor: pointer; box-shadow: 0 6px 20px rgba(40,167,69,0.35); transition: all 0.3s ease;">
+                                            <i class="fas fa-circle"></i> Inizia
+                                        </button>
+
+                                        <button id="recorderStopBtn" onclick="stopRecording()" disabled style="flex: 1; background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%); color: white; border: none; padding: 18px 25px; border-radius: 30px; font-size: 1.1rem; font-weight: 600; cursor: not-allowed; box-shadow: 0 6px 20px rgba(220,53,69,0.35); opacity: 0.6;">
+                                            <i class="fas fa-stop"></i> Stop
+                                        </button>
+                                    </div>
+
+                                    <!-- Recording Timer -->
+                                    <div id="recorderTimer" style="text-align: center; margin-top: 30px; padding: 20px; background: white; border-radius: 12px; display: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                        <div style="font-size: 2.5rem; font-weight: 700; color: #dc3545; font-family: monospace;" id="recorderTimerDisplay">00:00:00</div>
+                                        <div style="margin-top: 10px;">
+                                            <span id="recorderStatus" style="display: inline-block; padding: 8px 20px; background: #dc3545; color: white; border-radius: 25px; font-size: 0.95rem; font-weight: 600;">
+                                                <i class="fas fa-circle" style="animation: blink 1s infinite;"></i> REGISTRAZIONE
+                                            </span>
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Column: Recorded Videos List -->
+                            <div>
+                                <div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 25px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); border: 2px solid #2196f3;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                        <h3 style="color: #1565c0; margin: 0; font-size: 1.3rem; font-weight: 700;">
+                                            <i class="fas fa-film"></i> Registrazioni Salvate
+                                        </h3>
+                                        <button id="deleteAllRecordingsBtn" onclick="deleteAllRecordings()" style="background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%); color: white; border: none; padding: 10px 20px; border-radius: 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(220,53,69,0.3); transition: all 0.3s ease; display: none;">
+                                            <i class="fas fa-trash-alt"></i> Elimina Tutte
+                                        </button>
+                                    </div>
+                                    <div id="recorderVideosList" style="height: calc((100vw - 2 * 20px - 30px) * 0.5 * 0.5625 - 70px); max-height: 450px; overflow-y: auto; padding-right: 5px;">
+                                        <div style="text-align: center; padding: 60px 20px; color: #666;">
+                                            <i class="fas fa-inbox" style="font-size: 3rem; opacity: 0.4; margin-bottom: 15px; color: #1565c0;"></i>
+                                            <p style="margin: 0; font-size: 1rem; color: #1565c0; font-weight: 500;">Nessuna registrazione salvata</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SCHEDULED RECORD MODE -->
+                        <div id="scheduledRecordSection" style="display: none;">
+                            <div style="background: #f8f9fa; padding: 30px; border-radius: 15px; margin-bottom: 20px;">
+                                <h3 style="color: #2c3e50; margin-bottom: 25px;">
+                                    <i class="fas fa-calendar-alt"></i> Programma Registrazione
+                                </h3>
+
+                                <!-- Data e Ora Avvio -->
+                                <div style="margin-bottom: 25px;">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        <i class="fas fa-calendar-day"></i> Data e Ora Avvio
+                                    </label>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                        <div>
+                                            <label style="display: block; margin-bottom: 5px; font-size: 0.9rem; color: #666;">Data</label>
+                                            <input type="date" id="scheduledDate" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem;">
+                                        </div>
+                                        <div>
+                                            <label style="display: block; margin-bottom: 5px; font-size: 0.9rem; color: #666;">Ora</label>
+                                            <input type="time" id="scheduledTime" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem;">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Durata Massima -->
+                                <div style="margin-bottom: 25px;">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        <i class="fas fa-hourglass-half"></i> Durata Massima Registrazione
+                                    </label>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                        <div>
+                                            <label style="display: block; margin-bottom: 5px; font-size: 0.9rem; color: #666;">Ore</label>
+                                            <input type="number" id="scheduledHours" min="0" max="8" value="0" placeholder="0" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem;">
+                                        </div>
+                                        <div>
+                                            <label style="display: block; margin-bottom: 5px; font-size: 0.9rem; color: #666;">Minuti</label>
+                                            <input type="number" id="scheduledMinutes" min="0" max="59" value="30" placeholder="0" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem;">
+                                        </div>
+                                    </div>
+                                    <small style="color: #666; display: block; margin-top: 5px;">
+                                        <i class="fas fa-info-circle"></i> Massimo 8 ore totali
+                                    </small>
+                                </div>
+
+                                <!-- Modalità Cattura -->
+                                <div style="margin-bottom: 25px;">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        <i class="fas fa-desktop"></i> Modalità Cattura
+                                    </label>
+                                    <select id="scheduledCaptureMode" onchange="toggleScheduledCaptureOptions()" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px;">
+                                        <option value="fullscreen" selected>Schermo Intero</option>
+                                        <option value="custom">Area Personalizzata</option>
+                                    </select>
+                                </div>
+
+                                <!-- Selezione Monitor (visibile solo con più monitor) -->
+                                <div id="monitorSelectionSection" style="margin-bottom: 25px; background: #f0f7ff; padding: 20px; border-radius: 10px; border-left: 4px solid #2196F3; display: none;">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        <i class="fas fa-tv"></i> Monitor da Registrare
+                                    </label>
+                                    <select id="scheduledMonitor" onchange="updateScheduledRecordingSummary()" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem;">
+                                        <option value="0" selected>Monitor Primario</option>
+                                        <option value="1">Monitor Secondario</option>
+                                        <option value="2">Monitor Terziario</option>
+                                    </select>
+                                    <small style="color: #666; display: block; margin-top: 8px;">
+                                        <i class="fas fa-info-circle"></i> Scegli quale monitor registrare
+                                    </small>
+                                    <button onclick="showMonitorCrosshair()" style="margin-top: 12px; width: 100%; padding: 12px; background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); color: white; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; box-shadow: 0 3px 10px rgba(33,150,243,0.3); transition: all 0.3s;">
+                                        <i class="fas fa-crosshairs"></i> Mostra Mirino al Centro
+                                    </button>
+                                </div>
+
+                                <!-- Opzioni Area Personalizzata (nascoste di default) -->
+                                <div id="scheduledCustomOptions" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 25px; border-left: 4px solid #ff9800;">
+                                    <label style="display: block; margin-bottom: 15px; font-weight: 600; color: #555;">
+                                        <i class="fas fa-crop"></i> Coordinate Area da Registrare
+                                    </label>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                        <div>
+                                            <label style="display: block; margin-bottom: 5px; font-size: 0.9rem; color: #666;">X (px)</label>
+                                            <input type="number" id="scheduledAreaX" value="0" min="0" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem;">
+                                        </div>
+                                        <div>
+                                            <label style="display: block; margin-bottom: 5px; font-size: 0.9rem; color: #666;">Y (px)</label>
+                                            <input type="number" id="scheduledAreaY" value="0" min="0" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem;">
+                                        </div>
+                                        <div>
+                                            <label style="display: block; margin-bottom: 5px; font-size: 0.9rem; color: #666;">Larghezza (px)</label>
+                                            <input type="number" id="scheduledAreaWidth" value="1920" min="1" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem;">
+                                        </div>
+                                        <div>
+                                            <label style="display: block; margin-bottom: 5px; font-size: 0.9rem; color: #666;">Altezza (px)</label>
+                                            <input type="number" id="scheduledAreaHeight" value="1080" min="1" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem;">
+                                        </div>
+                                    </div>
+                                    <small style="color: #666; display: block; margin-top: 12px;">
+                                        <i class="fas fa-info-circle"></i> Imposta le coordinate dell'area da registrare (0,0 = angolo in alto a sinistra dello schermo)
+                                    </small>
+                                </div>
+
+                                <!-- Riepilogo Configurazione Registrazione -->
+                                <div id="scheduledRecordingSummary" style="margin-bottom: 25px; background: #e3f2fd; padding: 20px; border-radius: 10px; border-left: 4px solid #2196F3;">
+                                    <label style="display: block; margin-bottom: 15px; font-weight: 600; color: #555;">
+                                        <i class="fas fa-info-circle"></i> Riepilogo Configurazione
+                                    </label>
+                                    <div style="background: white; padding: 15px; border-radius: 8px; font-size: 0.95rem;">
+                                        <div style="display: grid; grid-template-columns: auto 1fr; gap: 10px 20px; align-items: center;">
+                                            <span style="font-weight: 600; color: #666;"><i class="fas fa-clock"></i> Avvio:</span>
+                                            <span id="summaryScheduledTime" style="color: #333;">Non impostato</span>
+
+                                            <span style="font-weight: 600; color: #666;"><i class="fas fa-hourglass-half"></i> Durata:</span>
+                                            <span id="summaryDuration" style="color: #333;">0h 30m</span>
+
+                                            <span style="font-weight: 600; color: #666;"><i class="fas fa-tv"></i> Monitor:</span>
+                                            <span id="summaryMonitor" style="color: #333;">Monitor Primario</span>
+
+                                            <span style="font-weight: 600; color: #666;"><i class="fas fa-desktop"></i> Modalità:</span>
+                                            <span id="summaryMode" style="color: #333;">Schermo Intero</span>
+
+                                            <span style="font-weight: 600; color: #666;"><i class="fas fa-crop"></i> Area:</span>
+                                            <span id="summaryArea" style="color: #333;">-</span>
+
+                                            <span style="font-weight: 600; color: #666;"><i class="fas fa-hd-video"></i> Qualità:</span>
+                                            <span id="summaryQuality" style="color: #333;">Alta</span>
+
+                                            <span style="font-weight: 600; color: #666;"><i class="fas fa-film"></i> FPS:</span>
+                                            <span id="summaryFPS" style="color: #333;">30</span>
+
+                                            <span style="font-weight: 600; color: #666;"><i class="fas fa-volume-up"></i> Audio:</span>
+                                            <span id="summaryAudio" style="color: #333;">Sistema</span>
+                                        </div>
+                                    </div>
+                                    <small style="color: #666; display: block; margin-top: 12px; text-align: center;">
+                                        <i class="fas fa-check-circle"></i> Queste impostazioni verranno usate da FFmpeg per la registrazione
+                                    </small>
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 25px;">
+                                    <!-- Qualità -->
+                                    <div>
+                                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                            <i class="fas fa-hd-video"></i> Qualità Video
+                                        </label>
+                                        <select id="scheduledQuality" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem;">
+                                            <option value="low">Bassa (file piccolo)</option>
+                                            <option value="medium">Media</option>
+                                            <option value="high" selected>Alta ⭐ Consigliata</option>
+                                            <option value="ultra">Ultra (file molto grande)</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- FPS -->
+                                    <div>
+                                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                            <i class="fas fa-film"></i> Frame Rate (FPS)
+                                        </label>
+                                        <select id="scheduledFPS" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem;">
+                                            <option value="15">15 FPS</option>
+                                            <option value="24">24 FPS</option>
+                                            <option value="30" selected>30 FPS ⭐ Consigliato</option>
+                                            <option value="60">60 FPS</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Nome File -->
+                                <div style="margin-bottom: 25px;">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        <i class="fas fa-file-video"></i> Nome File Output
+                                    </label>
+                                    <input type="text" id="scheduledOutputName" value="scheduled_recording.mp4" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px;">
+                                </div>
+
+                                <!-- Audio -->
+                                <div style="margin-bottom: 25px;">
+                                    <label style="display: block; margin-bottom: 12px; font-weight: 600; color: #555;">
+                                        <i class="fas fa-volume-up"></i> Registrazione Audio
+                                    </label>
+
+                                    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #17a2b8;">
+                                        <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 15px;">
+                                            <input type="checkbox" id="scheduledRecordSystemAudio" checked style="width: 20px; height: 20px; margin-right: 10px; cursor: pointer;">
+                                            <span style="font-weight: 600; color: #555;">
+                                                <i class="fas fa-desktop"></i> Audio di Sistema
+                                            </span>
+                                        </label>
+
+                                        <label style="display: flex; align-items: center; cursor: pointer;">
+                                            <input type="checkbox" id="scheduledRecordMicAudio" style="width: 20px; height: 20px; margin-right: 10px; cursor: pointer;">
+                                            <span style="font-weight: 600; color: #555;">
+                                                <i class="fas fa-microphone"></i> Audio Microfono
+                                            </span>
+                                        </label>
+
+                                        <small style="color: #666; display: block; margin-top: 12px;">
+                                            <i class="fas fa-info-circle"></i> Puoi registrare entrambe le sorgenti audio simultaneamente
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <!-- Pulsanti Azione -->
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                    <button onclick="startImmediateRecording()" style="width: 100%; padding: 18px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 20px rgba(40,167,69,0.4); transition: all 0.3s;">
+                                        <i class="fas fa-play-circle"></i> Avvia Subito
+                                    </button>
+                                    <button onclick="scheduleRecording()" style="width: 100%; padding: 18px; background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 20px rgba(0,123,255,0.4); transition: all 0.3s;">
+                                        <i class="fas fa-calendar-plus"></i> Programma
+                                    </button>
+                                </div>
+                                <small style="color: #666; display: block; text-align: center; margin-top: -10px;">
+                                    <i class="fas fa-info-circle"></i> Avvia subito o programma per dopo
+                                </small>
+                            </div>
+
+                            <!-- Lista Job Schedulati -->
+                            <div style="background: #fff; padding: 30px; border-radius: 15px; box-shadow: 0 2px 15px rgba(0,0,0,0.08);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                    <h3 style="color: #2c3e50; margin: 0;">
+                                        <i class="fas fa-list"></i> Registrazioni Programmate
+                                    </h3>
+                                    <div style="display: flex; gap: 10px;">
+                                        <button onclick="refreshScheduledJobs()" style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600;">
+                                            <i class="fas fa-sync-alt"></i> Aggiorna
+                                        </button>
+                                        <button onclick="deleteAllScheduledJobs()" style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600;">
+                                            <i class="fas fa-trash-alt"></i> Elimina Tutte
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div id="scheduledJobsList" style="max-height: 500px; overflow-y: auto;">
+                                    <div style="text-align: center; padding: 60px 20px; color: #999;">
+                                        <i class="fas fa-calendar-times" style="font-size: 3rem; opacity: 0.2; margin-bottom: 15px;"></i>
+                                        <p style="margin: 0; font-size: 1.1rem;">Nessuna registrazione programmata</p>
+                                        <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #bbb;">Crea la tua prima registrazione schedulata</p>
                                     </div>
                                 </div>
                             </div>
@@ -1641,8 +1874,36 @@
 
                 <!-- ==================== ACQUISIZIONE ==================== -->
 
-                <!-- Download Video -->
-                <div class="tab-pane" id="pane-download">
+                <!-- Download > Video Elaborati -->
+                <div class="tab-pane" id="pane-download-outputs">
+                    <div class="section-header">
+                        <i class="fas fa-folder-open"></i>
+                        <h2>I Tuoi Video Elaborati</h2>
+                    </div>
+                    <p class="section-description">Gestisci tutti i video che hai elaborato. Scarica, visualizza informazioni o elimina i file.</p>
+
+                    <!-- Azioni Bulk -->
+                    <div style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
+                        <button onclick="loadOutputFiles()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(102,126,234,0.3);">
+                            <i class="fas fa-sync-alt"></i> Aggiorna Lista
+                        </button>
+                        <button onclick="deleteAllOutputFiles()" style="background: #e74c3c; color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(231,76,60,0.3);">
+                            <i class="fas fa-trash-alt"></i> Elimina Tutti
+                        </button>
+                    </div>
+
+                    <!-- File Grid -->
+                    <div id="outputFilesGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px;">
+                        <!-- Files will be loaded here via JavaScript -->
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #999;">
+                            <i class="fas fa-spinner fa-spin" style="font-size: 3rem; margin-bottom: 20px; color: #667eea;"></i>
+                            <p style="font-size: 1.1rem;">Caricamento file...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Download > Download da Web -->
+                <div class="tab-pane" id="pane-download-web">
                     <div class="section-header">
                         <i class="fas fa-cloud-download-alt"></i>
                         <h2>Download Video da Web</h2>
@@ -2886,7 +3147,7 @@
             }
 
             // Handle content display based on tab type
-            if (tabName === 'dashboard' || tabName === 'download') {
+            if (tabName === 'dashboard') {
                 // Single-pane tabs (no sub-tabs)
                 const pane = document.getElementById(`pane-${tabName}`);
                 if (pane) {
@@ -2935,6 +3196,11 @@
             const pane = document.getElementById(`pane-${category}-${subTabName}`);
             if (pane) {
                 pane.classList.add('active');
+            }
+
+            // Auto-load output files when opening "Video Elaborati" tab
+            if (category === 'download' && subTabName === 'outputs') {
+                loadOutputFiles();
             }
 
             // Track sub-tab change for auto-save
@@ -4223,8 +4489,6 @@
                 return;
             }
 
-            showInfo('Sto preparando il tuo video...');
-
             try {
                 // Prepara FormData
                 const formData = new FormData();
@@ -4273,17 +4537,13 @@
                 // Mostra modale SUBITO (prima della richiesta che può essere lenta)
                 showChromakeyProcessingModal('uploading');
 
-                // Crea AbortController per permettere cancellazione upload
-                currentUploadAbortController = new AbortController();
-
-                // Chiama nuovo endpoint compositor (temporaneamente su upload per debug)
+                // Chiama nuovo endpoint compositor
                 const response = await fetch('/api/v1/compositor/upload', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
                     },
-                    body: formData,
-                    signal: currentUploadAbortController.signal
+                    body: formData
                 });
 
                 if (!response.ok) {
@@ -4311,25 +4571,16 @@
                 }
 
                 // Aggiorna modale con job ID reale e avvia polling
-                document.getElementById('chromakeyJobId').textContent = result.job_id;
+                console.log('📝 Aggiornamento job ID da "uploading" a:', result.job_id);
+                const jobIdElement = document.getElementById('chromakeyJobId');
+                jobIdElement.textContent = result.job_id;
+                console.log('✅ Job ID aggiornato. Nuovo valore:', jobIdElement.textContent);
+
                 document.getElementById('chromakeyJobStatus').textContent = 'Avviato';
                 startCompositorJobPolling(result.job_id);
 
-                // Pulisci AbortController
-                currentUploadAbortController = null;
-
             } catch (error) {
                 console.error('Errore compositor:', error);
-
-                // Pulisci AbortController
-                currentUploadAbortController = null;
-
-                // Se l'errore è dovuto a abort, non mostrare errore (è intenzionale)
-                if (error.name === 'AbortError') {
-                    console.log('Upload cancellato dall\'utente');
-                    hideChromakeyProcessingModal();
-                    return;
-                }
 
                 hideChromakeyProcessingModal();
                 showError('Si è verificato un errore durante l\'elaborazione. Riprova.');
@@ -4339,7 +4590,6 @@
         // ==================== CHROMAKEY PROCESSING MODAL ====================
         let chromakeyPollingInterval = null;
         let chromakeyStartTime = null;
-        let currentUploadAbortController = null;  // Per cancellare upload in corso
 
         function showChromakeyProcessingModal(jobId) {
             console.log('🎬 Mostrando modale processing per job:', jobId);
@@ -4355,10 +4605,20 @@
             document.getElementById('chromakeyProgressBar').style.width = '0%';
             document.getElementById('chromakeyProgressPercent').textContent = '0%';
             document.getElementById('chromakeyProgressMessage').textContent = 'Elaborazione del video in corso...';
-            document.getElementById('chromakeyJobId').textContent = jobId;
+
+            // IMPORTANTE: Imposta job ID
+            const jobIdElement = document.getElementById('chromakeyJobId');
+            jobIdElement.textContent = jobId;
+            console.log('✅ Job ID impostato a:', jobId);
+            console.log('   Elemento chromakeyJobId.textContent:', jobIdElement.textContent);
+
             document.getElementById('chromakeyJobStatus').textContent = 'In attesa...';
             document.getElementById('chromakeyLayersProcessed').textContent = '0 / ' + layersState.layers.length;
             document.getElementById('chromakeyTimeRemaining').innerHTML = '<i class="fas fa-clock"></i> Calcolo tempo stimato...';
+
+            // Nascondi pulsanti download e view all (mostrati solo al completamento)
+            document.getElementById('chromakeyDownloadBtn').style.display = 'none';
+            document.getElementById('chromakeyViewAllBtn').style.display = 'none';
 
             chromakeyStartTime = Date.now();
         }
@@ -4374,103 +4634,73 @@
             }
         }
 
-        // Funzione per interrompere il job chromakey
-        async function cancelChromakeyJob() {
-            const jobId = document.getElementById('chromakeyJobId').textContent;
+        // ==================== MODAL CONFERMA ELIMINAZIONE ====================
 
-            console.log('🛑 ===== INIZIO CANCELLAZIONE JOB =====');
-            console.log('Job ID:', jobId);
+        let confirmDeleteCallback = null;
 
-            if (!jobId || jobId === '-') {
-                console.error('❌ Nessun job ID valido');
-                showError('Nessun job da interrompere');
+        /**
+         * Mostra modal di conferma eliminazione
+         * @param {string} message - Messaggio da mostrare
+         * @param {function} onConfirm - Callback da eseguire se l'utente conferma
+         */
+        function showConfirmDeleteModal(message, onConfirm) {
+            console.log('🔔 showConfirmDeleteModal chiamata', { message, onConfirm });
+
+            const modal = document.getElementById('confirmDeleteModal');
+            const messageEl = document.getElementById('confirmDeleteMessage');
+            const okBtn = document.getElementById('confirmDeleteOkBtn');
+
+            if (!modal) {
+                console.error('❌ Modal confirmDeleteModal non trovato!');
                 return;
             }
 
-            // Caso 1: Upload in corso (job ID = "uploading")
-            if (jobId === 'uploading') {
-                console.log('🛑 Interruzione upload in corso...');
+            // Imposta messaggio
+            messageEl.innerHTML = message;
 
-                // Cancella la richiesta fetch se esiste
-                if (currentUploadAbortController) {
-                    currentUploadAbortController.abort();
-                    currentUploadAbortController = null;
-                    console.log('✅ Upload cancellato');
+            // Salva callback
+            confirmDeleteCallback = onConfirm;
+
+            // Imposta handler pulsante OK
+            okBtn.onclick = async () => {
+                console.log('✅ Pulsante Elimina cliccato, esecuzione callback...');
+
+                // Salva il callback prima di nascondere il modal
+                const callback = confirmDeleteCallback;
+
+                // Nascondi modal
+                hideConfirmDeleteModal();
+
+                // Esegui callback salvato
+                if (callback) {
+                    await callback();
                 }
+            };
 
-                // Stop polling (se attivo)
-                if (chromakeyPollingInterval) {
-                    clearInterval(chromakeyPollingInterval);
-                    chromakeyPollingInterval = null;
-                    console.log('✅ Polling fermato');
-                }
-
-                // Chiudi modale
-                hideChromakeyProcessingModal();
-                showInfo('Upload interrotto');
-                console.log('✅ Upload interrotto con successo');
-                return;
-            }
-
-            // Caso 2: Job già avviato (ha un UUID)
-            try {
-                console.log('📤 Invio richiesta DELETE a:', `/api/v1/compositor/jobs/${jobId}`);
-                console.log('📤 Token auth:', localStorage.getItem('auth_token') ? 'Presente' : 'MANCANTE');
-
-                const response = await fetch(`/api/v1/compositor/jobs/${jobId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                    }
-                });
-
-                console.log('📥 Risposta DELETE ricevuta:');
-                console.log('   Status:', response.status);
-                console.log('   StatusText:', response.statusText);
-                console.log('   OK:', response.ok);
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('❌ Errore risposta:', errorText);
-                    throw new Error(`Errore ${response.status}: ${errorText}`);
-                }
-
-                const result = await response.json();
-                console.log('✅ Risultato cancellazione:', result);
-
-                // Stop polling
-                if (chromakeyPollingInterval) {
-                    console.log('🛑 Fermo polling interval...');
-                    clearInterval(chromakeyPollingInterval);
-                    chromakeyPollingInterval = null;
-                    console.log('✅ Polling fermato');
-                }
-
-                // Chiudi modal
-                console.log('🚪 Chiudo modale...');
-                hideChromakeyProcessingModal();
-
-                // Mostra messaggio
-                showInfo('Elaborazione interrotta con successo');
-                console.log('✅ ===== JOB CANCELLATO CON SUCCESSO =====');
-
-            } catch (error) {
-                console.error('❌ ===== ERRORE INTERRUZIONE JOB =====');
-                console.error('Errore:', error);
-                console.error('Stack:', error.stack);
-                showError(`Non è stato possibile interrompere l'elaborazione: ${error.message}`);
-            }
+            // Mostra modal
+            modal.style.display = 'flex';
+            console.log('✅ Modal mostrato');
         }
 
-        // Alias per compatibilità (usa compositor)
+        function hideConfirmDeleteModal() {
+            const modal = document.getElementById('confirmDeleteModal');
+            modal.style.display = 'none';
+            confirmDeleteCallback = null;
+        }
+
         async function startCompositorJobPolling(jobId) {
+            console.log('🔄 [v2024-POLLING] Avvio polling per job:', jobId);
+            console.log('🔄 [v2024-POLLING] Timestamp:', new Date().toISOString());
+
             // Stop previous polling if exists
             if (chromakeyPollingInterval) {
+                console.log('🔄 [v2024-POLLING] Clearing previous interval');
                 clearInterval(chromakeyPollingInterval);
             }
 
-            // Poll ogni 2 secondi
+            // Poll ogni 500ms per catturare aggiornamenti veloci
             chromakeyPollingInterval = setInterval(async () => {
+                console.log('📡 [v2024-POLLING] Polling job status... job:', jobId);
                 try {
                     const response = await fetch(`/api/v1/compositor/jobs/${jobId}`, {
                         headers: {
@@ -4483,6 +4713,7 @@
                     }
 
                     const jobStatus = await response.json();
+                    console.log('📊 [v2024-POLLING] Job status ricevuto:', jobStatus);
                     updateChromakeyProgress(jobStatus);
 
                     // Se completato o fallito, ferma polling
@@ -4491,10 +4722,9 @@
                         chromakeyPollingInterval = null;
 
                         if (jobStatus.status === 'completed') {
-                            setTimeout(() => {
-                                hideChromakeyProcessingModal();
-                                showSuccess('🎉 Il tuo video è pronto! Vai alla sezione "Scarica Video" per scaricarlo.');
-                            }, 2000);
+                            // Mostra pulsanti download e vedi tutti i file
+                            document.getElementById('chromakeyDownloadBtn').style.display = 'inline-block';
+                            document.getElementById('chromakeyViewAllBtn').style.display = 'inline-block';
                         } else {
                             hideChromakeyProcessingModal();
                             // Mostra errore user-friendly
@@ -4523,7 +4753,74 @@
                     hideChromakeyProcessingModal();
                     showError('Si è verificato un problema durante l\'elaborazione. Riprova.');
                 }
-            }, 2000);
+            }, 500);  // Poll ogni 500ms
+        }
+
+        async function downloadChromakeyResult() {
+            const jobIdElement = document.getElementById('chromakeyJobId');
+            const jobId = jobIdElement ? jobIdElement.textContent : null;
+
+            if (!jobId || jobId === '-' || jobId === 'uploading') {
+                showError('Nessun video da scaricare');
+                return;
+            }
+
+            try {
+                // Scarica il video
+                const downloadUrl = `/api/v1/compositor/download/${jobId}`;
+
+                const response = await fetch(downloadUrl, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Errore durante il download');
+                }
+
+                // Estrai il nome file dall'header Content-Disposition
+                let filename = `video_compositor_${Date.now()}.mp4`; // fallback
+                const contentDisposition = response.headers.get('Content-Disposition');
+                if (contentDisposition) {
+                    const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                    if (filenameMatch && filenameMatch[1]) {
+                        filename = filenameMatch[1].replace(/['"]/g, '');
+                    }
+                }
+
+                // Ottieni il blob del file
+                const blob = await response.blob();
+
+                // Crea un link temporaneo per il download
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;  // Usa il nome file originale dal server
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error('Errore download:', error);
+                showError('Errore durante il download del video');
+            }
+        }
+
+        function goToOutputsPage() {
+            // Chiudi il modal
+            hideChromakeyProcessingModal();
+
+            // Naviga alla sezione Video Elaborati
+            showPrimaryTab('download');
+
+            // Attendi un frame per assicurarsi che la tab sia stata mostrata
+            setTimeout(() => {
+                showSubTab('download', 'outputs');
+
+                // Scroll to top per mostrare la galleria
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 100);
         }
 
         function updateChromakeyProgress(jobStatus) {
@@ -4554,9 +4851,11 @@
             }
             document.getElementById('chromakeyLayersProcessed').textContent = `${processedLayers} / ${totalLayers}`;
 
-            // Update message
-            if (jobStatus.status === 'processing') {
-                document.getElementById('chromakeyProgressMessage').textContent = 'Applicazione chromakey e compositing layer...';
+            // Update message (usa messaggio dal backend se disponibile)
+            if (jobStatus.message) {
+                document.getElementById('chromakeyProgressMessage').textContent = jobStatus.message;
+            } else if (jobStatus.status === 'processing') {
+                document.getElementById('chromakeyProgressMessage').textContent = 'Elaborazione in corso...';
             } else if (jobStatus.status === 'completed') {
                 document.getElementById('chromakeyProgressMessage').textContent = '✅ Elaborazione completata con successo!';
             } else if (jobStatus.status === 'failed') {
@@ -5004,6 +5303,281 @@
             }
         }
 
+        // ==================== OUTPUT FILES MANAGEMENT ====================
+
+        /**
+         * Carica lista file elaborati dalla cartella outputs
+         */
+        async function loadOutputFiles() {
+            console.log('📂 Caricamento file outputs...');
+
+            if (!checkAuthentication()) return;
+
+            const grid = document.getElementById('outputFilesGrid');
+
+            // Loading spinner
+            grid.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #999;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 3rem; margin-bottom: 20px; color: #667eea;"></i>
+                    <p style="font-size: 1.1rem;">Caricamento file...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch('/api/v1/outputs/list', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Errore nel caricamento dei file');
+                }
+
+                const files = await response.json();
+
+                console.log(`📦 Ricevuti ${files.length} file`);
+
+                if (files.length === 0) {
+                    grid.innerHTML = `
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #999;">
+                            <i class="fas fa-folder-open" style="font-size: 3rem; margin-bottom: 20px; color: #ccc;"></i>
+                            <p style="font-size: 1.1rem;">Nessun video elaborato trovato</p>
+                            <p style="font-size: 0.9rem; color: #bbb;">I tuoi video elaborati appariranno qui</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Render file cards
+                grid.innerHTML = files.map(file => renderOutputFileCard(file)).join('');
+
+            } catch (error) {
+                console.error('Errore caricamento file:', error);
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #e74c3c;">
+                        <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 20px;"></i>
+                        <p style="font-size: 1.1rem;">Errore nel caricamento dei file</p>
+                        <p style="font-size: 0.9rem;">${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        /**
+         * Render singola card file
+         */
+        function renderOutputFileCard(file) {
+            const duration = file.duration_seconds
+                ? `${Math.floor(file.duration_seconds / 60)}m ${Math.floor(file.duration_seconds % 60)}s`
+                : 'N/A';
+
+            const resolution = file.width && file.height
+                ? `${file.width}x${file.height}`
+                : 'N/A';
+
+            const createdDate = new Date(file.created_at).toLocaleString('it-IT', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            return `
+                <div style="background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.3s; border: 2px solid #e0e0e0;">
+                    <!-- Header -->
+                    <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                            <i class="fas fa-video" style="color: #667eea; font-size: 1.2rem;"></i>
+                            <h4 style="margin: 0; font-size: 0.95rem; color: #2c3e50; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${file.filename}">${file.filename}</h4>
+                        </div>
+                        <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">
+                            ${file.operation_type || 'Video'}
+                        </span>
+                    </div>
+
+                    <!-- Metadata -->
+                    <div style="margin-bottom: 15px; font-size: 0.85rem; color: #666;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <div>
+                                <i class="fas fa-hdd" style="color: #667eea; margin-right: 5px;"></i>
+                                <strong>Dimensione:</strong><br>
+                                <span style="margin-left: 20px;">${file.size_mb} MB</span>
+                            </div>
+                            <div>
+                                <i class="fas fa-clock" style="color: #667eea; margin-right: 5px;"></i>
+                                <strong>Durata:</strong><br>
+                                <span style="margin-left: 20px;">${duration}</span>
+                            </div>
+                            <div>
+                                <i class="fas fa-expand-arrows-alt" style="color: #667eea; margin-right: 5px;"></i>
+                                <strong>Risoluzione:</strong><br>
+                                <span style="margin-left: 20px;">${resolution}</span>
+                            </div>
+                            <div>
+                                <i class="fas fa-calendar" style="color: #667eea; margin-right: 5px;"></i>
+                                <strong>Creato:</strong><br>
+                                <span style="margin-left: 20px; font-size: 0.75rem;">${createdDate}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="downloadOutputFile('${file.filename}')" style="flex: 1; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 8px rgba(102,126,234,0.3);">
+                            <i class="fas fa-download"></i> Scarica
+                        </button>
+                        <button onclick="deleteOutputFile('${file.filename}')" style="flex: 1; background: #e74c3c; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 8px rgba(231,76,60,0.3);">
+                            <i class="fas fa-trash-alt"></i> Elimina
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Scarica singolo file output
+         */
+        async function downloadOutputFile(filename) {
+            console.log('📥 Download file:', filename);
+
+            if (!checkAuthentication()) return;
+
+            try {
+                const response = await fetch(`/api/v1/outputs/download/${encodeURIComponent(filename)}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Errore nel download del file');
+                }
+
+                // Download file
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+
+            } catch (error) {
+                console.error('Errore download:', error);
+                showError('Errore nel download del file');
+            }
+        }
+
+        /**
+         * Elimina singolo file output
+         */
+        async function deleteOutputFile(filename) {
+            console.log('🗑️ deleteOutputFile chiamata per:', filename);
+
+            if (!checkAuthentication()) {
+                console.log('❌ Autenticazione fallita');
+                return;
+            }
+
+            console.log('✅ Autenticazione OK, mostro modal conferma');
+
+            // Mostra modal di conferma invece di confirm()
+            showConfirmDeleteModal(
+                `Vuoi davvero eliminare <strong>"${filename}"</strong>?`,
+                async () => {
+                    console.log('🔥 CALLBACK ELIMINAZIONE ESEGUITA per:', filename);
+                    try {
+                        const response = await fetch(`/api/v1/outputs/delete/${encodeURIComponent(filename)}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                            }
+                        });
+
+                        console.log('📡 Risposta server:', response.status);
+
+                        // Gestione errori specifici
+                        if (response.status === 401) {
+                            showError('⏱️ Sessione scaduta. Effettua di nuovo il login per continuare.');
+                            // Opzionale: redirect automatico dopo 2 secondi
+                            setTimeout(() => {
+                                window.open('/login', '_blank');
+                            }, 2000);
+                            return;
+                        }
+
+                        if (!response.ok) {
+                            throw new Error('Errore nell\'eliminazione del file');
+                        }
+
+                        showSuccess(`File "${filename}" eliminato!`);
+
+                        // Ricarica lista
+                        loadOutputFiles();
+
+                    } catch (error) {
+                        console.error('Errore eliminazione:', error);
+                        showError('Errore nell\'eliminazione del file');
+                    }
+                }
+            );
+        }
+
+        /**
+         * Elimina TUTTI i file output
+         */
+        async function deleteAllOutputFiles() {
+            console.log('🗑️ Eliminazione TUTTI i file...');
+
+            if (!checkAuthentication()) return;
+
+            // Mostra modal di conferma invece di confirm()
+            showConfirmDeleteModal(
+                '<i class="fas fa-exclamation-triangle" style="color: #e74c3c; font-size: 2rem;"></i><br><br>' +
+                '<strong style="color: #e74c3c;">ATTENZIONE!</strong><br><br>' +
+                'Vuoi davvero eliminare <strong>TUTTI</strong> i video elaborati?<br>' +
+                'Questa azione è <strong>irreversibile</strong>!',
+                async () => {
+                    try {
+                        const response = await fetch('/api/v1/outputs/delete-all', {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                            }
+                        });
+
+                        // Gestione errori specifici
+                        if (response.status === 401) {
+                            showError('⏱️ Sessione scaduta. Effettua di nuovo il login per continuare.');
+                            // Opzionale: redirect automatico dopo 2 secondi
+                            setTimeout(() => {
+                                window.open('/login', '_blank');
+                            }, 2000);
+                            return;
+                        }
+
+                        if (!response.ok) {
+                            throw new Error('Errore nell\'eliminazione dei file');
+                        }
+
+                        const data = await response.json();
+                        showSuccess(data.message);
+
+                        // Ricarica lista
+                        loadOutputFiles();
+
+                    } catch (error) {
+                        console.error('Errore eliminazione tutti:', error);
+                        showError('Errore nell\'eliminazione dei file');
+                    }
+                }
+            );
+        }
+
         // ==================== TRANSCRIPTION FUNCTIONS ====================
 
         document.getElementById('transcriptionFileUpload').addEventListener('click', function() {
@@ -5382,83 +5956,30 @@
         let savedRecordings = [];
 
         async function startRecording() {
+            // Controlla autenticazione
+            if (!await checkAuthentication()) return;
+
             try {
-                // Get settings
-                const quality = document.getElementById('recorderQuality').value;
-                const fps = parseInt(document.getElementById('recorderFPS').value);
-                const audioSource = document.getElementById('recorderAudioSource').value;
-
-                // Get resolution constraints
-                let width, height;
-                switch(quality) {
-                    case '1080p':
-                        width = 1920;
-                        height = 1080;
-                        break;
-                    case '720p':
-                        width = 1280;
-                        height = 720;
-                        break;
-                    case '480p':
-                        width = 854;
-                        height = 480;
-                        break;
-                }
-
-                // Request screen capture with cursor
+                // Request screen capture - il browser mostra il proprio popup
+                // con tutte le opzioni (schermo/finestra/tab, risoluzione, audio)
                 const displayStream = await navigator.mediaDevices.getDisplayMedia({
                     video: {
-                        width: { ideal: width },
-                        height: { ideal: height },
-                        frameRate: { ideal: fps },
                         cursor: 'always'  // Mostra sempre il cursore
                     },
-                    audio: audioSource === 'system' || audioSource === 'both',
+                    audio: true,  // Richiedi audio se disponibile
                     preferCurrentTab: false
                 });
 
-                // Add microphone if needed
-                let audioStream = null;
-                if (audioSource === 'microphone' || audioSource === 'both') {
-                    try {
-                        audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    } catch (err) {
-                        console.warn('Microphone access denied:', err);
-                        showInfo('Impossibile accedere al microfono. Continuo con audio sistema.');
-                    }
-                }
-
-                // Combine streams
-                let tracks = [...displayStream.getVideoTracks()];
-
-                if (audioSource === 'both' && audioStream) {
-                    // Mix system audio and microphone
-                    const audioContext = new AudioContext();
-                    const systemSource = audioContext.createMediaStreamSource(displayStream);
-                    const micSource = audioContext.createMediaStreamSource(audioStream);
-                    const destination = audioContext.createMediaStreamDestination();
-
-                    systemSource.connect(destination);
-                    micSource.connect(destination);
-
-                    tracks.push(...destination.stream.getAudioTracks());
-                } else if (audioSource === 'system') {
-                    tracks.push(...displayStream.getAudioTracks());
-                } else if (audioSource === 'microphone' && audioStream) {
-                    tracks.push(...audioStream.getAudioTracks());
-                }
-
-                recordingStream = new MediaStream(tracks);
+                recordingStream = displayStream;
 
                 // Show preview
                 const preview = document.getElementById('recorderPreview');
                 preview.srcObject = recordingStream;
                 document.getElementById('recorderPreviewPlaceholder').style.display = 'none';
 
-                // Setup MediaRecorder
+                // Setup MediaRecorder con qualità automatica
                 const options = {
-                    mimeType: 'video/webm;codecs=vp9,opus',
-                    videoBitsPerSecond: quality === '1080p' ? 5000000 : quality === '720p' ? 2500000 : 1000000
+                    mimeType: 'video/webm;codecs=vp9,opus'
                 };
 
                 // Fallback to vp8 if vp9 not supported
@@ -5492,8 +6013,6 @@
                 // Update UI
                 document.getElementById('recorderStartBtn').disabled = true;
                 document.getElementById('recorderStartBtn').style.opacity = '0.5';
-                document.getElementById('recorderPauseBtn').disabled = false;
-                document.getElementById('recorderPauseBtn').style.opacity = '1';
                 document.getElementById('recorderStopBtn').disabled = false;
                 document.getElementById('recorderStopBtn').style.opacity = '1';
                 document.getElementById('recorderTimer').style.display = 'block';
@@ -5508,28 +6027,6 @@
                 } else {
                     showError('Errore nell\'avvio della registrazione: ' + err.message);
                 }
-            }
-        }
-
-        function pauseRecording() {
-            if (!mediaRecorder) return;
-
-            if (isPaused) {
-                // Resume
-                mediaRecorder.resume();
-                isPaused = false;
-                document.getElementById('recorderPauseBtn').innerHTML = '<i class="fas fa-pause"></i> Pausa';
-                document.getElementById('recorderStatus').style.background = '#dc3545';
-                document.getElementById('recorderStatus').innerHTML = '<i class="fas fa-circle" style="animation: blink 1s infinite;"></i> REGISTRAZIONE';
-                startTimer();
-            } else {
-                // Pause
-                mediaRecorder.pause();
-                isPaused = true;
-                document.getElementById('recorderPauseBtn').innerHTML = '<i class="fas fa-play"></i> Riprendi';
-                document.getElementById('recorderStatus').style.background = '#ffc107';
-                document.getElementById('recorderStatus').innerHTML = '<i class="fas fa-pause"></i> IN PAUSA';
-                stopTimer();
             }
         }
 
@@ -5555,9 +6052,6 @@
             // Reset UI
             document.getElementById('recorderStartBtn').disabled = false;
             document.getElementById('recorderStartBtn').style.opacity = '1';
-            document.getElementById('recorderPauseBtn').disabled = true;
-            document.getElementById('recorderPauseBtn').style.opacity = '0.5';
-            document.getElementById('recorderPauseBtn').innerHTML = '<i class="fas fa-pause"></i> Pausa';
             document.getElementById('recorderStopBtn').disabled = true;
             document.getElementById('recorderStopBtn').style.opacity = '0.5';
             document.getElementById('recorderTimer').style.display = 'none';
@@ -5566,7 +6060,6 @@
             // Clean up
             mediaRecorder = null;
             recordingStream = null;
-            isPaused = false;
         }
 
         function startTimer() {
@@ -5599,118 +6092,294 @@
             }
         }
 
-        function saveRecording() {
+        async function saveRecording() {
             if (recordedChunks.length === 0) {
                 showWarning('Nessun dato registrato');
                 return;
             }
 
-            // Create blob
-            const blob = new Blob(recordedChunks, { type: 'video/webm' });
-            const url = URL.createObjectURL(blob);
-            const duration = document.getElementById('recorderTimerDisplay').textContent;
-            const timestamp = new Date().toLocaleString('it-IT');
-            const size = (blob.size / (1024 * 1024)).toFixed(2);
+            try {
+                // Create blob
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
 
-            // Save to list
-            const recording = {
-                url: url,
-                blob: blob,
-                duration: duration,
-                timestamp: timestamp,
-                size: size,
-                filename: `screen_recording_${Date.now()}.webm`
-            };
+                // Upload to server
+                const formData = new FormData();
+                formData.append('file', blob, `recording_${Date.now()}.webm`);
 
-            savedRecordings.push(recording);
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch('/api/v1/screen-record/browser-recordings/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
 
-            // Update UI
-            updateRecordingsList();
+                if (!response.ok) {
+                    throw new Error('Errore salvataggio registrazione');
+                }
 
-            // Clear chunks
-            recordedChunks = [];
+                const result = await response.json();
+                showSuccess('Registrazione salvata sul server!');
+
+                // Reload recordings list
+                await loadRecordingsList();
+
+                // Clear chunks
+                recordedChunks = [];
+
+            } catch (error) {
+                console.error('Errore salvataggio:', error);
+                showError('Impossibile salvare la registrazione sul server');
+            }
         }
 
-        function updateRecordingsList() {
-            const list = document.getElementById('recorderVideosList');
+        async function loadRecordingsList() {
+            try {
+                const token = localStorage.getItem('auth_token');
+                if (!token) {
+                    // User not logged in, show empty list
+                    updateRecordingsListUI([]);
+                    return;
+                }
 
-            if (savedRecordings.length === 0) {
+                const response = await fetch('/api/v1/screen-record/browser-recordings', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Errore caricamento registrazioni');
+                }
+
+                const data = await response.json();
+                savedRecordings = data.recordings || [];
+                updateRecordingsListUI(savedRecordings);
+
+            } catch (error) {
+                console.error('Errore caricamento registrazioni:', error);
+                updateRecordingsListUI([]);
+            }
+        }
+
+        function formatDuration(seconds) {
+            if (!seconds || seconds <= 0) return '--:--';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updateRecordingsListUI(recordings) {
+            const list = document.getElementById('recorderVideosList');
+            const deleteAllBtn = document.getElementById('deleteAllRecordingsBtn');
+
+            if (recordings.length === 0) {
                 list.innerHTML = `
-                    <div style="text-align: center; padding: 40px 20px; color: #999;">
-                        <i class="fas fa-inbox" style="font-size: 2rem; opacity: 0.3; margin-bottom: 10px;"></i>
-                        <p style="margin: 0;">Nessuna registrazione salvata</p>
+                    <div style="text-align: center; padding: 60px 20px; color: #666;">
+                        <i class="fas fa-inbox" style="font-size: 3rem; opacity: 0.4; margin-bottom: 15px; color: #1565c0;"></i>
+                        <p style="margin: 0; font-size: 1rem; color: #1565c0; font-weight: 500;">Nessuna registrazione salvata</p>
                     </div>
                 `;
+                deleteAllBtn.style.display = 'none';
                 return;
             }
 
-            list.innerHTML = savedRecordings.map((rec, index) => `
-                <div style="background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #e0e0e0;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <div>
-                            <div style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;">
-                                <i class="fas fa-video"></i> Registrazione #${savedRecordings.length - index}
-                            </div>
-                            <div style="font-size: 0.85rem; color: #666;">
-                                <i class="far fa-clock"></i> ${rec.timestamp}
+            // Show delete all button
+            deleteAllBtn.style.display = 'block';
+
+            list.innerHTML = recordings.map((rec, index) => {
+                const sizeMB = (rec.size / (1024 * 1024)).toFixed(2);
+                const timestamp = new Date(rec.created_at).toLocaleString('it-IT');
+                const duration = formatDuration(rec.duration);
+
+                return `
+                    <div style="background: white; padding: 15px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #e0e0e0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.3s ease;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <div>
+                                <div style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;">
+                                    <i class="fas fa-video"></i> Registrazione ${recordings.length - index}
+                                </div>
+                                <div style="font-size: 0.85rem; color: #666;">
+                                    <i class="far fa-clock"></i> ${timestamp}
+                                </div>
                             </div>
                         </div>
+                        <div style="display: flex; gap: 10px; font-size: 0.85rem; color: #666; margin-bottom: 10px;">
+                            <span><i class="fas fa-hdd"></i> ${sizeMB} MB</span>
+                            <span><i class="fas fa-stopwatch"></i> ${duration}</span>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick="playRecording('${rec.filename}')" style="flex: 1; background: #667eea; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.2s ease;">
+                                <i class="fas fa-play"></i> Play
+                            </button>
+                            <button onclick="stopRecordingPlayback()" style="flex: 1; background: #ff9800; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.2s ease;">
+                                <i class="fas fa-stop"></i> Stop
+                            </button>
+                            <button onclick="downloadRecording('${rec.filename}')" style="flex: 1; background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.2s ease;">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button onclick="deleteRecording('${rec.filename}')" style="background: #dc3545; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.2s ease;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div style="display: flex; gap: 10px; font-size: 0.85rem; color: #666; margin-bottom: 10px;">
-                        <span><i class="fas fa-stopwatch"></i> ${rec.duration}</span>
-                        <span><i class="fas fa-hdd"></i> ${rec.size} MB</span>
-                    </div>
-                    <div style="display: flex; gap: 10px;">
-                        <button onclick="playRecording(${index})" style="flex: 1; background: #667eea; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
-                            <i class="fas fa-play"></i> Play
-                        </button>
-                        <button onclick="downloadRecording(${index})" style="flex: 1; background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
-                            <i class="fas fa-download"></i> Download
-                        </button>
-                        <button onclick="deleteRecording(${index})" style="background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
-        function playRecording(index) {
-            const recording = savedRecordings[index];
+        async function playRecording(filename) {
             const preview = document.getElementById('recorderPreview');
+            const token = localStorage.getItem('auth_token');
 
-            preview.srcObject = null;
-            preview.src = recording.url;
-            preview.controls = true;
-            preview.muted = false;
-            preview.play();
-            document.getElementById('recorderPreviewPlaceholder').style.display = 'none';
+            try {
+                // Fetch con autenticazione
+                const response = await fetch(`/api/v1/screen-record/browser-recordings/${filename}/stream`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Impossibile caricare video');
+                }
+
+                // Crea blob URL
+                const blob = await response.blob();
+                const blobUrl = URL.createObjectURL(blob);
+
+                // Rilascia vecchio blob URL se esiste
+                if (preview.src && preview.src.startsWith('blob:')) {
+                    URL.revokeObjectURL(preview.src);
+                }
+
+                preview.srcObject = null;
+                preview.src = blobUrl;
+                preview.controls = true;
+                preview.muted = false;
+                preview.play();
+                document.getElementById('recorderPreviewPlaceholder').style.display = 'none';
+            } catch (error) {
+                console.error('Errore caricamento video:', error);
+                showError('Impossibile riprodurre la registrazione');
+            }
         }
 
-        function downloadRecording(index) {
-            const recording = savedRecordings[index];
-            const a = document.createElement('a');
-            a.href = recording.url;
-            a.download = recording.filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+        function stopRecordingPlayback() {
+            const preview = document.getElementById('recorderPreview');
+            preview.pause();
+
+            // Rilascia blob URL se esiste
+            if (preview.src && preview.src.startsWith('blob:')) {
+                URL.revokeObjectURL(preview.src);
+            }
+
+            preview.src = '';
+            preview.controls = false;
+            document.getElementById('recorderPreviewPlaceholder').style.display = 'flex';
         }
 
-        function deleteRecording(index) {
+        async function downloadRecording(filename) {
+            const token = localStorage.getItem('auth_token');
+
+            try {
+                // Fetch con autenticazione
+                const response = await fetch(`/api/v1/screen-record/browser-recordings/${filename}/stream`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Impossibile scaricare video');
+                }
+
+                // Crea blob e scarica
+                const blob = await response.blob();
+                const blobUrl = URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                // Rilascia blob URL dopo un po'
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+            } catch (error) {
+                console.error('Errore download:', error);
+                showError('Impossibile scaricare la registrazione');
+            }
+        }
+
+        async function deleteRecording(filename) {
             showConfirm(
                 'Sei sicuro di voler eliminare questa registrazione?',
-                () => {
-                    URL.revokeObjectURL(savedRecordings[index].url);
-                    savedRecordings.splice(index, 1);
-                    updateRecordingsList();
+                async () => {
+                    try {
+                        const token = localStorage.getItem('auth_token');
+                        const response = await fetch(`/api/v1/screen-record/browser-recordings/${filename}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
 
-                    // Reset preview if it was playing this recording
-                    const preview = document.getElementById('recorderPreview');
-                    if (preview.src && !preview.srcObject) {
-                        preview.src = '';
-                        preview.controls = false;
-                        document.getElementById('recorderPreviewPlaceholder').style.display = 'flex';
+                        if (!response.ok) {
+                            throw new Error('Errore eliminazione registrazione');
+                        }
+
+                        showSuccess('Registrazione eliminata');
+
+                        // Reset preview if playing this file
+                        const preview = document.getElementById('recorderPreview');
+                        if (preview.src && preview.src.includes(filename)) {
+                            stopRecordingPlayback();
+                        }
+
+                        // Reload list
+                        await loadRecordingsList();
+
+                    } catch (error) {
+                        console.error('Errore eliminazione:', error);
+                        showError('Impossibile eliminare la registrazione');
+                    }
+                }
+            );
+        }
+
+        async function deleteAllRecordings() {
+            if (savedRecordings.length === 0) return;
+
+            showConfirm(
+                `Sei sicuro di voler eliminare tutte le ${savedRecordings.length} registrazioni?`,
+                async () => {
+                    try {
+                        const token = localStorage.getItem('auth_token');
+                        const response = await fetch('/api/v1/screen-record/browser-recordings', {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Errore eliminazione registrazioni');
+                        }
+
+                        const result = await response.json();
+                        showSuccess(result.message);
+
+                        // Reset preview
+                        stopRecordingPlayback();
+
+                        // Reload list
+                        await loadRecordingsList();
+
+                    } catch (error) {
+                        console.error('Errore eliminazione:', error);
+                        showError('Impossibile eliminare le registrazioni');
                     }
                 }
             );
@@ -6733,7 +7402,7 @@
          * @param {Function} onConfirm - Callback per conferma (opzionale)
          * @param {Function} onCancel - Callback per annulla (opzionale)
          */
-        function showModal(type, title, message, onConfirm = null, onCancel = null) {
+        function showModal(type, title, message, onConfirm = null, onCancel = null, customFooter = null) {
             const overlay = document.getElementById('modal-overlay');
             const header = document.getElementById('modal-header');
             const icon = document.getElementById('modal-icon');
@@ -6762,7 +7431,10 @@
             // Set buttons
             footer.innerHTML = '';
 
-            if (type === 'confirm') {
+            // Se c'è un footer personalizzato, usalo
+            if (customFooter) {
+                footer.innerHTML = customFooter;
+            } else if (type === 'confirm') {
                 // Confirm modal: due button (Annulla + Conferma)
                 const cancelBtn = document.createElement('button');
                 cancelBtn.className = 'modal-btn modal-btn-secondary';
@@ -7569,11 +8241,819 @@
             // Setup drag & drop
             setupDragAndDrop();
 
+            // Carica lista registrazioni browser salvate
+            await loadRecordingsList();
+
             // Se non c'è tab salvato, mostra dashboard
             if (!userSettings.ui_state?.current_tab) {
                 showPrimaryTab('dashboard');
             }
         });
+
+        // ==================== SCHEDULED RECORDING ====================
+
+        // Switch tra Quick e Scheduled mode
+        function switchRecordMode(mode) {
+            const quickBtn = document.getElementById('quickRecordModeBtn');
+            const scheduledBtn = document.getElementById('scheduledRecordModeBtn');
+            const quickSection = document.getElementById('quickRecordSection');
+            const scheduledSection = document.getElementById('scheduledRecordSection');
+
+            if (mode === 'quick') {
+                quickBtn.style.background = 'linear-gradient(135deg, #28a745 0%, #20923d 100%)';
+                quickBtn.style.color = 'white';
+                quickBtn.style.boxShadow = '0 4px 15px rgba(40,167,69,0.3)';
+
+                scheduledBtn.style.background = '#e0e0e0';
+                scheduledBtn.style.color = '#666';
+                scheduledBtn.style.boxShadow = 'none';
+
+                quickSection.style.display = 'grid';
+                scheduledSection.style.display = 'none';
+            } else {
+                scheduledBtn.style.background = 'linear-gradient(135deg, #007bff 0%, #0056b3 100%)';
+                scheduledBtn.style.color = 'white';
+                scheduledBtn.style.boxShadow = '0 4px 15px rgba(0,123,255,0.3)';
+
+                quickBtn.style.background = '#e0e0e0';
+                quickBtn.style.color = '#666';
+                quickBtn.style.boxShadow = 'none';
+
+                quickSection.style.display = 'none';
+                scheduledSection.style.display = 'block';
+
+                // Carica job schedulati e monitor disponibili (solo se autenticato)
+                const token = localStorage.getItem('auth_token');
+                if (token) {
+                    refreshScheduledJobs();
+                    loadAvailableMonitors();
+                } else {
+                    console.warn('[Tab] Utente non autenticato, skip caricamento dati');
+                }
+            }
+        }
+
+        // Toggle opzioni cattura personalizzata nella registrazione programmata
+        function toggleScheduledCaptureOptions() {
+            const mode = document.getElementById('scheduledCaptureMode').value;
+            const customOptions = document.getElementById('scheduledCustomOptions');
+
+            if (mode === 'custom') {
+                customOptions.style.display = 'block';
+            } else {
+                customOptions.style.display = 'none';
+            }
+        }
+
+        // Toggle input area personalizzata nella registrazione programmata
+        function toggleScheduledAreaInputs() {
+            const useCustomArea = document.getElementById('scheduledUseCustomArea').checked;
+            const areaInputs = document.getElementById('scheduledAreaInputs');
+
+            if (useCustomArea) {
+                areaInputs.style.display = 'block';
+            } else {
+                areaInputs.style.display = 'none';
+            }
+        }
+
+        // Aggiorna riepilogo configurazione registrazione programmata
+        function updateScheduledRecordingSummary() {
+            // Data e ora
+            const date = document.getElementById('scheduledDate').value;
+            const time = document.getElementById('scheduledTime').value;
+            const summaryTime = document.getElementById('summaryScheduledTime');
+            if (date && time) {
+                const dt = new Date(`${date}T${time}`);
+                summaryTime.textContent = dt.toLocaleString('it-IT', {
+                    dateStyle: 'short',
+                    timeStyle: 'short'
+                });
+            } else {
+                summaryTime.textContent = 'Non impostato';
+            }
+
+            // Durata
+            const hours = parseInt(document.getElementById('scheduledHours').value) || 0;
+            const minutes = parseInt(document.getElementById('scheduledMinutes').value) || 0;
+            document.getElementById('summaryDuration').textContent = `${hours}h ${minutes}m`;
+
+            // Monitor
+            const monitorSelect = document.getElementById('scheduledMonitor');
+            document.getElementById('summaryMonitor').textContent = monitorSelect.options[monitorSelect.selectedIndex].text;
+
+            // Modalità
+            const modeSelect = document.getElementById('scheduledCaptureMode');
+            document.getElementById('summaryMode').textContent = modeSelect.options[modeSelect.selectedIndex].text;
+
+            // Area
+            const mode = modeSelect.value;
+            if (mode === 'custom') {
+                const x = document.getElementById('scheduledAreaX').value || 0;
+                const y = document.getElementById('scheduledAreaY').value || 0;
+                const w = document.getElementById('scheduledAreaWidth').value || 0;
+                const h = document.getElementById('scheduledAreaHeight').value || 0;
+                document.getElementById('summaryArea').textContent = `X:${x}, Y:${y}, ${w}x${h}px`;
+            } else {
+                document.getElementById('summaryArea').textContent = '-';
+            }
+
+            // Qualità
+            const qualitySelect = document.getElementById('scheduledQuality');
+            document.getElementById('summaryQuality').textContent = qualitySelect.options[qualitySelect.selectedIndex].text;
+
+            // FPS
+            document.getElementById('summaryFPS').textContent = document.getElementById('scheduledFPS').value;
+
+            // Audio
+            const systemAudio = document.getElementById('scheduledRecordSystemAudio').checked;
+            const micAudio = document.getElementById('scheduledRecordMicAudio').checked;
+            let audioText = '';
+            if (systemAudio && micAudio) audioText = 'Sistema + Microfono';
+            else if (systemAudio) audioText = 'Sistema';
+            else if (micAudio) audioText = 'Microfono';
+            else audioText = 'Nessuno';
+            document.getElementById('summaryAudio').textContent = audioText;
+        }
+
+        // Aggiungi event listeners per aggiornare il riepilogo
+        document.addEventListener('DOMContentLoaded', () => {
+            const updateTriggers = [
+                'scheduledDate', 'scheduledTime', 'scheduledHours', 'scheduledMinutes',
+                'scheduledMonitor', 'scheduledCaptureMode', 'scheduledAreaX', 'scheduledAreaY',
+                'scheduledAreaWidth', 'scheduledAreaHeight', 'scheduledQuality', 'scheduledFPS',
+                'scheduledRecordSystemAudio', 'scheduledRecordMicAudio'
+            ];
+
+            updateTriggers.forEach(id => {
+                const elem = document.getElementById(id);
+                if (elem) {
+                    elem.addEventListener('change', updateScheduledRecordingSummary);
+                    elem.addEventListener('input', updateScheduledRecordingSummary);
+                }
+            });
+
+            // Aggiorna subito al caricamento
+            updateScheduledRecordingSummary();
+        });
+
+        // Programma nuova registrazione
+        async function scheduleRecording() {
+            // Controlla autenticazione
+            if (!await checkAuthentication()) return;
+
+            const date = document.getElementById('scheduledDate').value;
+            const time = document.getElementById('scheduledTime').value;
+            const hours = parseInt(document.getElementById('scheduledHours').value) || 0;
+            const minutes = parseInt(document.getElementById('scheduledMinutes').value) || 0;
+            const quality = document.getElementById('scheduledQuality').value;
+            const fps = parseInt(document.getElementById('scheduledFPS').value);
+            const outputName = document.getElementById('scheduledOutputName').value;
+            const recordSystemAudio = document.getElementById('scheduledRecordSystemAudio').checked;
+            const recordMicAudio = document.getElementById('scheduledRecordMicAudio').checked;
+
+            // Leggi modalità cattura
+            const captureMode = document.getElementById('scheduledCaptureMode').value;
+
+            // Validazioni
+            if (!date || !time) {
+                showModal('Errore', 'Seleziona data e ora di avvio', 'error');
+                return;
+            }
+
+            const durationSeconds = (hours * 3600) + (minutes * 60);
+            if (durationSeconds < 10) {
+                showModal('Errore', 'La durata minima è 10 secondi (almeno 1 minuto)', 'error');
+                return;
+            }
+
+            if (durationSeconds > 28800) {
+                showModal('Errore', 'La durata massima è 8 ore', 'error');
+                return;
+            }
+
+            // Combina data e ora per creare datetime locale
+            const dateTime = `${date}T${time}`;
+
+            // Converti data locale a UTC ISO
+            const scheduledTime = new Date(dateTime).toISOString();
+
+            // Verifica che sia nel futuro
+            if (new Date(scheduledTime) <= new Date()) {
+                showModal('Errore', 'L\'orario deve essere nel futuro', 'error');
+                return;
+            }
+
+            // Determina se registrare audio (almeno una sorgente deve essere selezionata)
+            const recordAudio = recordSystemAudio || recordMicAudio;
+
+            // Prepara payload base
+            const payload = {
+                scheduled_time: scheduledTime,
+                duration_seconds: durationSeconds,
+                output_name: outputName,
+                mode: captureMode === 'custom' ? 'custom' : 'fullscreen',
+                fps: fps,
+                quality: quality,
+                record_audio: recordAudio
+            };
+
+            // Se modalità personalizzata, aggiungi parametri monitor e area
+            if (captureMode === 'custom') {
+                const monitorIndex = parseInt(document.getElementById('scheduledMonitor').value);
+                payload.monitor_index = monitorIndex;
+
+                // Se area personalizzata è attiva, aggiungi coordinate
+                const useCustomArea = document.getElementById('scheduledUseCustomArea').checked;
+                if (useCustomArea) {
+                    payload.area_x = parseInt(document.getElementById('scheduledAreaX').value) || 0;
+                    payload.area_y = parseInt(document.getElementById('scheduledAreaY').value) || 0;
+                    payload.area_width = parseInt(document.getElementById('scheduledAreaWidth').value) || 1920;
+                    payload.area_height = parseInt(document.getElementById('scheduledAreaHeight').value) || 1080;
+                }
+            }
+
+            try {
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch('/api/v1/screen-record/schedule', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showModal('Successo', `Registrazione programmata per ${new Date(scheduledTime).toLocaleString('it-IT')}`, 'success');
+
+                    // Reset form
+                    document.getElementById('scheduledDate').value = '';
+                    document.getElementById('scheduledTime').value = '';
+                    document.getElementById('scheduledHours').value = '0';
+                    document.getElementById('scheduledMinutes').value = '30';
+
+                    // Refresh lista
+                    refreshScheduledJobs();
+                } else {
+                    showModal('Errore', data.detail || 'Errore nella programmazione', 'error');
+                }
+            } catch (error) {
+                console.error('Errore:', error);
+                showModal('Errore', 'Errore di connessione al server', 'error');
+            }
+        }
+
+        // Aggiorna lista job schedulati
+        async function refreshScheduledJobs() {
+            const container = document.getElementById('scheduledJobsList');
+
+            try {
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch('/api/v1/screen-record/scheduled', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Errore nel caricamento');
+                }
+
+                const jobs = await response.json();
+
+                if (jobs.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 60px 20px; color: #999;">
+                            <i class="fas fa-calendar-times" style="font-size: 3rem; opacity: 0.2; margin-bottom: 15px;"></i>
+                            <p style="margin: 0; font-size: 1.1rem;">Nessuna registrazione programmata</p>
+                            <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #bbb;">Crea la tua prima registrazione schedulata</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = jobs.map(job => {
+                    const scheduledDate = new Date(job.scheduled_time);
+                    const timeUntil = job.time_until_start;
+                    const statusColor = {
+                        'scheduled': '#007bff',
+                        'running': '#ffc107',
+                        'completed': '#28a745',
+                        'failed': '#dc3545',
+                        'cancelled': '#6c757d'
+                    }[job.status] || '#999';
+
+                    const statusIcon = {
+                        'scheduled': 'fa-clock',
+                        'running': 'fa-circle-notch fa-spin',
+                        'completed': 'fa-check-circle',
+                        'failed': 'fa-times-circle',
+                        'cancelled': 'fa-ban'
+                    }[job.status] || 'fa-question';
+
+                    const statusLabel = {
+                        'scheduled': 'Programmato',
+                        'running': 'In Esecuzione',
+                        'completed': 'Completato',
+                        'failed': 'Fallito',
+                        'cancelled': 'Cancellato'
+                    }[job.status] || job.status;
+
+                    let timeInfo = '';
+                    if (job.status === 'scheduled') {
+                        const hours = Math.floor(timeUntil / 3600);
+                        const minutes = Math.floor((timeUntil % 3600) / 60);
+                        if (hours > 0) {
+                            timeInfo = `Parte tra ${hours}h ${minutes}m`;
+                        } else if (minutes > 0) {
+                            timeInfo = `Parte tra ${minutes} minuti`;
+                        } else {
+                            timeInfo = 'Parte a breve...';
+                        }
+                    }
+
+                    const durationHours = Math.floor(job.duration_seconds / 3600);
+                    const durationMins = Math.floor((job.duration_seconds % 3600) / 60);
+                    const durationText = durationHours > 0 ? `${durationHours}h ${durationMins}m` : `${durationMins}m`;
+
+                    return `
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 15px; border-left: 4px solid ${statusColor};">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                                <div style="flex: 1;">
+                                    <div style="font-size: 1.1rem; font-weight: 700; color: #2c3e50; margin-bottom: 5px;">
+                                        ${scheduledDate.toLocaleString('it-IT')}
+                                    </div>
+                                    <div style="color: #666; font-size: 0.9rem;">
+                                        <i class="fas fa-hourglass-half"></i> Durata: ${durationText} •
+                                        <i class="fas fa-desktop"></i> Schermo Intero •
+                                        <i class="fas fa-hd-video"></i> ${job.parameters.quality}
+                                    </div>
+                                    ${timeInfo ? `<div style="color: #007bff; font-weight: 600; margin-top: 8px; font-size: 0.95rem;"><i class="fas fa-info-circle"></i> ${timeInfo}</div>` : ''}
+                                    ${job.output_path ? `<div style="color: #28a745; margin-top: 8px; font-size: 0.9rem;"><i class="fas fa-check"></i> ${job.output_path}</div>` : ''}
+                                    ${job.error_message ? `<div style="color: #dc3545; margin-top: 8px; font-size: 0.9rem;"><i class="fas fa-exclamation-triangle"></i> ${job.error_message}</div>` : ''}
+                                </div>
+                                <div style="text-align: right; min-width: 140px;">
+                                    <div style="display: inline-block; padding: 6px 14px; background: ${statusColor}; color: white; border-radius: 20px; font-size: 0.85rem; font-weight: 600; margin-bottom: 10px;">
+                                        <i class="fas ${statusIcon}"></i> ${statusLabel}
+                                    </div>
+                                    ${job.status === 'scheduled' ? `
+                                        <button onclick="cancelScheduledJob('${job.id}')" style="display: block; width: 100%; padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; margin-top: 8px; font-weight: 600;">
+                                            <i class="fas fa-ban"></i> Cancella
+                                        </button>
+                                    ` : ''}
+                                    <button onclick="deleteScheduledJob('${job.id}')" style="display: block; width: 100%; padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; margin-top: 8px; font-weight: 600;">
+                                        <i class="fas fa-trash"></i> Elimina
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (error) {
+                console.error('Errore:', error);
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; color: #dc3545;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p style="margin: 0;">Errore nel caricamento dei job</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Cancella job schedulato
+        async function cancelScheduledJob(jobId) {
+            if (!confirm('Vuoi cancellare questa registrazione programmata?')) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch(`/api/v1/screen-record/scheduled/${jobId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    showModal('Successo', 'Registrazione cancellata', 'success');
+                    refreshScheduledJobs();
+                } else {
+                    const data = await response.json();
+                    showModal('Errore', data.detail || 'Errore nella cancellazione', 'error');
+                }
+            } catch (error) {
+                console.error('Errore:', error);
+                showModal('Errore', 'Errore di connessione al server', 'error');
+            }
+        }
+
+        // Elimina una registrazione programmata (anche se completata/fallita)
+        async function deleteScheduledJob(jobId) {
+            if (!confirm('Vuoi eliminare definitivamente questa registrazione dalla lista?')) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('auth_token');
+                // Usa endpoint dedicato per eliminazione (da creare nel backend)
+                const response = await fetch(`/api/v1/screen-record/scheduled/${jobId}/delete`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    showModal('Successo', 'Registrazione eliminata', 'success');
+                    refreshScheduledJobs();
+                } else {
+                    const data = await response.json();
+                    showModal('Errore', data.detail || 'Errore nell\'eliminazione', 'error');
+                }
+            } catch (error) {
+                console.error('Errore:', error);
+                showModal('Errore', 'Errore di connessione al server', 'error');
+            }
+        }
+
+        // Elimina tutte le registrazioni programmate
+        async function deleteAllScheduledJobs() {
+            if (!confirm('Vuoi eliminare TUTTE le registrazioni programmate? Questa azione non può essere annullata!')) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch('/api/v1/screen-record/scheduled/delete-all', {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showModal('Successo', `${data.count || 0} registrazioni eliminate`, 'success');
+                    refreshScheduledJobs();
+                } else {
+                    const data = await response.json();
+                    showModal('Errore', data.detail || 'Errore nell\'eliminazione', 'error');
+                }
+            } catch (error) {
+                console.error('Errore:', error);
+                showModal('Errore', 'Errore di connessione al server', 'error');
+            }
+        }
+
+        // Avvia registrazione immediata (con controllo registrazioni programmate)
+        async function startImmediateRecording() {
+            // Controlla autenticazione
+            if (!await checkAuthentication()) return;
+
+            // Prima controlla se ci sono registrazioni programmate attive (scheduled o running)
+            try {
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch('/api/v1/screen-record/scheduled', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const jobs = await response.json();
+                    const activeJobs = jobs.filter(job => job.status === 'scheduled' || job.status === 'running');
+
+                    if (activeJobs.length > 0) {
+                        // Mostra modale con lista registrazioni programmate
+                        await showScheduledJobsWarning(activeJobs);
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.error('Errore controllo job schedulati:', error);
+            }
+
+            // Se non ci sono registrazioni programmate attive, procedi
+            await executeImmediateRecording();
+        }
+
+        // Mostra avviso registrazioni programmate
+        async function showScheduledJobsWarning(jobs) {
+            const jobsHTML = jobs.map(job => {
+                const scheduledDate = new Date(job.scheduled_time);
+                const statusText = {
+                    'scheduled': 'Programmata',
+                    'running': 'In Corso'
+                }[job.status] || job.status;
+
+                return `
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #ff9800;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 600; color: #333; margin-bottom: 5px;">
+                                    <i class="fas fa-clock"></i> ${scheduledDate.toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' })}
+                                </div>
+                                <div style="font-size: 0.9rem; color: #666;">
+                                    <span style="background: #ff9800; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">${statusText}</span>
+                                    Durata: ${Math.floor(job.duration_seconds / 60)} min
+                                </div>
+                            </div>
+                            <button onclick="deleteScheduledJobAndContinue('${job.id}')" style="padding: 8px 12px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">
+                                <i class="fas fa-trash"></i> Elimina
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const modalBody = `
+                <div style="margin-bottom: 20px;">
+                    <p style="color: #666; margin-bottom: 15px;">
+                        <i class="fas fa-exclamation-triangle" style="color: #ff9800;"></i>
+                        Hai <strong>${jobs.length}</strong> registrazione/i già programmate.
+                        Vuoi procedere comunque o eliminare le registrazioni programmate?
+                    </p>
+                    <div style="max-height: 300px; overflow-y: auto;">
+                        ${jobsHTML}
+                    </div>
+                </div>
+            `;
+
+            const modalFooter = `
+                <button onclick="executeImmediateRecording(); hideModal();" style="padding: 12px 24px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; margin-right: 10px;">
+                    <i class="fas fa-play-circle"></i> Avvia Comunque
+                </button>
+                <button onclick="deleteAllAndStartRecording()" style="padding: 12px 24px; background: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; margin-right: 10px;">
+                    <i class="fas fa-trash-alt"></i> Elimina Tutte e Avvia
+                </button>
+                <button onclick="hideModal()" style="padding: 12px 24px; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    Annulla
+                </button>
+            `;
+
+            showModal('Registrazioni Programmate Attive', modalBody, 'warning', modalFooter);
+        }
+
+        // Elimina singola registrazione e continua
+        async function deleteScheduledJobAndContinue(jobId) {
+            try {
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch(`/api/v1/screen-record/scheduled/${jobId}/delete`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    // Ricarica lista job per aggiornare il modale
+                    const listResponse = await fetch('/api/v1/screen-record/scheduled', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (listResponse.ok) {
+                        const jobs = await listResponse.json();
+                        const activeJobs = jobs.filter(job => job.status === 'scheduled' || job.status === 'running');
+
+                        if (activeJobs.length === 0) {
+                            // Non ci sono più job attivi, procedi con registrazione
+                            hideModal();
+                            await executeImmediateRecording();
+                        } else {
+                            // Aggiorna modale con nuova lista
+                            await showScheduledJobsWarning(activeJobs);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Errore eliminazione job:', error);
+            }
+        }
+
+        // Elimina tutte le registrazioni programmate e avvia registrazione
+        async function deleteAllAndStartRecording() {
+            try {
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch('/api/v1/screen-record/scheduled/delete-all', {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    hideModal();
+                    refreshScheduledJobs();
+                    await executeImmediateRecording();
+                }
+            } catch (error) {
+                console.error('Errore eliminazione job:', error);
+                showModal('Errore', 'Errore nell\'eliminazione delle registrazioni', 'error');
+            }
+        }
+
+        // Esegue effettivamente la registrazione immediata
+        async function executeImmediateRecording() {
+            // Raccogli parametri dal form
+            const hours = parseInt(document.getElementById('scheduledHours').value) || 0;
+            const minutes = parseInt(document.getElementById('scheduledMinutes').value) || 0;
+            const quality = document.getElementById('scheduledQuality').value;
+            const fps = parseInt(document.getElementById('scheduledFPS').value);
+            const outputName = document.getElementById('scheduledOutputName').value || 'immediate_recording.mp4';
+            const recordSystemAudio = document.getElementById('scheduledRecordSystemAudio').checked;
+            const recordMicAudio = document.getElementById('scheduledRecordMicAudio').checked;
+            const captureMode = document.getElementById('scheduledCaptureMode').value;
+
+            // Validazioni
+            const durationSeconds = (hours * 3600) + (minutes * 60);
+            if (durationSeconds < 10) {
+                showModal('Errore', 'La durata minima è 10 secondi (almeno 1 minuto)', 'error');
+                return;
+            }
+
+            if (durationSeconds > 28800) {
+                showModal('Errore', 'La durata massima è 8 ore', 'error');
+                return;
+            }
+
+            const recordAudio = recordSystemAudio || recordMicAudio;
+
+            // Prepara payload
+            const payload = {
+                output_name: outputName,
+                mode: captureMode === 'custom' ? 'custom' : 'fullscreen',
+                duration_seconds: durationSeconds,
+                fps: fps,
+                quality: quality,
+                record_audio: recordAudio
+            };
+
+            // Se modalità personalizzata, aggiungi parametri
+            if (captureMode === 'custom') {
+                const monitorIndex = parseInt(document.getElementById('scheduledMonitor').value);
+                payload.monitor_index = monitorIndex;
+
+                const useCustomArea = document.getElementById('scheduledUseCustomArea').checked;
+                if (useCustomArea) {
+                    payload.area_x = parseInt(document.getElementById('scheduledAreaX').value) || 0;
+                    payload.area_y = parseInt(document.getElementById('scheduledAreaY').value) || 0;
+                    payload.area_width = parseInt(document.getElementById('scheduledAreaWidth').value) || 1920;
+                    payload.area_height = parseInt(document.getElementById('scheduledAreaHeight').value) || 1080;
+                }
+            }
+
+            try {
+                const token = localStorage.getItem('auth_token');
+
+                showModal('Avvio Registrazione', 'Avvio registrazione immediata in corso...', 'info');
+
+                const response = await fetch('/api/v1/screen-record/record', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    hideModal();
+                    showModal('Successo', `Registrazione avviata! Durata: ${Math.floor(durationSeconds / 60)} minuti`, 'success');
+                } else {
+                    showModal('Errore', data.detail || 'Errore nell\'avvio della registrazione', 'error');
+                }
+            } catch (error) {
+                console.error('Errore:', error);
+                showModal('Errore', 'Errore di connessione al server', 'error');
+            }
+        }
+
+        // Carica monitor disponibili dal backend
+        async function loadAvailableMonitors() {
+            console.log('[Monitor] Inizio caricamento monitor...');
+
+            try {
+                const token = localStorage.getItem('auth_token');
+                if (!token) {
+                    console.warn('[Monitor] Nessun token trovato');
+                    return;
+                }
+
+                console.log('[Monitor] Chiamata API /monitors...');
+                const response = await fetch('/api/v1/screen-record/monitors', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                console.log('[Monitor] Response status:', response.status);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('[Monitor] Errore risposta:', response.status, errorText);
+                    return;
+                }
+
+                const data = await response.json();
+                console.log('[Monitor] Dati ricevuti:', data);
+                const monitors = data.monitors || [];
+
+                // Ottieni riferimenti a dropdown e sezione
+                const select = document.getElementById('scheduledMonitor');
+                const monitorSection = document.getElementById('monitorSelectionSection');
+
+                if (!select || !monitorSection) {
+                    console.error('[Monitor] Elementi non trovati!');
+                    return;
+                }
+
+                select.innerHTML = ''; // Clear existing options
+
+                // Se 0 monitor (fallback) o 1 solo monitor, nascondi la sezione
+                if (monitors.length === 0) {
+                    console.warn('[Monitor] Nessun monitor rilevato, nascondo sezione');
+                    monitorSection.style.display = 'none';
+                    select.innerHTML = `<option value="0" selected>Monitor Primario</option>`;
+                    return;
+                }
+
+                if (monitors.length === 1) {
+                    console.log('[Monitor] Solo 1 monitor, nascondo sezione');
+                    monitorSection.style.display = 'none';
+                    const monitor = monitors[0];
+                    const displayName = monitor.brand !== 'N/A' && monitor.model !== 'N/A'
+                        ? `${monitor.brand} ${monitor.model}`
+                        : monitor.name;
+                    select.innerHTML = `<option value="0" selected>${displayName}</option>`;
+                    return;
+                }
+
+                // Se 2+ monitor, mostra la sezione
+                console.log('[Monitor] Processo', monitors.length, 'monitor - mostro sezione');
+                monitorSection.style.display = 'block';
+
+                // Raggruppa monitor per nome (per gestire duplicati)
+                const monitorCounts = {};
+                monitors.forEach(monitor => {
+                    const displayName = monitor.brand !== 'N/A' && monitor.model !== 'N/A'
+                        ? `${monitor.brand} ${monitor.model}`
+                        : monitor.name;
+
+                    monitorCounts[displayName] = (monitorCounts[displayName] || 0) + 1;
+                });
+
+                // Crea opzioni con numerazione per duplicati
+                const monitorCounters = {};
+                monitors.forEach((monitor, index) => {
+                    const displayName = monitor.brand !== 'N/A' && monitor.model !== 'N/A'
+                        ? `${monitor.brand} ${monitor.model}`
+                        : monitor.name;
+
+                    let optionText = displayName;
+
+                    // Se ci sono duplicati, aggiungi numerazione
+                    if (monitorCounts[displayName] > 1) {
+                        monitorCounters[displayName] = (monitorCounters[displayName] || 0) + 1;
+                        optionText = `${displayName} (${monitorCounters[displayName]})`;
+                    }
+
+                    console.log('[Monitor] Opzione', index, ':', optionText);
+
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = optionText;
+                    option.selected = index === 0;
+                    select.appendChild(option);
+                });
+
+                console.log('[Monitor] Dropdown popolato!');
+
+                // Aggiorna summary
+                if (typeof updateScheduledRecordingSummary === 'function') {
+                    updateScheduledRecordingSummary();
+                }
+
+            } catch (error) {
+                console.error('[Monitor] Errore:', error);
+            }
+        }
+
+        // Auto-refresh job schedulati ogni 30 secondi se nella tab scheduled
+        setInterval(() => {
+            const scheduledSection = document.getElementById('scheduledRecordSection');
+            if (scheduledSection && scheduledSection.style.display !== 'none') {
+                refreshScheduledJobs();
+            }
+        }, 30000);
     </script>
 
     <!-- ==================== MODAL SYSTEM ==================== -->
@@ -7840,16 +9320,122 @@
             </div>
 
             <!-- Action Buttons -->
-            <div style="display: flex; gap: 15px; justify-content: center; margin-top: 25px;">
-                <button onclick="cancelChromakeyJob()" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; border: none; padding: 12px 30px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.3s; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(231, 76, 60, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(231, 76, 60, 0.3)'">
-                    <i class="fas fa-stop"></i> Interrompi Elaborazione
+            <div style="display: flex; gap: 15px; justify-content: center; margin-top: 25px; flex-wrap: wrap;">
+                <!-- Pulsante Download (mostrato solo quando completato) -->
+                <button id="chromakeyDownloadBtn" onclick="downloadChromakeyResult()" style="display: none; background: linear-gradient(135deg, #00d4aa 0%, #00a884 100%); color: white; border: none; padding: 12px 30px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0, 212, 170, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 212, 170, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 212, 170, 0.3)'">
+                    <i class="fas fa-download"></i> Scarica Video
                 </button>
+
+                <!-- Pulsante Vedi Tutti i File (mostrato solo quando completato) -->
+                <button id="chromakeyViewAllBtn" onclick="goToOutputsPage()" style="display: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 30px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.3s; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.3)'">
+                    <i class="fas fa-folder-open"></i> Vedi Tutti i File
+                </button>
+
                 <button onclick="hideChromakeyProcessingModal()" style="background: rgba(255,255,255,0.1); color: white; border: 2px solid rgba(255,255,255,0.3); padding: 12px 30px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
-                    <i class="fas fa-times"></i> Chiudi (continua in background)
+                    <i class="fas fa-times"></i> Chiudi
                 </button>
             </div>
         </div>
     </div>
+
+    <!-- ==================== MODAL CONFERMA ELIMINAZIONE ==================== -->
+    <div id="confirmDeleteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: #2c3e50; border-radius: 20px; padding: 40px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+            <!-- Header -->
+            <h2 style="color: white; margin: 0 0 20px 0; text-align: center; font-size: 1.6rem;">
+                <i class="fas fa-exclamation-triangle" style="color: #e74c3c;"></i> Conferma Eliminazione
+            </h2>
+
+            <!-- Messaggio -->
+            <p id="confirmDeleteMessage" style="color: rgba(255,255,255,0.9); text-align: center; margin: 30px 0; font-size: 1.1rem; line-height: 1.6;">
+                <!-- Messaggio dinamico -->
+            </p>
+
+            <!-- Pulsanti -->
+            <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px;">
+                <button id="confirmDeleteCancelBtn" onclick="hideConfirmDeleteModal()" style="background: rgba(255,255,255,0.1); color: white; border: 2px solid rgba(255,255,255,0.3); padding: 12px 30px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                    <i class="fas fa-times"></i> Annulla
+                </button>
+
+                <button id="confirmDeleteOkBtn" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; border: none; padding: 12px 30px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.3s; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(231, 76, 60, 0.6)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(231, 76, 60, 0.4)'">
+                    <i class="fas fa-trash"></i> Elimina
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monitor Crosshair Overlay -->
+    <div id="crosshairOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.7); z-index: 10000; cursor: none;">
+        <!-- Mirino a croce -->
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+            <!-- Linea orizzontale -->
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80px; height: 3px; background: linear-gradient(90deg, transparent 0%, #4CAF50 20%, #4CAF50 80%, transparent 100%); box-shadow: 0 0 10px rgba(76, 175, 80, 0.8);"></div>
+            <!-- Linea verticale -->
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 3px; height: 80px; background: linear-gradient(180deg, transparent 0%, #4CAF50 20%, #4CAF50 80%, transparent 100%); box-shadow: 0 0 10px rgba(76, 175, 80, 0.8);"></div>
+
+            <!-- Cerchio esterno -->
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 60px; height: 60px; border: 2px solid #4CAF50; border-radius: 50%; box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);"></div>
+
+            <!-- Cerchio interno -->
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 10px; height: 10px; background: #4CAF50; border-radius: 50%; box-shadow: 0 0 10px rgba(76, 175, 80, 0.9);"></div>
+
+            <!-- Frecce direzionali -->
+            <!-- Freccia su -->
+            <div style="position: absolute; top: -60px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-bottom: 12px solid #4CAF50; opacity: 0.7;"></div>
+            <!-- Freccia giù -->
+            <div style="position: absolute; bottom: -60px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 12px solid #4CAF50; opacity: 0.7;"></div>
+            <!-- Freccia sinistra -->
+            <div style="position: absolute; left: -60px; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-right: 12px solid #4CAF50; opacity: 0.7;"></div>
+            <!-- Freccia destra -->
+            <div style="position: absolute; right: -60px; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 12px solid #4CAF50; opacity: 0.7;"></div>
+        </div>
+
+        <!-- Istruzioni -->
+        <div style="position: absolute; top: 30px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.9); padding: 20px 30px; border-radius: 15px; border: 2px solid #4CAF50; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);">
+            <p style="color: white; margin: 0; font-size: 1.2rem; font-weight: 600; text-align: center;">
+                <i class="fas fa-crosshairs" style="color: #4CAF50; margin-right: 10px;"></i>
+                Questo è il centro del monitor selezionato
+            </p>
+            <p style="color: #ccc; margin: 10px 0 0 0; font-size: 0.95rem; text-align: center;">
+                Premi <kbd style="background: #333; padding: 3px 8px; border-radius: 5px; color: #4CAF50; border: 1px solid #4CAF50;">ESC</kbd> o clicca ovunque per chiudere
+            </p>
+        </div>
+
+        <!-- Info monitor -->
+        <div id="crosshairMonitorInfo" style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.9); padding: 15px 25px; border-radius: 10px; border: 2px solid #2196F3; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);">
+            <p style="color: white; margin: 0; font-size: 1rem; text-align: center;">
+                <i class="fas fa-tv" style="color: #2196F3; margin-right: 8px;"></i>
+                <span id="crosshairMonitorName">Monitor</span>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Mostra mirino al centro del monitor selezionato
+        function showMonitorCrosshair() {
+            const monitorSelect = document.getElementById('scheduledMonitor');
+            const monitorName = monitorSelect.options[monitorSelect.selectedIndex].text;
+
+            // Aggiorna nome monitor nell'overlay
+            document.getElementById('crosshairMonitorName').textContent = monitorName;
+
+            // Mostra overlay
+            const overlay = document.getElementById('crosshairOverlay');
+            overlay.style.display = 'block';
+
+            // Nascondi dopo click o ESC
+            overlay.onclick = () => {
+                overlay.style.display = 'none';
+            };
+
+            document.addEventListener('keydown', function closeOnEsc(e) {
+                if (e.key === 'Escape') {
+                    overlay.style.display = 'none';
+                    document.removeEventListener('keydown', closeOnEsc);
+                }
+            });
+        }
+    </script>
 
 </body>
 </html>

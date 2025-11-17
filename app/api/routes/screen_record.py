@@ -5,10 +5,11 @@ Route per registrazione schermo/finestra/area
 """
 
 from pathlib import Path
-from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from typing import Optional, List
+from datetime import datetime, timezone
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, UploadFile
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.core.database import get_db
 from app.core.security import get_current_user
@@ -16,7 +17,9 @@ from app.core.config import settings
 from app.core.usage_tracker import track_action
 from app.models.user import User
 from app.models.job import Job, JobType, JobStatus
+from app.models.scheduled_job import ScheduledJob, ScheduledJobStatus
 from app.services.screen_record_service import ScreenRecordService, ScreenRecordParams
+from app.services.scheduler_service import scheduler_service
 
 router = APIRouter()
 
@@ -52,6 +55,38 @@ class ScreenRecordResponse(BaseModel):
     output_path: Optional[str] = None
     progress: int = 0
     duration_seconds: Optional[int] = None
+
+
+class ScheduleRecordRequest(BaseModel):
+    """Schema per schedulare registrazione futura"""
+    scheduled_time: datetime = Field(..., description="Quando avviare registrazione (UTC)")
+    duration_seconds: int = Field(..., ge=10, le=28800, description="Durata massima (10s - 8h)")
+
+    # Parametri registrazione (come ScreenRecordRequest)
+    output_name: Optional[str] = "scheduled_recording.mp4"
+    mode: str = "fullscreen"
+    window_title: Optional[str] = None
+    monitor_index: Optional[int] = 0  # Indice monitor (0=primario)
+    area_x: Optional[int] = None
+    area_y: Optional[int] = None
+    area_width: Optional[int] = None
+    area_height: Optional[int] = None
+    fps: int = 30
+    quality: str = "high"
+    record_audio: bool = True
+
+
+class ScheduledJobResponse(BaseModel):
+    """Schema per risposta job schedulato"""
+    id: str
+    scheduled_time: datetime
+    duration_seconds: int
+    status: str
+    time_until_start: int  # Secondi mancanti
+    parameters: dict
+    created_at: datetime
+    output_path: Optional[str] = None
+    error_message: Optional[str] = None
 
 
 # ==================== Helper Functions ====================
@@ -271,6 +306,147 @@ async def get_job_status(
     }
 
 
+@router.get("/monitors")
+async def list_monitors(
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Lista monitor disponibili con marca e modello
+
+    Rileva i monitor connessi al sistema con informazioni su marca/modello.
+    Su macOS usa system_profiler, su Windows WMI, su Linux xrandr.
+
+    Richiede JWT token.
+    """
+    import platform
+    import subprocess
+    import re
+    import json
+
+    system = platform.system()
+    monitors = []
+
+    try:
+        if system == "Darwin":  # macOS
+            # Usa system_profiler per ottenere info monitor
+            result = subprocess.run(
+                ['system_profiler', 'SPDisplaysDataType', '-json'],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+
+            if result.returncode == 0:
+                data = json.loads(result.stdout)
+
+                # Estrai informazioni monitor
+                if 'SPDisplaysDataType' in data:
+                    for gpu in data['SPDisplaysDataType']:
+                        if 'spdisplays_ndrvs' in gpu:
+                            for display in gpu['spdisplays_ndrvs']:
+                                # Nome display (es: "DELL U2720Q")
+                                name = display.get('_name', 'Monitor Sconosciuto')
+
+                                # Risoluzione
+                                resolution = display.get('_spdisplays_resolution', 'N/A')
+
+                                # Tipo connessione
+                                connection = display.get('spdisplays_connection_type', 'N/A')
+
+                                monitors.append({
+                                    'name': name,
+                                    'resolution': resolution,
+                                    'connection': connection,
+                                    'brand': name.split()[0] if ' ' in name else 'N/A',
+                                    'model': ' '.join(name.split()[1:]) if ' ' in name else name
+                                })
+
+        elif system == "Windows":
+            # Usa WMIC per ottenere info monitor
+            result = subprocess.run(
+                ['wmic', 'desktopmonitor', 'get', 'Name,ScreenWidth,ScreenHeight', '/format:list'],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+
+            if result.returncode == 0:
+                # Parsing output WMIC
+                current_monitor = {}
+                for line in result.stdout.split('\n'):
+                    line = line.strip()
+                    if '=' in line:
+                        key, value = line.split('=', 1)
+                        current_monitor[key.strip()] = value.strip()
+                    elif current_monitor:
+                        # Fine blocco, aggiungi monitor
+                        name = current_monitor.get('Name', 'Monitor Sconosciuto')
+                        width = current_monitor.get('ScreenWidth', 'N/A')
+                        height = current_monitor.get('ScreenHeight', 'N/A')
+
+                        monitors.append({
+                            'name': name,
+                            'resolution': f"{width}x{height}" if width != 'N/A' else 'N/A',
+                            'connection': 'N/A',
+                            'brand': name.split()[0] if ' ' in name else 'N/A',
+                            'model': ' '.join(name.split()[1:]) if ' ' in name else name
+                        })
+                        current_monitor = {}
+
+        elif system == "Linux":
+            # Usa xrandr per ottenere info monitor
+            result = subprocess.run(
+                ['xrandr', '--query'],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+
+            if result.returncode == 0:
+                # Parsing output xrandr
+                for line in result.stdout.split('\n'):
+                    if ' connected' in line:
+                        match = re.match(r'^(\S+)\s+connected.*?(\d+x\d+)', line)
+                        if match:
+                            output_name = match.group(1)
+                            resolution = match.group(2)
+
+                            monitors.append({
+                                'name': output_name,
+                                'resolution': resolution,
+                                'connection': 'N/A',
+                                'brand': 'N/A',
+                                'model': output_name
+                            })
+
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Errore rilevamento monitor: {e}")
+
+    # Se non abbiamo rilevato monitor, restituisci monitor di default
+    if not monitors:
+        # Usa pyautogui per ottenere almeno la risoluzione
+        import pyautogui
+        width, height = pyautogui.size()
+        monitors.append({
+            'name': 'Monitor Primario',
+            'resolution': f"{width}x{height}",
+            'connection': 'N/A',
+            'brand': 'N/A',
+            'model': 'Monitor Primario'
+        })
+
+    # Aggiungi indice a ciascun monitor
+    for i, monitor in enumerate(monitors):
+        monitor['index'] = i
+
+    return {
+        'monitors': monitors,
+        'count': len(monitors)
+    }
+
+
 @router.get("/windows")
 async def list_windows(
     current_user: User = Depends(get_current_user)
@@ -303,3 +479,593 @@ async def list_windows(
             "count": 0,
             "message": f"Impossibile listare finestre: {str(e)}"
         }
+
+
+# ==================== Scheduled Recording Routes ====================
+
+def execute_scheduled_recording(scheduled_job_id: str, db_session):
+    """
+    Funzione eseguita da APScheduler quando parte la registrazione programmata
+
+    Args:
+        scheduled_job_id: UUID del ScheduledJob
+        db_session: Sessione database (passata dallo scheduler)
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+
+    try:
+        # Ottieni scheduled job
+        scheduled_job = db_session.query(ScheduledJob).filter(
+            ScheduledJob.id == scheduled_job_id
+        ).first()
+
+        if not scheduled_job:
+            logger.error(f"ScheduledJob {scheduled_job_id} non trovato")
+            return
+
+        # Aggiorna status
+        scheduled_job.status = ScheduledJobStatus.RUNNING
+        scheduled_job.started_at = datetime.utcnow()
+        db_session.commit()
+
+        # Crea parametri registrazione
+        params_dict = scheduled_job.parameters
+        params = ScreenRecordParams(
+            output_path=settings.output_dir / params_dict.get("output_name", "scheduled_recording.mp4"),
+            mode=params_dict.get("mode", "fullscreen"),
+            window_title=params_dict.get("window_title"),
+            monitor_index=params_dict.get("monitor_index", 0),
+            area_x=params_dict.get("area_x"),
+            area_y=params_dict.get("area_y"),
+            area_width=params_dict.get("area_width"),
+            area_height=params_dict.get("area_height"),
+            duration_seconds=scheduled_job.duration_seconds,
+            fps=params_dict.get("fps", 30),
+            quality=params_dict.get("quality", "high"),
+            record_audio=params_dict.get("record_audio", True)
+        )
+
+        # Callback progresso
+        def progress_callback(progress: int, message: str):
+            pass  # Opzionale: aggiorna progresso in DB
+
+        # Esegui registrazione
+        service = ScreenRecordService(settings)
+        result = service.record(params, progress_callback)
+
+        # Aggiorna job
+        scheduled_job.status = ScheduledJobStatus.COMPLETED
+        scheduled_job.completed_at = datetime.utcnow()
+        scheduled_job.output_path = result.get("output_path")
+        db_session.commit()
+
+        logger.info(f"Registrazione schedulata {scheduled_job_id} completata: {result['output_path']}")
+
+    except Exception as e:
+        logger.error(f"Errore registrazione schedulata {scheduled_job_id}: {e}")
+        if scheduled_job:
+            scheduled_job.status = ScheduledJobStatus.FAILED
+            scheduled_job.error_message = str(e)
+            scheduled_job.completed_at = datetime.utcnow()
+            db_session.commit()
+
+
+@router.post("/schedule", response_model=ScheduledJobResponse, status_code=status.HTTP_201_CREATED)
+async def schedule_recording(
+    request: ScheduleRecordRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Programma registrazione schermo per orario futuro
+
+    - **scheduled_time**: Quando avviare (formato ISO 8601 UTC, es: 2025-01-16T14:30:00Z)
+    - **duration_seconds**: Durata massima (10s - 8h)
+    - Parametri registrazione: come /record
+
+    La registrazione partirà automaticamente all'orario specificato.
+    Il server FastAPI DEVE essere in esecuzione a quell'orario.
+
+    Richiede JWT token.
+    """
+    # Valida orario futuro
+    now_utc = datetime.now(timezone.utc)
+    if request.scheduled_time <= now_utc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="scheduled_time deve essere nel futuro"
+        )
+
+    # Valida modalità
+    if request.mode not in ScreenRecordService.MODES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Modalità non valida. Disponibili: {ScreenRecordService.MODES}"
+        )
+
+    # Valida parametri mode-specific
+    if request.mode == "window" and not request.window_title:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Modalità 'window' richiede window_title"
+        )
+
+    if request.mode == "area":
+        if any(p is None for p in [request.area_x, request.area_y, request.area_width, request.area_height]):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Modalità 'area' richiede area_x, area_y, area_width, area_height"
+            )
+
+    if request.mode == "custom":
+        # Custom può avere solo monitor_index o anche area personalizzata
+        if request.area_x is not None:
+            # Se specifica area, tutti i parametri devono essere presenti
+            if any(p is None for p in [request.area_y, request.area_width, request.area_height]):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Modalità 'custom' con area richiede area_x, area_y, area_width, area_height"
+                )
+
+    # Crea ScheduledJob
+    scheduled_job = ScheduledJob(
+        user_id=current_user.id,
+        scheduled_time=request.scheduled_time,
+        duration_seconds=request.duration_seconds,
+        status=ScheduledJobStatus.SCHEDULED,
+        parameters=request.dict(exclude={"scheduled_time", "duration_seconds"})
+    )
+
+    db.add(scheduled_job)
+    db.commit()
+    db.refresh(scheduled_job)
+
+    # Schedula in APScheduler
+    try:
+        scheduler_job_id = scheduler_service.schedule_job(
+            job_id=str(scheduled_job.id),
+            func=execute_scheduled_recording,
+            run_date=request.scheduled_time,
+            scheduled_job_id=str(scheduled_job.id),
+            db_session=db
+        )
+
+        scheduled_job.scheduler_job_id = scheduler_job_id
+        db.commit()
+
+    except Exception as e:
+        # Rollback se scheduling fallisce
+        db.delete(scheduled_job)
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Impossibile schedulare job: {str(e)}"
+        )
+
+    return ScheduledJobResponse(
+        id=str(scheduled_job.id),
+        scheduled_time=scheduled_job.scheduled_time,
+        duration_seconds=scheduled_job.duration_seconds,
+        status=scheduled_job.status.value,
+        time_until_start=scheduled_job.time_until_start,
+        parameters=scheduled_job.parameters,
+        created_at=scheduled_job.created_at,
+        output_path=None,
+        error_message=None
+    )
+
+
+@router.get("/scheduled", response_model=List[ScheduledJobResponse])
+async def list_scheduled_recordings(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Lista tutte le registrazioni programmate dell'utente
+
+    Include sia job in attesa che completati/falliti.
+
+    Richiede JWT token.
+    """
+    jobs = db.query(ScheduledJob).filter(
+        ScheduledJob.user_id == current_user.id
+    ).order_by(ScheduledJob.scheduled_time.desc()).all()
+
+    return [
+        ScheduledJobResponse(
+            id=str(job.id),
+            scheduled_time=job.scheduled_time,
+            duration_seconds=job.duration_seconds,
+            status=job.status.value,
+            time_until_start=job.time_until_start,
+            parameters=job.parameters,
+            created_at=job.created_at,
+            output_path=job.output_path,
+            error_message=job.error_message
+        )
+        for job in jobs
+    ]
+
+
+@router.get("/scheduled/{job_id}", response_model=ScheduledJobResponse)
+async def get_scheduled_recording(
+    job_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Ottieni dettagli registrazione schedulata
+
+    Richiede JWT token.
+    """
+    job = db.query(ScheduledJob).filter(
+        ScheduledJob.id == job_id,
+        ScheduledJob.user_id == current_user.id
+    ).first()
+
+    if not job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job schedulato non trovato"
+        )
+
+    return ScheduledJobResponse(
+        id=str(job.id),
+        scheduled_time=job.scheduled_time,
+        duration_seconds=job.duration_seconds,
+        status=job.status.value,
+        time_until_start=job.time_until_start,
+        parameters=job.parameters,
+        created_at=job.created_at,
+        output_path=job.output_path,
+        error_message=job.error_message
+    )
+
+
+@router.delete("/scheduled/{job_id}")
+async def cancel_scheduled_recording(
+    job_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Cancella registrazione schedulata (solo se non ancora partita)
+
+    Richiede JWT token.
+    """
+    job = db.query(ScheduledJob).filter(
+        ScheduledJob.id == job_id,
+        ScheduledJob.user_id == current_user.id
+    ).first()
+
+    if not job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job schedulato non trovato"
+        )
+
+    if not job.can_cancel:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Impossibile cancellare job in stato {job.status.value}"
+        )
+
+    # Rimuovi da APScheduler
+    if job.scheduler_job_id:
+        scheduler_service.cancel_job(job.scheduler_job_id)
+
+    # Aggiorna status
+    job.status = ScheduledJobStatus.CANCELLED
+    db.commit()
+
+    return {
+        "message": "Registrazione schedulata cancellata",
+        "job_id": str(job.id)
+    }
+
+
+@router.delete("/scheduled/{job_id}/delete")
+async def delete_scheduled_recording(
+    job_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Elimina definitivamente una registrazione schedulata (qualsiasi stato)
+
+    Richiede JWT token.
+    """
+    job = db.query(ScheduledJob).filter(
+        ScheduledJob.id == job_id,
+        ScheduledJob.user_id == current_user.id
+    ).first()
+
+    if not job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job schedulato non trovato"
+        )
+
+    # Se è ancora scheduled, rimuovi da APScheduler
+    if job.status == ScheduledJobStatus.SCHEDULED and job.scheduler_job_id:
+        scheduler_service.cancel_job(job.scheduler_job_id)
+
+    # Elimina dal database
+    db.delete(job)
+    db.commit()
+
+    return {
+        "message": "Registrazione eliminata",
+        "job_id": str(job_id)
+    }
+
+
+@router.delete("/scheduled/delete-all")
+async def delete_all_scheduled_recordings(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Elimina TUTTE le registrazioni schedulate dell'utente (qualsiasi stato)
+
+    Richiede JWT token.
+    """
+    jobs = db.query(ScheduledJob).filter(
+        ScheduledJob.user_id == current_user.id
+    ).all()
+
+    count = len(jobs)
+
+    if count == 0:
+        return {
+            "message": "Nessuna registrazione da eliminare",
+            "count": 0
+        }
+
+    # Rimuovi da APScheduler quelli ancora scheduled
+    for job in jobs:
+        if job.status == ScheduledJobStatus.SCHEDULED and job.scheduler_job_id:
+            scheduler_service.cancel_job(job.scheduler_job_id)
+
+    # Elimina tutti dal database
+    for job in jobs:
+        db.delete(job)
+
+    db.commit()
+
+    return {
+        "message": f"{count} registrazioni eliminate",
+        "count": count
+    }
+
+
+# ==================== Browser Recordings Routes ====================
+
+@router.post("/browser-recordings/upload")
+async def upload_browser_recording(
+    file: UploadFile,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Salva una registrazione fatta dal browser sul server
+
+    Il frontend invia il blob WebM come multipart/form-data
+    """
+    import subprocess
+    import logging
+    logger = logging.getLogger(__name__)
+
+    # Crea cartella user-specific
+    user_recordings_dir = settings.output_dir / "screen_recordings" / str(current_user.id)
+    user_recordings_dir.mkdir(parents=True, exist_ok=True)
+
+    # Genera nome file univoco
+    timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    safe_filename = f"recording_{timestamp}.webm"
+    temp_filename = f"temp_{safe_filename}"
+
+    temp_path = user_recordings_dir / temp_filename
+    file_path = user_recordings_dir / safe_filename
+
+    # Leggi e salva file temporaneo
+    content = await file.read()
+    with open(temp_path, "wb") as f:
+        f.write(content)
+
+    # Ripara il file WebM con ffmpeg per assicurare metadata corretti
+    try:
+        result = subprocess.run([
+            settings.ffmpeg_path,
+            '-i', str(temp_path),
+            '-c', 'copy',  # Copia stream senza ricodificare
+            '-y',
+            str(file_path)
+        ], capture_output=True, text=True, timeout=30)
+
+        if result.returncode == 0:
+            # Rimozione file temporaneo
+            temp_path.unlink()
+            logger.info(f"File WebM riparato con successo: {safe_filename}")
+        else:
+            # Se fallisce, usa il file originale
+            temp_path.rename(file_path)
+            logger.warning(f"Impossibile riparare WebM, uso file originale: {result.stderr}")
+
+    except Exception as e:
+        # Se ffmpeg fallisce, usa il file originale
+        if temp_path.exists():
+            temp_path.rename(file_path)
+        logger.error(f"Errore riparazione WebM: {e}")
+
+    return {
+        "filename": safe_filename,
+        "path": str(file_path),
+        "size": len(content)
+    }
+
+
+@router.get("/browser-recordings")
+async def list_browser_recordings(
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Lista tutte le registrazioni browser salvate dell'utente
+    """
+    import os
+    import subprocess
+    import json
+
+    user_recordings_dir = settings.output_dir / "screen_recordings" / str(current_user.id)
+
+    if not user_recordings_dir.exists():
+        return {"recordings": []}
+
+    recordings = []
+    for file_path in sorted(user_recordings_dir.glob("*.webm"), key=os.path.getmtime, reverse=True):
+        stat = file_path.stat()
+
+        # Ottieni durata video con ffprobe
+        duration = None
+        try:
+            result = subprocess.run([
+                settings.ffprobe_path,
+                '-v', 'error',
+                '-show_entries', 'format=duration',
+                '-of', 'default=noprint_wrappers=1:nokey=1',
+                str(file_path)
+            ], capture_output=True, text=True, timeout=5)
+
+            if result.returncode == 0 and result.stdout.strip():
+                try:
+                    duration = float(result.stdout.strip())
+                except ValueError:
+                    # Se non riesce a parsare, prova metodo alternativo
+                    pass
+
+            # Se duration è ancora None o 0, prova metodo alternativo con streams
+            if not duration or duration == 0:
+                result2 = subprocess.run([
+                    settings.ffprobe_path,
+                    '-v', 'quiet',
+                    '-print_format', 'json',
+                    '-show_format',
+                    '-show_streams',
+                    str(file_path)
+                ], capture_output=True, text=True, timeout=5)
+
+                if result2.returncode == 0:
+                    data = json.loads(result2.stdout)
+                    # Prova prima da format
+                    if 'format' in data and 'duration' in data['format']:
+                        duration = float(data['format']['duration'])
+                    # Se ancora None, calcola da streams
+                    elif 'streams' in data and len(data['streams']) > 0:
+                        for stream in data['streams']:
+                            if 'duration' in stream:
+                                duration = float(stream['duration'])
+                                break
+        except Exception as e:
+            # Se ffprobe fallisce, continua senza durata
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Impossibile ottenere durata per {file_path.name}: {e}")
+            pass
+
+        recordings.append({
+            "filename": file_path.name,
+            "size": stat.st_size,
+            "duration": duration,  # Durata in secondi (può essere None se fallisce)
+            "created_at": datetime.fromtimestamp(stat.st_ctime).isoformat(),
+            "modified_at": datetime.fromtimestamp(stat.st_mtime).isoformat()
+        })
+
+    return {"recordings": recordings}
+
+
+@router.delete("/browser-recordings/{filename}")
+async def delete_browser_recording(
+    filename: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Elimina una registrazione browser salvata
+    """
+    import os
+
+    # Valida filename (security: no path traversal)
+    if "/" in filename or "\\" in filename or ".." in filename:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Nome file non valido"
+        )
+
+    user_recordings_dir = settings.output_dir / "screen_recordings" / str(current_user.id)
+    file_path = user_recordings_dir / filename
+
+    if not file_path.exists():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Registrazione non trovata"
+        )
+
+    # Elimina file
+    file_path.unlink()
+
+    return {"message": "Registrazione eliminata", "filename": filename}
+
+
+@router.delete("/browser-recordings")
+async def delete_all_browser_recordings(
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Elimina tutte le registrazioni browser salvate dell'utente
+    """
+    import shutil
+
+    user_recordings_dir = settings.output_dir / "screen_recordings" / str(current_user.id)
+
+    if not user_recordings_dir.exists():
+        return {"message": "Nessuna registrazione da eliminare", "count": 0}
+
+    # Conta file
+    count = len(list(user_recordings_dir.glob("*.webm")))
+
+    # Elimina tutta la cartella
+    shutil.rmtree(user_recordings_dir)
+
+    return {"message": f"{count} registrazioni eliminate", "count": count}
+
+
+@router.get("/browser-recordings/{filename}/stream")
+async def stream_browser_recording(
+    filename: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Serve il file video per streaming/download
+    """
+    from fastapi.responses import FileResponse
+
+    # Valida filename (security: no path traversal)
+    if "/" in filename or "\\" in filename or ".." in filename:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Nome file non valido"
+        )
+
+    user_recordings_dir = settings.output_dir / "screen_recordings" / str(current_user.id)
+    file_path = user_recordings_dir / filename
+
+    if not file_path.exists():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Registrazione non trovata"
+        )
+
+    return FileResponse(
+        path=str(file_path),
+        media_type="video/webm",
+        filename=filename
+    )

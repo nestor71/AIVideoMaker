@@ -303,7 +303,8 @@ class CompositorService:
         main_video_path: str,
         layers: List[Dict[str, Any]],
         output_filename: Optional[str] = None,
-        job_id: Optional[str] = None
+        job_id: Optional[str] = None,
+        job_object: Optional[Any] = None
     ) -> Dict[str, Any]:
         """
         Processa composizione multi-layer
@@ -313,6 +314,7 @@ class CompositorService:
             layers: Lista di layer (vedi build_filter_complex)
             output_filename: Nome file output (opzionale)
             job_id: ID del job (opzionale, per tracking processo FFmpeg)
+            job_object: Oggetto job per aggiornamenti progresso (opzionale)
 
         Returns:
             Dict con info sul video generato
@@ -468,10 +470,9 @@ class CompositorService:
                 cmd.extend(['-map', '0:a?'])  # Audio opzionale
 
             # Codec e qualità
-            # Usa preset ultrafast per elaborazione rapidissima (specialmente con chromakey)
             cmd.extend([
                 '-c:v', 'libx264',
-                '-preset', 'ultrafast',  # Cambiato da 'medium' a 'ultrafast' per 5-10x velocità
+                '-preset', 'ultrafast',
                 '-crf', '23',
                 '-c:a', 'aac',
                 '-b:a', '192k',
@@ -495,12 +496,38 @@ class CompositorService:
                 logger.info(f"   📝 Processo FFmpeg registrato per job {job_id} (PID: {process.pid})")
 
             try:
-                # Leggi output
+                # Leggi output e parsa progresso
                 stderr_output = []
+                total_duration = max_duration  # Durata totale video
+
                 for line in process.stderr:
                     stderr_output.append(line)
-                    # Log progress ogni 50 righe
-                    if len(stderr_output) % 50 == 0:
+
+                    # Parsa progress da FFmpeg (cerca "time=HH:MM:SS.MS")
+                    if 'time=' in line and job_object:
+                        try:
+                            # Estrai time da linea tipo: "frame= 123 fps=45 q=28.0 size= 1024kB time=00:00:05.12 bitrate=1234.5kbits/s speed=2.3x"
+                            import re
+                            match = re.search(r'time=(\d{2}):(\d{2}):(\d{2}\.\d{2})', line)
+                            if match:
+                                hours, minutes, seconds = match.groups()
+                                current_time = int(hours) * 3600 + int(minutes) * 60 + float(seconds)
+
+                                # Calcola percentuale (30-90% del range)
+                                if total_duration > 0:
+                                    percent = min(90, 30 + int((current_time / total_duration) * 60))
+                                    job_object.progress = percent
+                                    job_object.message = f'Elaborazione video... ({int(current_time)}s / {int(total_duration)}s)'
+
+                                    # Log ogni 10%
+                                    if percent % 10 == 0:
+                                        logger.info(f"   📊 Progresso: {percent}% ({int(current_time)}s / {int(total_duration)}s)")
+                        except Exception as e:
+                            # Ignora errori parsing (non bloccare elaborazione)
+                            pass
+
+                    # Log generale ogni 100 righe
+                    if len(stderr_output) % 100 == 0:
                         logger.info(f"   FFmpeg processing... ({len(stderr_output)} lines)")
 
                 # Attendi completamento

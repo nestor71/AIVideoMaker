@@ -31,9 +31,10 @@ class ScreenRecordParams:
     output_path: Path
 
     # Modalità
-    mode: str = "fullscreen"  # "fullscreen", "window", "area"
+    mode: str = "fullscreen"  # "fullscreen", "window", "area", "custom"
     window_title: Optional[str] = None  # Se mode=window
-    area_x: Optional[int] = None  # Se mode=area
+    monitor_index: Optional[int] = 0  # Indice monitor (0=primario, 1=secondario, etc.)
+    area_x: Optional[int] = None  # Se mode=area o custom
     area_y: Optional[int] = None
     area_width: Optional[int] = None
     area_height: Optional[int] = None
@@ -60,7 +61,7 @@ class ScreenRecordService:
     - area: Area personalizzata (richiede area_x, area_y, area_width, area_height)
     """
 
-    MODES = ["fullscreen", "window", "area"]
+    MODES = ["fullscreen", "window", "area", "custom"]
     QUALITY_PRESETS = {
         "low": {"crf": 28, "preset": "ultrafast"},
         "medium": {"crf": 23, "preset": "fast"},
@@ -183,6 +184,26 @@ class ScreenRecordService:
                 "y": params.area_y,
                 "width": params.area_width,
                 "height": params.area_height
+            }
+
+        elif params.mode == "custom":
+            # Modalità custom: monitor specifico + eventuale area
+            # Se ha area personalizzata, usa quella
+            if params.area_x is not None and params.area_width:
+                return {
+                    "x": params.area_x,
+                    "y": params.area_y,
+                    "width": params.area_width,
+                    "height": params.area_height
+                }
+            # Altrimenti usa tutto il monitor (per ora usa dimensioni schermo primario)
+            # TODO: implementare rilevamento dimensioni monitor specifico
+            screen_width, screen_height = pyautogui.size()
+            return {
+                "x": 0,
+                "y": 0,
+                "width": screen_width,
+                "height": screen_height
             }
 
     def _start_recording(
