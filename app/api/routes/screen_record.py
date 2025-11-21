@@ -124,8 +124,8 @@ def process_screen_record_task(job_id: str, params: ScreenRecordRequest, db: Ses
         job.progress = 0
         db.commit()
 
-        # Configura servizio
-        service = ScreenRecordService(settings)
+        # Configura servizio con job_id per tracciamento
+        service = ScreenRecordService(settings, job_id=job_id)
 
         # Prepara parametri
         record_params = ScreenRecordParams(
@@ -303,6 +303,109 @@ async def get_job_status(
         "output_path": job.result.get("output_path") if job.result else None,
         "progress": job.progress,
         "duration_seconds": duration
+    }
+
+
+@router.post("/jobs/{job_id}/stop")
+async def stop_recording(
+    job_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Ferma registrazione in corso
+
+    Interrompe il processo FFmpeg per il job specificato.
+
+    Richiede JWT token.
+    """
+    from app.services.screen_record_service import stop_recording_by_job_id
+
+    # Verifica che il job appartenga all'utente
+    job = db.query(Job).filter(
+        Job.id == job_id,
+        Job.user_id == current_user.id,
+        Job.job_type == JobType.SCREEN_RECORD
+    ).first()
+
+    if not job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job non trovato"
+        )
+
+    # Verifica che il job sia in elaborazione
+    if job.status != JobStatus.PROCESSING:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Il job è in stato {job.status.value}, impossibile fermare"
+        )
+
+    # Ferma il processo
+    success = stop_recording_by_job_id(job_id)
+
+    if success:
+        # Aggiorna job nel database
+        job.status = JobStatus.FAILED
+        job.error_message = "Registrazione interrotta manualmente dall'utente"
+        db.commit()
+
+        return {
+            "message": "Registrazione fermata con successo",
+            "job_id": job_id
+        }
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Impossibile fermare la registrazione. Il processo potrebbe essere già terminato."
+        )
+
+
+@router.get("/active-jobs")
+async def list_active_ffmpeg_jobs(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Lista job FFmpeg attivi dell'utente
+
+    Restituisce solo i job screen_record che hanno un processo FFmpeg effettivamente
+    in esecuzione (presenti in _active_recordings).
+
+    Richiede JWT token.
+    """
+    from app.services.screen_record_service import get_active_recordings
+
+    # Ottieni lista job_id con processi FFmpeg realmente attivi
+    active_recording_ids = get_active_recordings()
+
+    # Se non ci sono processi attivi, restituisci lista vuota
+    if not active_recording_ids:
+        return {
+            "active_jobs": [],
+            "count": 0
+        }
+
+    # Ottieni job dal database solo se hanno processo attivo
+    active_jobs = db.query(Job).filter(
+        Job.id.in_(active_recording_ids),
+        Job.user_id == current_user.id,
+        Job.job_type == JobType.SCREEN_RECORD
+    ).all()
+
+    # Trasforma in formato JSON-friendly
+    jobs_list = []
+    for job in active_jobs:
+        jobs_list.append({
+            "job_id": str(job.id),
+            "started_at": job.created_at.isoformat() if job.created_at else None,
+            "progress": job.progress,
+            "output_name": job.result.get("output_name") if job.result else "recording.mp4"
+        })
+
+    return {
+        "active_jobs": jobs_list,
+        "count": len(jobs_list)
     }
 
 
@@ -530,8 +633,8 @@ def execute_scheduled_recording(scheduled_job_id: str, db_session):
         def progress_callback(progress: int, message: str):
             pass  # Opzionale: aggiorna progresso in DB
 
-        # Esegui registrazione
-        service = ScreenRecordService(settings)
+        # Esegui registrazione con job_id per tracciamento
+        service = ScreenRecordService(settings, job_id=scheduled_job_id)
         result = service.record(params, progress_callback)
 
         # Aggiorna job
@@ -763,6 +866,61 @@ async def cancel_scheduled_recording(
         "message": "Registrazione schedulata cancellata",
         "job_id": str(job.id)
     }
+
+
+@router.post("/scheduled/{job_id}/stop")
+async def stop_scheduled_recording(
+    job_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Ferma registrazione schedulata in esecuzione
+
+    Interrompe il processo FFmpeg per la registrazione schedulata.
+
+    Richiede JWT token.
+    """
+    from app.services.screen_record_service import stop_recording_by_job_id
+
+    # Verifica che il job appartenga all'utente
+    job = db.query(ScheduledJob).filter(
+        ScheduledJob.id == job_id,
+        ScheduledJob.user_id == current_user.id
+    ).first()
+
+    if not job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job schedulato non trovato"
+        )
+
+    # Verifica che il job sia in esecuzione
+    if job.status != ScheduledJobStatus.RUNNING:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Il job è in stato {job.status.value}, impossibile fermare"
+        )
+
+    # Ferma il processo
+    success = stop_recording_by_job_id(job_id)
+
+    if success:
+        # Aggiorna job nel database
+        job.status = ScheduledJobStatus.FAILED
+        job.error_message = "Registrazione interrotta manualmente dall'utente"
+        job.completed_at = datetime.utcnow()
+        db.commit()
+
+        return {
+            "message": "Registrazione fermata con successo",
+            "job_id": job_id
+        }
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Impossibile fermare la registrazione. Il processo potrebbe essere già terminato."
+        )
 
 
 @router.delete("/scheduled/{job_id}/delete")

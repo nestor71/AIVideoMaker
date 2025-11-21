@@ -24,6 +24,50 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
+# Registro globale dei processi di registrazione attivi
+# Mappa job_id -> subprocess.Popen
+_active_recordings: Dict[str, subprocess.Popen] = {}
+
+
+def stop_recording_by_job_id(job_id: str) -> bool:
+    """
+    Ferma registrazione per job_id specifico
+
+    Args:
+        job_id: ID univoco del job
+
+    Returns:
+        True se fermata con successo, False se non trovata
+    """
+    if job_id not in _active_recordings:
+        logger.warning(f"Nessuna registrazione attiva trovata per job {job_id}")
+        return False
+
+    process = _active_recordings[job_id]
+
+    try:
+        process.terminate()
+        process.wait(timeout=5)
+        del _active_recordings[job_id]
+        logger.info(f"Registrazione {job_id} fermata con successo")
+        return True
+    except Exception as e:
+        logger.error(f"Errore fermando registrazione {job_id}: {e}")
+        # Prova kill forzato
+        try:
+            process.kill()
+            del _active_recordings[job_id]
+            logger.warning(f"Registrazione {job_id} fermata con SIGKILL")
+            return True
+        except Exception as e2:
+            logger.error(f"Impossibile fermare registrazione {job_id}: {e2}")
+            return False
+
+
+def get_active_recordings() -> list:
+    """Ottieni lista job_id registrazioni attive"""
+    return list(_active_recordings.keys())
+
 
 @dataclass
 class ScreenRecordParams:
@@ -69,12 +113,13 @@ class ScreenRecordService:
         "ultra": {"crf": 15, "preset": "slow"}
     }
 
-    def __init__(self, config: Optional[Any] = None):
+    def __init__(self, config: Optional[Any] = None, job_id: Optional[str] = None):
         """Inizializza service"""
         self.config = config or settings
         self.ffmpeg_path = self.config.ffmpeg_path
         self.recording_process = None
         self.stop_event = threading.Event()
+        self.job_id = job_id  # ID univoco per tracciare il processo
 
     def record(
         self,
@@ -136,6 +181,11 @@ class ScreenRecordService:
             self.recording_process.terminate()
             self.recording_process.wait(timeout=5)
             self.recording_process = None
+
+            # Rimuovi dal dizionario globale
+            if self.job_id and self.job_id in _active_recordings:
+                del _active_recordings[self.job_id]
+                logger.info(f"Processo registrazione {self.job_id} rimosso")
 
     def _get_capture_region(self, params: ScreenRecordParams) -> Dict[str, int]:
         """
@@ -243,6 +293,11 @@ class ScreenRecordService:
                 stderr=subprocess.PIPE
             )
 
+            # Registra processo nel dizionario globale se job_id disponibile
+            if self.job_id:
+                _active_recordings[self.job_id] = self.recording_process
+                logger.info(f"Processo registrazione {self.job_id} registrato")
+
             # Se durata specificata, attendi e poi ferma
             if params.duration_seconds:
                 if progress_callback:
@@ -257,6 +312,12 @@ class ScreenRecordService:
 
                 if progress_callback:
                     progress_callback(100, "Registrazione completata!")
+            else:
+                # Durata illimitata: attendi che il processo venga fermato manualmente
+                # Il processo rimarrà in esecuzione fino a quando stop_recording() non verrà chiamato
+                logger.info(f"Registrazione {self.job_id} avviata in modalità illimitata, in attesa di stop manuale")
+                # Attendiamo la terminazione del processo (bloccante)
+                self.recording_process.wait()
 
         except Exception as e:
             logger.error(f"Errore registrazione: {e}")
