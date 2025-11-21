@@ -100,6 +100,12 @@ class ScreenRecordParams:
     audio_system: bool = True  # Registra audio di sistema
     audio_microphone: bool = False  # Registra audio microfono
 
+    # PARAMETRI WEBCAM per Picture-in-Picture
+    webcam_x: Optional[int] = None  # Posizione X webcam (coordinate canvas 800x450)
+    webcam_y: Optional[int] = None  # Posizione Y webcam
+    webcam_width: Optional[int] = None  # Larghezza webcam (default 320)
+    webcam_height: Optional[int] = None  # Altezza webcam (default 240)
+
 
 class ScreenRecordService:
     """
@@ -386,8 +392,27 @@ class ScreenRecordService:
             # FILTER COMPLEX per overlay + audio mix
             filter_parts = []
 
-            # Scala webcam a 320x240 e overlay in basso a destra
-            video_filter = '[0:v][1:v]scale2ref=w=320:h=240[webcam][screen];[screen][webcam]overlay=W-w-10:H-h-10[vout]'
+            # Calcola dimensioni e posizione webcam
+            # Canvas preview è 800x450, coordinate utente vanno normalizzate
+            webcam_width = params.webcam_width if params.webcam_width else 320
+            webcam_height = params.webcam_height if params.webcam_height else 240
+
+            # Determina posizione overlay
+            if params.webcam_x is not None and params.webcam_y is not None:
+                # Coordinate custom dall'utente (normalizzate da canvas 800x450)
+                CANVAS_WIDTH = 800.0
+                CANVAS_HEIGHT = 450.0
+                x_normalized = params.webcam_x / CANVAS_WIDTH
+                y_normalized = params.webcam_y / CANVAS_HEIGHT
+
+                # Overlay con coordinate dinamiche (W e H sono larghezza/altezza monitor reale)
+                overlay_pos = f"W*{x_normalized:.4f}:H*{y_normalized:.4f}"
+            else:
+                # Default: bottom-right con padding 10px
+                overlay_pos = "W-w-10:H-h-10"
+
+            # Scala webcam e overlay
+            video_filter = f'[0:v][1:v]scale2ref=w={webcam_width}:h={webcam_height}[webcam][screen];[screen][webcam]overlay={overlay_pos}[vout]'
             filter_parts.append(video_filter)
 
             # Mix audio se entrambe le sorgenti presenti

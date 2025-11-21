@@ -81,6 +81,12 @@ class ScheduleRecordRequest(BaseModel):
     audio_system: bool = True  # Audio di sistema
     audio_microphone: bool = False  # Audio microfono
 
+    # PARAMETRI WEBCAM per Picture-in-Picture
+    webcam_x: Optional[int] = None  # Posizione X webcam (coordinate canvas 800x450)
+    webcam_y: Optional[int] = None  # Posizione Y webcam
+    webcam_width: Optional[int] = None  # Larghezza webcam
+    webcam_height: Optional[int] = None  # Altezza webcam
+
 
 class ScheduledJobResponse(BaseModel):
     """Schema per risposta job schedulato"""
@@ -637,7 +643,12 @@ def execute_scheduled_recording(scheduled_job_id: str, db_session):
             video_source=params_dict.get("video_source", "monitor"),
             output_format=params_dict.get("output_format", "mp4"),
             audio_system=params_dict.get("audio_system", True),
-            audio_microphone=params_dict.get("audio_microphone", False)
+            audio_microphone=params_dict.get("audio_microphone", False),
+            # PARAMETRI WEBCAM per PIP
+            webcam_x=params_dict.get("webcam_x"),
+            webcam_y=params_dict.get("webcam_y"),
+            webcam_width=params_dict.get("webcam_width"),
+            webcam_height=params_dict.get("webcam_height")
         )
 
         # Callback progresso
