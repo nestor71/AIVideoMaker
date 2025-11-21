@@ -95,7 +95,7 @@ class ScreenRecordParams:
     audio_device: Optional[str] = None  # Device ID (None = default)
 
     # NUOVI PARAMETRI per controllo avanzato
-    video_source: str = "monitor"  # "monitor" o "webcam"
+    video_source: str = "monitor"  # "monitor", "webcam", o "monitor_webcam" (PIP)
     output_format: str = "mp4"  # "mp4" (H.264/AAC) o "webm" (VP9/Opus)
     audio_system: bool = True  # Registra audio di sistema
     audio_microphone: bool = False  # Registra audio microfono
@@ -363,89 +363,117 @@ class ScreenRecordService:
         region: Dict[str, int],
         quality: Dict[str, Any]
     ) -> list:
-        """Comando ffmpeg per macOS (AVFoundation) con supporto webcam e mix audio"""
-        cmd = [
-            self.ffmpeg_path,
-            '-f', 'avfoundation'
-        ]
+        """Comando ffmpeg per macOS (AVFoundation) con supporto webcam, PIP e mix audio"""
+        cmd = [self.ffmpeg_path]
 
-        # SORGENTE VIDEO
-        if params.video_source == "webcam":
-            # Webcam: device '0' (prima webcam disponibile)
-            cmd.extend(['-framerate', str(params.fps)])
-            video_device = '0'
-        else:
-            # Monitor: device '1' (capture screen) + monitor_index
-            # TODO: Su macOS multi-monitor, device può essere '1', '2', etc.
-            # Per ora usiamo '1' per il monitor primario
-            cmd.extend(['-capture_cursor', '1', '-framerate', str(params.fps)])
-            video_device = str(1 + params.monitor_index)  # '1' = primary, '2' = secondary, etc.
-
-        # SORGENTE AUDIO
-        # avfoundation usa formato "video_device:audio_device"
-        # Device audio: '0' = microfono, '1' = audio sistema (loopback)
-        audio_inputs = []
-        if params.audio_microphone:
-            audio_inputs.append('0')  # Microfono
-        if params.audio_system:
-            audio_inputs.append('1')  # Audio sistema (richiede BlackHole o SoundFlower su macOS)
-
-        if audio_inputs:
-            if len(audio_inputs) == 1:
-                # Singola sorgente audio
-                cmd.extend(['-i', f'{video_device}:{audio_inputs[0]}'])
+        # ==== PICTURE-IN-PICTURE (Monitor + Webcam) ====
+        if params.video_source == "monitor_webcam":
+            # INPUT 0: Monitor (schermo)
+            cmd.extend(['-f', 'avfoundation', '-capture_cursor', '1', '-framerate', str(params.fps)])
+            monitor_device = str(1 + params.monitor_index)
+            if params.audio_system:
+                cmd.extend(['-i', f'{monitor_device}:1'])  # Monitor + audio sistema
             else:
-                # Multiple sorgenti audio: cattura separatamente e mixa
-                # Input 0: video + primo audio
-                cmd.extend(['-i', f'{video_device}:{audio_inputs[0]}'])
-                # Input 1: secondo audio
-                cmd.extend(['-f', 'avfoundation', '-i', f'none:{audio_inputs[1]}'])
-                # Aggiungeremo filter_complex dopo
-        else:
-            # Nessun audio
-            cmd.extend(['-i', video_device])
+                cmd.extend(['-i', monitor_device])  # Solo monitor
 
-        # FILTRI VIDEO
-        filters = []
-        if params.mode != "fullscreen" and params.video_source == "monitor":
-            # Crop solo per monitor (webcam non supporta crop)
-            filters.append(f"crop={region['width']}:{region['height']}:{region['x']}:{region['y']}")
+            # INPUT 1: Webcam
+            cmd.extend(['-f', 'avfoundation', '-framerate', str(params.fps)])
+            if params.audio_microphone:
+                cmd.extend(['-i', '0:0'])  # Webcam + microfono
+            else:
+                cmd.extend(['-i', '0'])  # Solo webcam
 
-        if filters:
-            cmd.extend(['-filter:v', ','.join(filters)])
+            # FILTER COMPLEX per overlay + audio mix
+            filter_parts = []
 
-        # MIX AUDIO (se multiple sorgenti)
-        if len(audio_inputs) > 1:
-            cmd.extend(['-filter_complex', '[0:a][1:a]amix=inputs=2:duration=longest[aout]'])
-            cmd.extend(['-map', '0:v', '-map', '[aout]'])
+            # Scala webcam a 320x240 e overlay in basso a destra
+            video_filter = '[0:v][1:v]scale2ref=w=320:h=240[webcam][screen];[screen][webcam]overlay=W-w-10:H-h-10[vout]'
+            filter_parts.append(video_filter)
 
-        # CODEC OUTPUT
+            # Mix audio se entrambe le sorgenti presenti
+            audio_streams = []
+            if params.audio_system:
+                audio_streams.append('[0:a]')
+            if params.audio_microphone:
+                audio_streams.append('[1:a]')
+
+            if len(audio_streams) == 2:
+                audio_filter = f'{audio_streams[0]}{audio_streams[1]}amix=inputs=2:duration=longest[aout]'
+                filter_parts.append(audio_filter)
+            elif len(audio_streams) == 1:
+                audio_filter = f'{audio_streams[0]}acopy[aout]'
+                filter_parts.append(audio_filter)
+
+            cmd.extend(['-filter_complex', ';'.join(filter_parts)])
+            cmd.extend(['-map', '[vout]'])
+            if audio_streams:
+                cmd.extend(['-map', '[aout]'])
+
+        # ==== SOLO MONITOR ====
+        elif params.video_source == "monitor":
+            cmd.extend(['-f', 'avfoundation', '-capture_cursor', '1', '-framerate', str(params.fps)])
+            monitor_device = str(1 + params.monitor_index)
+
+            # Audio
+            audio_inputs = []
+            if params.audio_microphone:
+                audio_inputs.append('0')
+            if params.audio_system:
+                audio_inputs.append('1')
+
+            if audio_inputs:
+                if len(audio_inputs) == 1:
+                    cmd.extend(['-i', f'{monitor_device}:{audio_inputs[0]}'])
+                else:
+                    cmd.extend(['-i', f'{monitor_device}:{audio_inputs[0]}'])
+                    cmd.extend(['-f', 'avfoundation', '-i', f'none:{audio_inputs[1]}'])
+            else:
+                cmd.extend(['-i', monitor_device])
+
+            # Crop se non fullscreen
+            if params.mode != "fullscreen":
+                crop_filter = f"crop={region['width']}:{region['height']}:{region['x']}:{region['y']}"
+                cmd.extend(['-filter:v', crop_filter])
+
+            # Mix audio se necessario
+            if len(audio_inputs) > 1:
+                cmd.extend(['-filter_complex', '[0:a][1:a]amix=inputs=2:duration=longest[aout]'])
+                cmd.extend(['-map', '0:v', '-map', '[aout]'])
+
+        # ==== SOLO WEBCAM ====
+        else:  # webcam
+            cmd.extend(['-f', 'avfoundation', '-framerate', str(params.fps)])
+
+            if params.audio_microphone:
+                cmd.extend(['-i', '0:0'])  # Webcam + microfono
+            else:
+                cmd.extend(['-i', '0'])  # Solo webcam
+
+        # CODEC OUTPUT (uguale per tutti)
         if params.output_format == "mp4":
-            # MP4: H.264 video + AAC audio (compatibile QuickTime)
             cmd.extend([
                 '-c:v', 'libx264',
                 '-preset', quality['preset'],
                 '-crf', str(quality['crf']),
-                '-pix_fmt', 'yuv420p'  # Compatibilità QuickTime
+                '-pix_fmt', 'yuv420p'
             ])
-            if audio_inputs:
+            if params.audio_system or params.audio_microphone:
                 cmd.extend(['-c:a', 'aac', '-b:a', '192k'])
-        else:
-            # WebM: VP9 video + Opus audio (file più leggero)
+        else:  # webm
             cmd.extend([
                 '-c:v', 'libvpx-vp9',
                 '-b:v', '2M',
                 '-crf', str(quality['crf']),
-                '-row-mt', '1'  # Multi-threading VP9
+                '-row-mt', '1'
             ])
-            if audio_inputs:
+            if params.audio_system or params.audio_microphone:
                 cmd.extend(['-c:a', 'libopus', '-b:a', '128k'])
 
-        # Durata (se specificata)
+        # Durata
         if params.duration_seconds:
             cmd.extend(['-t', str(params.duration_seconds)])
 
-        # Output file
+        # Output
         cmd.extend(['-y', str(params.output_path)])
 
         return cmd

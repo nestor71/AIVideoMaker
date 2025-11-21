@@ -1674,9 +1674,25 @@
                                     <select id="scheduledVideoSource" onchange="updateVideoSourceOptions()" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem;">
                                         <option value="monitor" selected>🖥️ Monitor</option>
                                         <option value="webcam">📹 Webcam</option>
+                                        <option value="monitor_webcam">🖥️📹 Monitor + Webcam (Picture-in-Picture)</option>
                                     </select>
                                     <small style="color: #666; display: block; margin-top: 5px;">
-                                        <i class="fas fa-info-circle"></i> Scegli se registrare il monitor o la webcam
+                                        <i class="fas fa-info-circle"></i> Scegli cosa registrare: schermo, webcam, o entrambi
+                                    </small>
+                                </div>
+
+                                <!-- Selezione Monitor (visibile per monitor e monitor+webcam) -->
+                                <div id="monitorSelectionSection" style="margin-bottom: 25px; background: #f0f7ff; padding: 20px; border-radius: 10px; border-left: 4px solid #2196F3;">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        <i class="fas fa-tv"></i> Monitor da Registrare
+                                    </label>
+                                    <select id="scheduledMonitor" onchange="updateScheduledRecordingSummary()" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem;">
+                                        <option value="0" selected>Monitor Primario</option>
+                                        <option value="1">Monitor Secondario</option>
+                                        <option value="2">Monitor Terziario</option>
+                                    </select>
+                                    <small style="color: #666; display: block; margin-top: 8px;">
+                                        <i class="fas fa-info-circle"></i> Scegli quale monitor registrare
                                     </small>
                                 </div>
 
@@ -1689,21 +1705,6 @@
                                         <option value="fullscreen" selected>Schermo Intero</option>
                                         <option value="custom">Area Personalizzata</option>
                                     </select>
-                                </div>
-
-                                <!-- Selezione Monitor (visibile solo con più monitor) -->
-                                <div id="monitorSelectionSection" style="margin-bottom: 25px; background: #f0f7ff; padding: 20px; border-radius: 10px; border-left: 4px solid #2196F3; display: none;">
-                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
-                                        <i class="fas fa-tv"></i> Monitor da Registrare
-                                    </label>
-                                    <select id="scheduledMonitor" onchange="updateScheduledRecordingSummary()" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem;">
-                                        <option value="0" selected>Monitor Primario</option>
-                                        <option value="1">Monitor Secondario</option>
-                                        <option value="2">Monitor Terziario</option>
-                                    </select>
-                                    <small style="color: #666; display: block; margin-top: 8px;">
-                                        <i class="fas fa-info-circle"></i> Scegli quale monitor registrare
-                                    </small>
                                 </div>
 
                                 <!-- Opzioni Area Personalizzata (nascoste di default) -->
@@ -8376,20 +8377,20 @@
         }
 
         // Toggle opzioni cattura personalizzata nella registrazione programmata
-        // Gestisce cambio sorgente video (monitor/webcam)
+        // Gestisce cambio sorgente video (monitor/webcam/PIP)
         function updateVideoSourceOptions() {
             const videoSource = document.getElementById('scheduledVideoSource').value;
             const captureModeSection = document.getElementById('captureModeSection');
             const monitorSelectionSection = document.getElementById('monitorSelectionSection');
 
-            if (videoSource === 'monitor') {
-                // Mostra opzioni monitor
+            if (videoSource === 'monitor' || videoSource === 'monitor_webcam') {
+                // Monitor o PIP: mostra selezione monitor e modalità cattura
+                monitorSelectionSection.style.display = 'block';
                 captureModeSection.style.display = 'block';
-                // Monitor selection viene gestita da toggleScheduledCaptureOptions
-            } else {
-                // Webcam: nascondi opzioni monitor
-                captureModeSection.style.display = 'none';
+            } else if (videoSource === 'webcam') {
+                // Solo webcam: nascondi opzioni monitor
                 monitorSelectionSection.style.display = 'none';
+                captureModeSection.style.display = 'none';
             }
 
             updateScheduledRecordingSummary();

@@ -76,7 +76,7 @@ class ScheduleRecordRequest(BaseModel):
     record_audio: bool = True
 
     # NUOVI PARAMETRI per controllo avanzato
-    video_source: str = "monitor"  # "monitor" o "webcam"
+    video_source: str = "monitor"  # "monitor", "webcam", o "monitor_webcam" (PIP)
     output_format: str = "mp4"  # "mp4" o "webm"
     audio_system: bool = True  # Audio di sistema
     audio_microphone: bool = False  # Audio microfono
