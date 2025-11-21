@@ -1758,11 +1758,6 @@
                                             <p id="previewInstructionText" style="font-size: 1.1rem; font-weight: 600; margin: 0;">Trascina per posizionare</p>
                                             <p style="font-size: 0.9rem; margin: 10px 0 0 0; opacity: 0.8;">Usa gli angoli per ridimensionare</p>
                                         </div>
-
-                                        <!-- Bottone per avviare preview live -->
-                                        <button id="startPreviewBtn" onclick="startLivePreview()" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 15px 30px; background: linear-gradient(135deg, #4caf50 0%, #45a049 100%); color: white; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(76,175,80,0.4); transition: all 0.3s;">
-                                            <i class="fas fa-play"></i> Avvia Anteprima Live
-                                        </button>
                                     </div>
 
                                     <!-- Info coordinate -->
@@ -8470,7 +8465,6 @@
             // Ferma preview live se attiva (cambio sorgente)
             if (previewState.isLivePreview) {
                 stopLivePreview();
-                document.getElementById('startPreviewBtn').style.display = 'block';
             }
 
             // Mostra preview per tutte le sorgenti (monitor, webcam, pip)
@@ -8481,6 +8475,9 @@
                 window.recordingPreviewInitialized = true;
             }
             updateRecordingPreview();
+
+            // Avvia automaticamente preview live
+            setTimeout(() => startLivePreview(), 300);
 
             updateScheduledRecordingSummary();
         }
@@ -8570,12 +8567,10 @@
             updateRecordingPreview();
         }
 
-        // Avvia preview live (cattura monitor e/o webcam)
+        // Avvia preview live automaticamente (cattura monitor e/o webcam)
         async function startLivePreview() {
             try {
                 const videoSource = document.getElementById('scheduledVideoSource').value;
-                const startBtn = document.getElementById('startPreviewBtn');
-                startBtn.style.display = 'none';
 
                 // Cattura monitor (per monitor e pip)
                 if (videoSource === 'monitor' || videoSource === 'monitor_webcam') {
@@ -8592,7 +8587,6 @@
                     } catch (err) {
                         console.error('Errore cattura monitor:', err);
                         showModal('Errore', 'Impossibile catturare lo schermo. Permesso negato.', 'error');
-                        startBtn.style.display = 'block';
                         return;
                     }
                 }
@@ -8616,7 +8610,6 @@
                             previewState.monitorStream.getTracks().forEach(track => track.stop());
                             previewState.monitorStream = null;
                         }
-                        startBtn.style.display = 'block';
                         return;
                     }
                 }
@@ -8634,14 +8627,14 @@
                 if (previewState.monitorStream) {
                     previewState.monitorStream.getTracks()[0].onended = () => {
                         stopLivePreview();
-                        startBtn.style.display = 'block';
+                        // Riavvia automaticamente dopo che utente ferma
+                        setTimeout(() => startLivePreview(), 1000);
                     };
                 }
 
             } catch (err) {
                 console.error('Errore avvio preview:', err);
                 showModal('Errore', 'Errore durante l\'avvio dell\'anteprima live', 'error');
-                document.getElementById('startPreviewBtn').style.display = 'block';
             }
         }
 
@@ -8782,16 +8775,16 @@
             } else {
                 if (previewState.mode === 'pip') {
                     presetButtons.style.display = 'grid';
-                    previewDesc.innerHTML = '<i class="fas fa-info-circle"></i> Clicca "Avvia Anteprima Live" per vedere monitor + webcam in tempo reale.';
+                    previewDesc.innerHTML = '<i class="fas fa-hourglass-half"></i> Richiesta permessi browser per monitor + webcam...';
                 } else if (videoSource === 'webcam') {
                     presetButtons.style.display = 'none';
-                    previewDesc.innerHTML = '<i class="fas fa-info-circle"></i> Clicca "Avvia Anteprima Live" per vedere la webcam in tempo reale.';
+                    previewDesc.innerHTML = '<i class="fas fa-hourglass-half"></i> Richiesta permesso browser per webcam...';
                 } else if (previewState.mode === 'custom') {
                     presetButtons.style.display = 'none';
-                    previewDesc.innerHTML = '<i class="fas fa-info-circle"></i> Clicca "Avvia Anteprima Live" per vedere l\'area che verrà registrata.';
+                    previewDesc.innerHTML = '<i class="fas fa-hourglass-half"></i> Richiesta permesso browser per monitor...';
                 } else {
                     presetButtons.style.display = 'none';
-                    previewDesc.innerHTML = '<i class="fas fa-info-circle"></i> Clicca "Avvia Anteprima Live" per vedere l\'intero schermo.';
+                    previewDesc.innerHTML = '<i class="fas fa-hourglass-half"></i> Richiesta permesso browser per monitor...';
                 }
             }
 
