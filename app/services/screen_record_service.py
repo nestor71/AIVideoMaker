@@ -46,11 +46,38 @@ def stop_recording_by_job_id(job_id: str) -> bool:
     process = _active_recordings[job_id]
 
     try:
-        process.terminate()
-        process.wait(timeout=5)
+        # Invia 'q' a FFmpeg per terminazione pulita (permette di finalizzare il file)
+        if process.stdin:
+            try:
+                process.stdin.write(b'q\n')
+                process.stdin.flush()
+                logger.info(f"Inviato comando 'q' a FFmpeg per job {job_id}")
+            except Exception as e:
+                logger.warning(f"Impossibile inviare 'q' a stdin per job {job_id}: {e}")
+                # Fallback a terminate se stdin non funziona
+                process.terminate()
+        else:
+            # Se stdin non è disponibile, usa terminate
+            logger.warning(f"stdin non disponibile per job {job_id}, uso terminate()")
+            process.terminate()
+
+        # Attendi che FFmpeg finalizzi il file (timeout più lungo per dare tempo)
+        process.wait(timeout=10)
         del _active_recordings[job_id]
         logger.info(f"Registrazione {job_id} fermata con successo")
         return True
+    except subprocess.TimeoutExpired:
+        logger.warning(f"Timeout durante stop di {job_id}, forzo terminazione")
+        # Se non termina entro il timeout, forza kill
+        try:
+            process.kill()
+            process.wait(timeout=2)
+            del _active_recordings[job_id]
+            logger.warning(f"Registrazione {job_id} fermata con SIGKILL")
+            return True
+        except Exception as e2:
+            logger.error(f"Impossibile fermare registrazione {job_id}: {e2}")
+            return False
     except Exception as e:
         logger.error(f"Errore fermando registrazione {job_id}: {e}")
         # Prova kill forzato
@@ -178,8 +205,30 @@ class ScreenRecordService:
     def stop_recording(self):
         """Ferma registrazione in corso"""
         if self.recording_process:
-            self.recording_process.terminate()
-            self.recording_process.wait(timeout=5)
+            try:
+                # Invia 'q' a FFmpeg per terminazione pulita
+                if self.recording_process.stdin:
+                    try:
+                        self.recording_process.stdin.write(b'q\n')
+                        self.recording_process.stdin.flush()
+                        logger.info(f"Inviato comando 'q' a FFmpeg per job {self.job_id}")
+                    except Exception as e:
+                        logger.warning(f"Impossibile inviare 'q' a stdin: {e}")
+                        self.recording_process.terminate()
+                else:
+                    logger.warning(f"stdin non disponibile, uso terminate()")
+                    self.recording_process.terminate()
+
+                # Attendi finalizzazione
+                self.recording_process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                logger.warning(f"Timeout durante stop, forzo kill")
+                self.recording_process.kill()
+                self.recording_process.wait(timeout=2)
+            except Exception as e:
+                logger.error(f"Errore durante stop: {e}")
+                self.recording_process.kill()
+
             self.recording_process = None
 
             # Rimuovi dal dizionario globale
@@ -289,6 +338,7 @@ class ScreenRecordService:
         try:
             self.recording_process = subprocess.Popen(
                 cmd,
+                stdin=subprocess.PIPE,  # Permette di inviare 'q' per stop pulito
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE
             )
@@ -345,6 +395,7 @@ class ScreenRecordService:
             '-c:v', 'libx264',
             '-preset', quality['preset'],
             '-crf', str(quality['crf']),
+            '-movflags', '+faststart',  # Scrive metadata all'inizio per MP4 più robusti
             '-y',
             str(params.output_path)
         ])
@@ -381,6 +432,7 @@ class ScreenRecordService:
             '-c:v', 'libx264',
             '-preset', quality['preset'],
             '-crf', str(quality['crf']),
+            '-movflags', '+faststart',  # Scrive metadata all'inizio per MP4 più robusti
             '-y',
             str(params.output_path)
         ])
@@ -411,6 +463,7 @@ class ScreenRecordService:
             '-c:v', 'libx264',
             '-preset', quality['preset'],
             '-crf', str(quality['crf']),
+            '-movflags', '+faststart',  # Scrive metadata all'inizio per MP4 più robusti
             '-y',
             str(params.output_path)
         ])
