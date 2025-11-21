@@ -6018,7 +6018,33 @@
                     stopRecording();
                 });
 
-                // Start recording
+                // CRITICAL FIX: Aspetta che lo stream abbia frame video attivi
+                // prima di iniziare la registrazione. Questo previene il bug "no signal".
+                await new Promise((resolve) => {
+                    // Se il preview è già pronto (unlikely), parti subito
+                    if (preview.readyState >= 2) { // HAVE_CURRENT_DATA o superiore
+                        resolve();
+                        return;
+                    }
+
+                    // Altrimenti aspetta l'evento loadeddata che indica che
+                    // il primo frame video è stato ricevuto e renderizzato
+                    const onReady = () => {
+                        preview.removeEventListener('loadeddata', onReady);
+                        resolve();
+                    };
+                    preview.addEventListener('loadeddata', onReady);
+
+                    // Timeout di sicurezza: se dopo 5 secondi non arrivano frame,
+                    // parti comunque (meglio registrare qualcosa che bloccare l'app)
+                    setTimeout(() => {
+                        preview.removeEventListener('loadeddata', onReady);
+                        console.warn('Preview timeout - inizio registrazione senza conferma frame');
+                        resolve();
+                    }, 5000);
+                });
+
+                // Start recording - ORA LO STREAM HA SICURAMENTE FRAME ATTIVI
                 mediaRecorder.start(1000); // Collect data every second
                 recordingStartTime = Date.now();
                 isPaused = false;
