@@ -6120,6 +6120,13 @@
                 formData.append('file', blob, `recording_${Date.now()}.webm`);
 
                 const token = localStorage.getItem('auth_token');
+
+                // Controlla se il token esiste prima di fare la richiesta
+                if (!token) {
+                    showError('Devi essere loggato per salvare le registrazioni');
+                    return;
+                }
+
                 const response = await fetch('/api/v1/screen-record/browser-recordings/upload', {
                     method: 'POST',
                     headers: {
@@ -6129,6 +6136,12 @@
                 });
 
                 if (!response.ok) {
+                    // Gestisci errore 401 (token scaduto o invalido)
+                    if (response.status === 401) {
+                        localStorage.removeItem('auth_token');
+                        showError('Sessione scaduta. Effettua di nuovo il login');
+                        return;
+                    }
                     throw new Error('Errore salvataggio registrazione');
                 }
 
@@ -6163,6 +6176,13 @@
                 });
 
                 if (!response.ok) {
+                    // Gestisci errore 401 (token scaduto o invalido)
+                    if (response.status === 401) {
+                        console.error('[Screen Record] Token non valido o scaduto per /browser-recordings');
+                        localStorage.removeItem('auth_token');
+                        updateRecordingsListUI([]);
+                        return;
+                    }
                     throw new Error('Errore caricamento registrazioni');
                 }
 
@@ -8544,6 +8564,13 @@
 
             try {
                 const token = localStorage.getItem('auth_token');
+
+                // Controlla se il token esiste prima di fare la richiesta
+                if (!token) {
+                    console.warn('[Screen Record] Token non disponibile, skip refresh scheduled jobs');
+                    return;
+                }
+
                 const response = await fetch('/api/v1/screen-record/scheduled', {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -8551,6 +8578,13 @@
                 });
 
                 if (!response.ok) {
+                    // Gestisci errore 401 (token scaduto o invalido)
+                    if (response.status === 401) {
+                        console.error('[Screen Record] Token non valido o scaduto per /scheduled');
+                        localStorage.removeItem('auth_token');
+                        // Skip silenzioso senza mostrare errore all'utente
+                        return;
+                    }
                     throw new Error('Errore nel caricamento');
                 }
 
@@ -9171,6 +9205,13 @@
                         'Authorization': `Bearer ${token}`
                     }
                 });
+
+                // Gestisci errore 401 (token scaduto o invalido)
+                if (response.status === 401) {
+                    console.error('[Screen Record] Token non valido o scaduto per /active-jobs');
+                    localStorage.removeItem('auth_token');
+                    return;
+                }
 
                 if (response.ok) {
                     const data = await response.json();
