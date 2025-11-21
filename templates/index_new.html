@@ -1735,23 +1735,23 @@
                                     </small>
                                 </div>
 
-                                <!-- Preview e Configurazione Webcam (solo per PIP) -->
-                                <div id="webcamPreviewSection" style="display: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 4px 20px rgba(102,126,234,0.3);">
+                                <!-- Preview Area Registrazione -->
+                                <div id="recordingPreviewSection" style="display: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 4px 20px rgba(102,126,234,0.3);">
                                     <label style="display: block; margin-bottom: 15px; font-weight: 700; color: white; font-size: 1.1rem;">
-                                        <i class="fas fa-magic"></i> Anteprima e Configurazione Webcam
+                                        <i class="fas fa-eye"></i> Anteprima Area Registrazione
                                     </label>
-                                    <p style="color: rgba(255,255,255,0.9); margin-bottom: 20px; font-size: 0.95rem;">
-                                        <i class="fas fa-info-circle"></i> Trascina il riquadro webcam per posizionarla. Usa gli angoli per ridimensionare.
+                                    <p id="previewDescription" style="color: rgba(255,255,255,0.9); margin-bottom: 20px; font-size: 0.95rem;">
+                                        <i class="fas fa-info-circle"></i> Trascina e ridimensiona per configurare l'area di registrazione.
                                     </p>
 
                                     <!-- Canvas Preview -->
                                     <div style="position: relative; background: #1a1a1a; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
-                                        <canvas id="pipPreviewCanvas" width="800" height="450" style="width: 100%; height: auto; display: block; cursor: crosshair;"></canvas>
+                                        <canvas id="recordingPreviewCanvas" width="800" height="450" style="width: 100%; height: auto; display: block; cursor: crosshair;"></canvas>
 
                                         <!-- Overlay istruzioni -->
-                                        <div id="pipInstructions" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: white; pointer-events: none;">
+                                        <div id="previewInstructions" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: white; pointer-events: none; opacity: 0;">
                                             <i class="fas fa-hand-pointer" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.7;"></i>
-                                            <p style="font-size: 1.1rem; font-weight: 600; margin: 0;">Trascina il riquadro verde per posizionare la webcam</p>
+                                            <p id="previewInstructionText" style="font-size: 1.1rem; font-weight: 600; margin: 0;">Trascina per posizionare</p>
                                             <p style="font-size: 0.9rem; margin: 10px 0 0 0; opacity: 0.8;">Usa gli angoli per ridimensionare</p>
                                         </div>
                                     </div>
@@ -1760,34 +1760,34 @@
                                     <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-top: 15px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
                                         <div style="text-align: center;">
                                             <div style="color: rgba(255,255,255,0.7); font-size: 0.8rem; margin-bottom: 5px;">Posizione X</div>
-                                            <div id="webcamPosX" style="color: white; font-weight: 700; font-size: 1.1rem;">-</div>
+                                            <div id="previewPosX" style="color: white; font-weight: 700; font-size: 1.1rem;">-</div>
                                         </div>
                                         <div style="text-align: center;">
                                             <div style="color: rgba(255,255,255,0.7); font-size: 0.8rem; margin-bottom: 5px;">Posizione Y</div>
-                                            <div id="webcamPosY" style="color: white; font-weight: 700; font-size: 1.1rem;">-</div>
+                                            <div id="previewPosY" style="color: white; font-weight: 700; font-size: 1.1rem;">-</div>
                                         </div>
                                         <div style="text-align: center;">
                                             <div style="color: rgba(255,255,255,0.7); font-size: 0.8rem; margin-bottom: 5px;">Larghezza</div>
-                                            <div id="webcamWidth" style="color: white; font-weight: 700; font-size: 1.1rem;">-</div>
+                                            <div id="previewWidth" style="color: white; font-weight: 700; font-size: 1.1rem;">-</div>
                                         </div>
                                         <div style="text-align: center;">
                                             <div style="color: rgba(255,255,255,0.7); font-size: 0.8rem; margin-bottom: 5px;">Altezza</div>
-                                            <div id="webcamHeight" style="color: white; font-weight: 700; font-size: 1.1rem;">-</div>
+                                            <div id="previewHeight" style="color: white; font-weight: 700; font-size: 1.1rem;">-</div>
                                         </div>
                                     </div>
 
-                                    <!-- Preset posizioni -->
-                                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px;">
-                                        <button onclick="setWebcamPreset('bottom-right')" style="padding: 10px; background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.3); border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s;">
+                                    <!-- Preset posizioni (solo per PIP) -->
+                                    <div id="previewPresetButtons" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px;">
+                                        <button onclick="setPresetPosition('bottom-right')" style="padding: 10px; background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.3); border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s;">
                                             <i class="fas fa-arrow-down"></i><i class="fas fa-arrow-right"></i> Basso Dx
                                         </button>
-                                        <button onclick="setWebcamPreset('bottom-left')" style="padding: 10px; background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.3); border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s;">
+                                        <button onclick="setPresetPosition('bottom-left')" style="padding: 10px; background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.3); border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s;">
                                             <i class="fas fa-arrow-down"></i><i class="fas fa-arrow-left"></i> Basso Sx
                                         </button>
-                                        <button onclick="setWebcamPreset('top-right')" style="padding: 10px; background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.3); border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s;">
+                                        <button onclick="setPresetPosition('top-right')" style="padding: 10px; background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.3); border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s;">
                                             <i class="fas fa-arrow-up"></i><i class="fas fa-arrow-right"></i> Alto Dx
                                         </button>
-                                        <button onclick="setWebcamPreset('top-left')" style="padding: 10px; background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.3); border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s;">
+                                        <button onclick="setPresetPosition('top-left')" style="padding: 10px; background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.3); border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s;">
                                             <i class="fas fa-arrow-up"></i><i class="fas fa-arrow-left"></i> Alto Sx
                                         </button>
                                     </div>
@@ -8446,7 +8446,7 @@
             const videoSource = document.getElementById('scheduledVideoSource').value;
             const captureModeSection = document.getElementById('captureModeSection');
             const monitorSelectionSection = document.getElementById('monitorSelectionSection');
-            const webcamPreviewSection = document.getElementById('webcamPreviewSection');
+            const recordingPreviewSection = document.getElementById('recordingPreviewSection');
 
             if (videoSource === 'monitor' || videoSource === 'monitor_webcam') {
                 // Monitor o PIP: mostra selezione monitor e modalità cattura
@@ -8458,17 +8458,17 @@
                 captureModeSection.style.display = 'none';
             }
 
-            // Mostra/Nascondi preview webcam per PIP
-            if (videoSource === 'monitor_webcam') {
-                webcamPreviewSection.style.display = 'block';
+            // Mostra preview per Monitor e PIP (non per webcam)
+            if (videoSource === 'monitor' || videoSource === 'monitor_webcam') {
+                recordingPreviewSection.style.display = 'block';
                 // Inizializza canvas se non già fatto
-                if (!window.pipPreviewInitialized) {
-                    initPipPreview();
-                    window.pipPreviewInitialized = true;
+                if (!window.recordingPreviewInitialized) {
+                    initRecordingPreview();
+                    window.recordingPreviewInitialized = true;
                 }
-                drawPipPreview();
+                updateRecordingPreview();
             } else {
-                webcamPreviewSection.style.display = 'none';
+                recordingPreviewSection.style.display = 'none';
             }
 
             updateScheduledRecordingSummary();
@@ -8489,141 +8489,249 @@
             updateScheduledRecordingSummary();
         }
 
-        // ==================== PICTURE-IN-PICTURE PREVIEW ====================
+        // ==================== RECORDING PREVIEW ====================
 
-        // Stato del canvas PIP
-        let pipState = {
+        // Stato del canvas preview registrazione
+        let previewState = {
             canvas: null,
             ctx: null,
+            mode: 'fullscreen', // 'fullscreen', 'custom', 'pip'
+            // Rettangolo webcam (per PIP)
             webcamRect: {
                 x: 0,
                 y: 0,
                 width: 320,
                 height: 240
             },
+            // Rettangolo area registrazione (per custom)
+            areaRect: {
+                x: 0,
+                y: 0,
+                width: 800,
+                height: 450
+            },
             isDragging: false,
             isResizing: false,
             dragStartX: 0,
             dragStartY: 0,
-            resizeHandle: null, // 'tl', 'tr', 'bl', 'br' (top-left, top-right, bottom-left, bottom-right)
+            resizeHandle: null, // 'tl', 'tr', 'bl', 'br'
             canvasWidth: 800,
             canvasHeight: 450
         };
 
-        // Inizializza canvas PIP
-        function initPipPreview() {
-            pipState.canvas = document.getElementById('pipPreviewCanvas');
-            pipState.ctx = pipState.canvas.getContext('2d');
+        // Inizializza canvas preview registrazione
+        function initRecordingPreview() {
+            previewState.canvas = document.getElementById('recordingPreviewCanvas');
+            previewState.ctx = previewState.canvas.getContext('2d');
 
             // Imposta dimensioni canvas reali (risoluzione interna)
-            pipState.canvas.width = 800;
-            pipState.canvas.height = 450;
+            previewState.canvas.width = 800;
+            previewState.canvas.height = 450;
 
-            // Carica valori iniziali dai hidden inputs (default: bottom-right)
+            // Posiziona webcam in basso a destra (default per PIP)
             const webcamWidth = parseInt(document.getElementById('pipWebcamWidth').value) || 320;
             const webcamHeight = parseInt(document.getElementById('pipWebcamHeight').value) || 240;
-
-            // Posiziona in basso a destra con padding 10px
-            pipState.webcamRect = {
-                x: pipState.canvasWidth - webcamWidth - 10,
-                y: pipState.canvasHeight - webcamHeight - 10,
+            previewState.webcamRect = {
+                x: previewState.canvasWidth - webcamWidth - 10,
+                y: previewState.canvasHeight - webcamHeight - 10,
                 width: webcamWidth,
                 height: webcamHeight
             };
 
-            // Salva coordinate negli input nascosti
-            updatePipCoordinates();
-
             // Event listeners per drag & drop
-            pipState.canvas.addEventListener('mousedown', handlePipMouseDown);
-            pipState.canvas.addEventListener('mousemove', handlePipMouseMove);
-            pipState.canvas.addEventListener('mouseup', handlePipMouseUp);
-            pipState.canvas.addEventListener('mouseleave', handlePipMouseUp);
+            previewState.canvas.addEventListener('mousedown', handlePreviewMouseDown);
+            previewState.canvas.addEventListener('mousemove', handlePreviewMouseMove);
+            previewState.canvas.addEventListener('mouseup', handlePreviewMouseUp);
+            previewState.canvas.addEventListener('mouseleave', handlePreviewMouseUp);
 
             // Disegna canvas iniziale
-            drawPipPreview();
+            updateRecordingPreview();
         }
 
-        // Disegna canvas PIP
-        function drawPipPreview() {
-            if (!pipState.ctx) return;
+        // Determina modalità e aggiorna preview
+        function updateRecordingPreview() {
+            const videoSource = document.getElementById('scheduledVideoSource').value;
+            const captureMode = document.getElementById('scheduledCaptureMode').value;
 
-            const ctx = pipState.ctx;
-            const rect = pipState.webcamRect;
+            // Determina modalità preview
+            if (videoSource === 'monitor_webcam') {
+                previewState.mode = 'pip';
+            } else if (videoSource === 'monitor' && captureMode === 'custom') {
+                previewState.mode = 'custom';
+                // Carica coordinate area custom
+                const useCustomArea = document.getElementById('scheduledUseCustomArea').checked;
+                if (useCustomArea) {
+                    previewState.areaRect.x = parseInt(document.getElementById('scheduledAreaX').value) || 0;
+                    previewState.areaRect.y = parseInt(document.getElementById('scheduledAreaY').value) || 0;
+                    previewState.areaRect.width = parseInt(document.getElementById('scheduledAreaWidth').value) || 1920;
+                    previewState.areaRect.height = parseInt(document.getElementById('scheduledAreaHeight').value) || 1080;
+                } else {
+                    // Se custom area non attiva, mostra fullscreen
+                    previewState.mode = 'fullscreen';
+                }
+            } else {
+                previewState.mode = 'fullscreen';
+            }
+
+            // Aggiorna UI elementi
+            const presetButtons = document.getElementById('previewPresetButtons');
+            const previewDesc = document.getElementById('previewDescription');
+
+            if (previewState.mode === 'pip') {
+                presetButtons.style.display = 'grid';
+                previewDesc.innerHTML = '<i class="fas fa-info-circle"></i> Trascina il riquadro verde per posizionare la webcam. Usa gli angoli per ridimensionare.';
+            } else if (previewState.mode === 'custom') {
+                presetButtons.style.display = 'none';
+                previewDesc.innerHTML = '<i class="fas fa-info-circle"></i> Visualizza l\'area che verrà registrata. Modifica le coordinate qui sopra.';
+            } else {
+                presetButtons.style.display = 'none';
+                previewDesc.innerHTML = '<i class="fas fa-info-circle"></i> Verrà registrato l\'intero schermo.';
+            }
+
+            // Ridisegna canvas
+            drawRecordingPreview();
+        }
+
+        // Disegna canvas preview registrazione
+        function drawRecordingPreview() {
+            if (!previewState.ctx) return;
+
+            const ctx = previewState.ctx;
 
             // Pulisci canvas
-            ctx.clearRect(0, 0, pipState.canvasWidth, pipState.canvasHeight);
+            ctx.clearRect(0, 0, previewState.canvasWidth, previewState.canvasHeight);
 
             // Sfondo monitor (grigio scuro con pattern)
             ctx.fillStyle = '#2a2a2a';
-            ctx.fillRect(0, 0, pipState.canvasWidth, pipState.canvasHeight);
+            ctx.fillRect(0, 0, previewState.canvasWidth, previewState.canvasHeight);
 
             // Pattern a griglia
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
             ctx.lineWidth = 1;
-            for (let i = 0; i < pipState.canvasWidth; i += 40) {
+            for (let i = 0; i < previewState.canvasWidth; i += 40) {
                 ctx.beginPath();
                 ctx.moveTo(i, 0);
-                ctx.lineTo(i, pipState.canvasHeight);
+                ctx.lineTo(i, previewState.canvasHeight);
                 ctx.stroke();
             }
-            for (let i = 0; i < pipState.canvasHeight; i += 40) {
+            for (let i = 0; i < previewState.canvasHeight; i += 40) {
                 ctx.beginPath();
                 ctx.moveTo(0, i);
-                ctx.lineTo(pipState.canvasWidth, i);
+                ctx.lineTo(previewState.canvasWidth, i);
                 ctx.stroke();
             }
 
-            // Etichetta "Monitor" al centro
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-            ctx.font = 'bold 24px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('🖥️ Monitor', pipState.canvasWidth / 2, pipState.canvasHeight / 2);
+            // MODALITÀ FULLSCREEN
+            if (previewState.mode === 'fullscreen') {
+                // Evidenzia tutto lo schermo
+                ctx.fillStyle = 'rgba(76, 175, 80, 0.15)';
+                ctx.fillRect(0, 0, previewState.canvasWidth, previewState.canvasHeight);
+                ctx.strokeStyle = '#4caf50';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(2, 2, previewState.canvasWidth - 4, previewState.canvasHeight - 4);
 
-            // Rettangolo webcam con bordo verde brillante
-            ctx.fillStyle = 'rgba(76, 175, 80, 0.3)';
-            ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
+                // Etichetta al centro
+                ctx.fillStyle = '#4caf50';
+                ctx.font = 'bold 28px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('🖥️ Schermo Intero', previewState.canvasWidth / 2, previewState.canvasHeight / 2);
 
-            // Bordo webcam
-            ctx.strokeStyle = '#4caf50';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
+                // Aggiorna display coordinate
+                document.getElementById('previewPosX').textContent = '0';
+                document.getElementById('previewPosY').textContent = '0';
+                document.getElementById('previewWidth').textContent = 'Full';
+                document.getElementById('previewHeight').textContent = 'Full';
+            }
 
-            // Etichetta "Webcam"
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 14px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('📹 Webcam', rect.x + rect.width / 2, rect.y + rect.height / 2);
+            // MODALITÀ CUSTOM AREA
+            else if (previewState.mode === 'custom') {
+                // Etichetta "Monitor" dietro
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.font = 'bold 20px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('🖥️ Monitor', previewState.canvasWidth / 2, previewState.canvasHeight / 2);
 
-            // Disegna handle per resize (angoli)
-            const handleSize = 12;
-            ctx.fillStyle = '#4caf50';
+                // Area di registrazione (evidenziata)
+                const area = previewState.areaRect;
+                // Scala area da risoluzione reale a canvas 800x450
+                const scaleX = previewState.canvasWidth / 2560; // Assume max 2560px wide
+                const scaleY = previewState.canvasHeight / 1440; // Assume max 1440px tall
+                const scaledX = area.x * scaleX;
+                const scaledY = area.y * scaleY;
+                const scaledW = area.width * scaleX;
+                const scaledH = area.height * scaleY;
 
-            // Top-left
-            ctx.fillRect(rect.x - handleSize / 2, rect.y - handleSize / 2, handleSize, handleSize);
-            // Top-right
-            ctx.fillRect(rect.x + rect.width - handleSize / 2, rect.y - handleSize / 2, handleSize, handleSize);
-            // Bottom-left
-            ctx.fillRect(rect.x - handleSize / 2, rect.y + rect.height - handleSize / 2, handleSize, handleSize);
-            // Bottom-right
-            ctx.fillRect(rect.x + rect.width - handleSize / 2, rect.y + rect.height - handleSize / 2, handleSize, handleSize);
+                ctx.fillStyle = 'rgba(76, 175, 80, 0.3)';
+                ctx.fillRect(scaledX, scaledY, scaledW, scaledH);
+                ctx.strokeStyle = '#4caf50';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(scaledX, scaledY, scaledW, scaledH);
 
-            // Bordo bianco sugli handle
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(rect.x - handleSize / 2, rect.y - handleSize / 2, handleSize, handleSize);
-            ctx.strokeRect(rect.x + rect.width - handleSize / 2, rect.y - handleSize / 2, handleSize, handleSize);
-            ctx.strokeRect(rect.x - handleSize / 2, rect.y + rect.height - handleSize / 2, handleSize, handleSize);
-            ctx.strokeRect(rect.x + rect.width - handleSize / 2, rect.y + rect.height - handleSize / 2, handleSize, handleSize);
+                // Etichetta area
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 16px Arial';
+                ctx.fillText(`📹 ${area.width}x${area.height}`, scaledX + scaledW / 2, scaledY + scaledH / 2);
+
+                // Aggiorna display coordinate
+                document.getElementById('previewPosX').textContent = area.x + 'px';
+                document.getElementById('previewPosY').textContent = area.y + 'px';
+                document.getElementById('previewWidth').textContent = area.width + 'px';
+                document.getElementById('previewHeight').textContent = area.height + 'px';
+            }
+
+            // MODALITÀ PIP (Picture-in-Picture)
+            else if (previewState.mode === 'pip') {
+                // Etichetta "Monitor" dietro
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                ctx.font = 'bold 24px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('🖥️ Monitor', previewState.canvasWidth / 2, previewState.canvasHeight / 2);
+
+                // Rettangolo webcam con bordo verde brillante
+                const webcam = previewState.webcamRect;
+                ctx.fillStyle = 'rgba(76, 175, 80, 0.3)';
+                ctx.fillRect(webcam.x, webcam.y, webcam.width, webcam.height);
+                ctx.strokeStyle = '#4caf50';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(webcam.x, webcam.y, webcam.width, webcam.height);
+
+                // Etichetta webcam
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 14px Arial';
+                ctx.fillText('📹 Webcam', webcam.x + webcam.width / 2, webcam.y + webcam.height / 2);
+
+                // Disegna handle per resize (angoli)
+                const handleSize = 12;
+                ctx.fillStyle = '#4caf50';
+                ctx.fillRect(webcam.x - handleSize / 2, webcam.y - handleSize / 2, handleSize, handleSize);
+                ctx.fillRect(webcam.x + webcam.width - handleSize / 2, webcam.y - handleSize / 2, handleSize, handleSize);
+                ctx.fillRect(webcam.x - handleSize / 2, webcam.y + webcam.height - handleSize / 2, handleSize, handleSize);
+                ctx.fillRect(webcam.x + webcam.width - handleSize / 2, webcam.y + webcam.height - handleSize / 2, handleSize, handleSize);
+
+                // Bordo bianco sugli handle
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(webcam.x - handleSize / 2, webcam.y - handleSize / 2, handleSize, handleSize);
+                ctx.strokeRect(webcam.x + webcam.width - handleSize / 2, webcam.y - handleSize / 2, handleSize, handleSize);
+                ctx.strokeRect(webcam.x - handleSize / 2, webcam.y + webcam.height - handleSize / 2, handleSize, handleSize);
+                ctx.strokeRect(webcam.x + webcam.width - handleSize / 2, webcam.y + webcam.height - handleSize / 2, handleSize, handleSize);
+
+                // Aggiorna display coordinate
+                document.getElementById('previewPosX').textContent = Math.round(webcam.x) + 'px';
+                document.getElementById('previewPosY').textContent = Math.round(webcam.y) + 'px';
+                document.getElementById('previewWidth').textContent = Math.round(webcam.width) + 'px';
+                document.getElementById('previewHeight').textContent = Math.round(webcam.height) + 'px';
+            }
         }
 
         // Converti coordinate mouse da CSS a canvas
         function getCanvasMousePos(e) {
-            const rect = pipState.canvas.getBoundingClientRect();
-            const scaleX = pipState.canvas.width / rect.width;
-            const scaleY = pipState.canvas.height / rect.height;
+            const rect = previewState.canvas.getBoundingClientRect();
+            const scaleX = previewState.canvas.width / rect.width;
+            const scaleY = previewState.canvas.height / rect.height;
 
             return {
                 x: (e.clientX - rect.left) * scaleX,
@@ -8633,7 +8741,7 @@
 
         // Verifica se il mouse è su un handle di resize
         function getResizeHandle(mouseX, mouseY) {
-            const rect = pipState.webcamRect;
+            const rect = previewState.webcamRect;
             const handleSize = 12;
             const tolerance = handleSize;
 
@@ -8658,103 +8766,103 @@
 
         // Verifica se il mouse è dentro il rettangolo webcam
         function isInsideWebcamRect(mouseX, mouseY) {
-            const rect = pipState.webcamRect;
+            const rect = previewState.webcamRect;
             return mouseX >= rect.x && mouseX <= rect.x + rect.width &&
                    mouseY >= rect.y && mouseY <= rect.y + rect.height;
         }
 
         // Mouse down handler
-        function handlePipMouseDown(e) {
+        function handlePreviewMouseDown(e) {
             const pos = getCanvasMousePos(e);
 
             // Verifica se sta cliccando su un handle di resize
             const handle = getResizeHandle(pos.x, pos.y);
             if (handle) {
-                pipState.isResizing = true;
-                pipState.resizeHandle = handle;
-                pipState.dragStartX = pos.x;
-                pipState.dragStartY = pos.y;
-                pipState.canvas.style.cursor = 'nwse-resize';
+                previewState.isResizing = true;
+                previewState.resizeHandle = handle;
+                previewState.dragStartX = pos.x;
+                previewState.dragStartY = pos.y;
+                previewState.canvas.style.cursor = 'nwse-resize';
                 return;
             }
 
             // Verifica se sta cliccando dentro il rettangolo per drag
             if (isInsideWebcamRect(pos.x, pos.y)) {
-                pipState.isDragging = true;
-                pipState.dragStartX = pos.x - pipState.webcamRect.x;
-                pipState.dragStartY = pos.y - pipState.webcamRect.y;
-                pipState.canvas.style.cursor = 'move';
+                previewState.isDragging = true;
+                previewState.dragStartX = pos.x - previewState.webcamRect.x;
+                previewState.dragStartY = pos.y - previewState.webcamRect.y;
+                previewState.canvas.style.cursor = 'move';
             }
         }
 
         // Mouse move handler
-        function handlePipMouseMove(e) {
+        function handlePreviewMouseMove(e) {
             const pos = getCanvasMousePos(e);
 
             // Update cursor based on position
-            if (pipState.isDragging || pipState.isResizing) {
+            if (previewState.isDragging || previewState.isResizing) {
                 // Mantieni cursor durante drag/resize
             } else {
                 const handle = getResizeHandle(pos.x, pos.y);
                 if (handle) {
-                    pipState.canvas.style.cursor = 'nwse-resize';
+                    previewState.canvas.style.cursor = 'nwse-resize';
                 } else if (isInsideWebcamRect(pos.x, pos.y)) {
-                    pipState.canvas.style.cursor = 'move';
+                    previewState.canvas.style.cursor = 'move';
                 } else {
-                    pipState.canvas.style.cursor = 'crosshair';
+                    previewState.canvas.style.cursor = 'crosshair';
                 }
             }
 
             // Dragging
-            if (pipState.isDragging) {
-                let newX = pos.x - pipState.dragStartX;
-                let newY = pos.y - pipState.dragStartY;
+            if (previewState.isDragging) {
+                let newX = pos.x - previewState.dragStartX;
+                let newY = pos.y - previewState.dragStartY;
 
                 // Limita dentro canvas
-                newX = Math.max(0, Math.min(newX, pipState.canvasWidth - pipState.webcamRect.width));
-                newY = Math.max(0, Math.min(newY, pipState.canvasHeight - pipState.webcamRect.height));
+                newX = Math.max(0, Math.min(newX, previewState.canvasWidth - previewState.webcamRect.width));
+                newY = Math.max(0, Math.min(newY, previewState.canvasHeight - previewState.webcamRect.height));
 
-                pipState.webcamRect.x = newX;
-                pipState.webcamRect.y = newY;
+                previewState.webcamRect.x = newX;
+                previewState.webcamRect.y = newY;
 
-                updatePipCoordinates();
-                drawPipPreview();
+                updatePreviewCoordinates();
+                drawRecordingPreview();
             }
 
             // Resizing
-            if (pipState.isResizing) {
-                const deltaX = pos.x - pipState.dragStartX;
-                const deltaY = pos.y - pipState.dragStartY;
-                const rect = pipState.webcamRect;
+            if (previewState.isResizing) {
+                const deltaX = pos.x - previewState.dragStartX;
+                const deltaY = pos.y - previewState.dragStartY;
+                const rect = previewState.webcamRect;
                 const minSize = 100;
 
-                switch (pipState.resizeHandle) {
+                switch (previewState.resizeHandle) {
                     case 'tl': // Top-left
                         const newWidthTL = rect.width - deltaX;
                         const newHeightTL = rect.height - deltaY;
                         if (newWidthTL >= minSize && rect.x + deltaX >= 0) {
                             rect.x += deltaX;
                             rect.width = newWidthTL;
-                            pipState.dragStartX = pos.x;
+                            previewState.dragStartX = pos.x;
                         }
                         if (newHeightTL >= minSize && rect.y + deltaY >= 0) {
                             rect.y += deltaY;
                             rect.height = newHeightTL;
-                            pipState.dragStartY = pos.y;
+                            previewState.dragStartY = pos.y;
                         }
                         break;
 
                     case 'tr': // Top-right
                         const newWidthTR = rect.width + deltaX;
                         const newHeightTR = rect.height - deltaY;
-                        if (newWidthTR >= minSize && rect.x + newWidthTR <= pipState.canvasWidth) {
+                        if (newWidthTR >= minSize && rect.x + newWidthTR <= previewState.canvasWidth) {
                             rect.width = newWidthTR;
-                            pipState.dragStartX = pos.x;
+                            previewState.dragStartX = pos.x;
                         }
                         if (newHeightTR >= minSize && rect.y + deltaY >= 0) {
                             rect.y += deltaY;
                             rect.height = newHeightTR;
-                            pipState.dragStartY = pos.y;
+                            previewState.dragStartY = pos.y;
                         }
                         break;
 
@@ -8764,98 +8872,89 @@
                         if (newWidthBL >= minSize && rect.x + deltaX >= 0) {
                             rect.x += deltaX;
                             rect.width = newWidthBL;
-                            pipState.dragStartX = pos.x;
+                            previewState.dragStartX = pos.x;
                         }
-                        if (newHeightBL >= minSize && rect.y + newHeightBL <= pipState.canvasHeight) {
+                        if (newHeightBL >= minSize && rect.y + newHeightBL <= previewState.canvasHeight) {
                             rect.height = newHeightBL;
-                            pipState.dragStartY = pos.y;
+                            previewState.dragStartY = pos.y;
                         }
                         break;
 
                     case 'br': // Bottom-right
                         const newWidthBR = rect.width + deltaX;
                         const newHeightBR = rect.height + deltaY;
-                        if (newWidthBR >= minSize && rect.x + newWidthBR <= pipState.canvasWidth) {
+                        if (newWidthBR >= minSize && rect.x + newWidthBR <= previewState.canvasWidth) {
                             rect.width = newWidthBR;
-                            pipState.dragStartX = pos.x;
+                            previewState.dragStartX = pos.x;
                         }
-                        if (newHeightBR >= minSize && rect.y + newHeightBR <= pipState.canvasHeight) {
+                        if (newHeightBR >= minSize && rect.y + newHeightBR <= previewState.canvasHeight) {
                             rect.height = newHeightBR;
-                            pipState.dragStartY = pos.y;
+                            previewState.dragStartY = pos.y;
                         }
                         break;
                 }
 
-                updatePipCoordinates();
-                drawPipPreview();
+                updatePreviewCoordinates();
+                drawRecordingPreview();
             }
         }
 
         // Mouse up handler
-        function handlePipMouseUp(e) {
-            pipState.isDragging = false;
-            pipState.isResizing = false;
-            pipState.resizeHandle = null;
-            pipState.canvas.style.cursor = 'crosshair';
+        function handlePreviewMouseUp(e) {
+            previewState.isDragging = false;
+            previewState.isResizing = false;
+            previewState.resizeHandle = null;
+            previewState.canvas.style.cursor = 'crosshair';
         }
 
         // Aggiorna coordinate negli input nascosti e nel display
-        function updatePipCoordinates() {
-            const rect = pipState.webcamRect;
+        // Aggiorna coordinate dopo drag/resize
+        function updatePreviewCoordinates() {
+            const rect = previewState.webcamRect;
 
-            // Scala le coordinate dal canvas (800x450) alla risoluzione reale del monitor
-            // Per ora salviamo coordinate normalizzate (0-1) che poi il backend convertirà
-            const normalizedX = rect.x / pipState.canvasWidth;
-            const normalizedY = rect.y / pipState.canvasHeight;
-            const normalizedWidth = rect.width / pipState.canvasWidth;
-            const normalizedHeight = rect.height / pipState.canvasHeight;
-
-            // Salva negli input nascosti (valori assoluti canvas per ora)
+            // Salva coordinate webcam negli input nascosti (per PIP)
             document.getElementById('pipWebcamX').value = Math.round(rect.x);
             document.getElementById('pipWebcamY').value = Math.round(rect.y);
             document.getElementById('pipWebcamWidth').value = Math.round(rect.width);
             document.getElementById('pipWebcamHeight').value = Math.round(rect.height);
 
-            // Aggiorna display
-            document.getElementById('webcamPosX').textContent = Math.round(rect.x) + 'px';
-            document.getElementById('webcamPosY').textContent = Math.round(rect.y) + 'px';
-            document.getElementById('webcamWidth').textContent = Math.round(rect.width) + 'px';
-            document.getElementById('webcamHeight').textContent = Math.round(rect.height) + 'px';
+            // Ridisegna canvas (il display coordinate è aggiornato lì)
+            drawRecordingPreview();
         }
 
         // Imposta preset posizione webcam
-        function setWebcamPreset(position) {
+        function setPresetPosition(position) {
             const padding = 10;
             const width = 320;
             const height = 240;
 
             switch (position) {
                 case 'bottom-right':
-                    pipState.webcamRect.x = pipState.canvasWidth - width - padding;
-                    pipState.webcamRect.y = pipState.canvasHeight - height - padding;
+                    previewState.webcamRect.x = previewState.canvasWidth - width - padding;
+                    previewState.webcamRect.y = previewState.canvasHeight - height - padding;
                     break;
                 case 'bottom-left':
-                    pipState.webcamRect.x = padding;
-                    pipState.webcamRect.y = pipState.canvasHeight - height - padding;
+                    previewState.webcamRect.x = padding;
+                    previewState.webcamRect.y = previewState.canvasHeight - height - padding;
                     break;
                 case 'top-right':
-                    pipState.webcamRect.x = pipState.canvasWidth - width - padding;
-                    pipState.webcamRect.y = padding;
+                    previewState.webcamRect.x = previewState.canvasWidth - width - padding;
+                    previewState.webcamRect.y = padding;
                     break;
                 case 'top-left':
-                    pipState.webcamRect.x = padding;
-                    pipState.webcamRect.y = padding;
+                    previewState.webcamRect.x = padding;
+                    previewState.webcamRect.y = padding;
                     break;
             }
 
-            pipState.webcamRect.width = width;
-            pipState.webcamRect.height = height;
+            previewState.webcamRect.width = width;
+            previewState.webcamRect.height = height;
 
-            updatePipCoordinates();
-            drawPipPreview();
+            updatePreviewCoordinates();
+            drawRecordingPreview();
         }
 
-        // ==================== FINE PICTURE-IN-PICTURE PREVIEW ====================
+        // ==================== FINE RECORDING PREVIEW ====================
 
         function toggleScheduledCaptureOptions() {
             const mode = document.getElementById('scheduledCaptureMode').value;
@@ -8865,6 +8964,11 @@
                 customOptions.style.display = 'block';
             } else {
                 customOptions.style.display = 'none';
+            }
+
+            // Aggiorna preview registrazione
+            if (window.recordingPreviewInitialized) {
+                updateRecordingPreview();
             }
         }
 
@@ -8877,6 +8981,11 @@
                 areaInputs.style.display = 'block';
             } else {
                 areaInputs.style.display = 'none';
+            }
+
+            // Aggiorna preview registrazione
+            if (window.recordingPreviewInitialized) {
+                updateRecordingPreview();
             }
         }
 
@@ -8953,6 +9062,21 @@
                 if (elem) {
                     elem.addEventListener('change', updateScheduledRecordingSummary);
                     elem.addEventListener('input', updateScheduledRecordingSummary);
+                }
+            });
+
+            // Event listeners per aggiornare preview registrazione
+            const previewTriggers = [
+                'scheduledAreaX', 'scheduledAreaY', 'scheduledAreaWidth', 'scheduledAreaHeight'
+            ];
+            previewTriggers.forEach(id => {
+                const elem = document.getElementById(id);
+                if (elem) {
+                    elem.addEventListener('input', () => {
+                        if (window.recordingPreviewInitialized) {
+                            updateRecordingPreview();
+                        }
+                    });
                 }
             });
 
