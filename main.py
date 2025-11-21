@@ -217,19 +217,19 @@ from app.api.routes import (
     auth,
     admin,
     chromakey,
-    compositor,  # Multi-layer video compositor
+    compositor,
     translation,
     thumbnail,
     youtube,
     pipeline,
     metadata,
     logo,
-    transcription,  # Abilitato - Whisper opzionale (graceful degradation)
-    screen_record,  # Screen recording con browser API e FFmpeg scheduled
-    seo_metadata,   # Abilitato - Whisper opzionale (graceful degradation)
-    video_download,  # Download video da YouTube, TikTok, Vimeo, ecc.
-    user_settings,   # User preferences e UI state persistence
-    outputs  # Gestione file elaborati (outputs)
+    transcription,
+    screen_record,
+    seo_metadata,
+    video_download,
+    user_settings,
+    outputs
 )
 
 # Import file upload route
@@ -314,7 +314,7 @@ async def get_demo_credentials():
 app.include_router(auth.router, prefix=f"{settings.api_prefix}/auth", tags=["Authentication"])
 app.include_router(admin.router, prefix=f"{settings.api_prefix}/admin", tags=["Admin"])
 app.include_router(user_settings.router, prefix=f"{settings.api_prefix}/user", tags=["User Settings"])
-app.include_router(files.router, prefix="/api", tags=["File Upload"])  # Endpoint compatibilità /api/upload
+app.include_router(files.router, prefix="/api", tags=["File Upload"])
 
 # Processing routes
 app.include_router(chromakey.router, prefix=f"{settings.api_prefix}/chromakey", tags=["Chromakey"])
@@ -325,11 +325,11 @@ app.include_router(youtube.router, prefix=f"{settings.api_prefix}/youtube", tags
 app.include_router(pipeline.router, prefix=f"{settings.api_prefix}/pipelines", tags=["Pipeline AUTO"])
 app.include_router(logo.router, prefix=f"{settings.api_prefix}/logo", tags=["Logo Overlay"])
 app.include_router(metadata.router, prefix=f"{settings.api_prefix}/metadata", tags=["Metadata Extraction"])
-app.include_router(transcription.router, prefix=f"{settings.api_prefix}/transcription", tags=["Transcription"])  # Abilitato - Whisper opzionale
-app.include_router(seo_metadata.router, prefix=f"{settings.api_prefix}/seo", tags=["SEO Metadata AI"])  # Abilitato - Whisper opzionale
-app.include_router(video_download.router, prefix=f"{settings.api_prefix}/video-download", tags=["Video Download"])  # Download da YouTube, TikTok, Vimeo, ecc.
-app.include_router(outputs.router, prefix=f"{settings.api_prefix}/outputs", tags=["Output Files Management"])  # Gestione file elaborati
-app.include_router(screen_record.router, prefix=f"{settings.api_prefix}/screen-record", tags=["Screen Recording"])  # Screen recording con browser API + FFmpeg scheduled
+app.include_router(transcription.router, prefix=f"{settings.api_prefix}/transcription", tags=["Transcription"])
+app.include_router(seo_metadata.router, prefix=f"{settings.api_prefix}/seo", tags=["SEO Metadata AI"])
+app.include_router(video_download.router, prefix=f"{settings.api_prefix}/video-download", tags=["Video Download"])
+app.include_router(outputs.router, prefix=f"{settings.api_prefix}/outputs", tags=["Output Files Management"])
+app.include_router(screen_record.router, prefix=f"{settings.api_prefix}/screen-record", tags=["Screen Recording"])
 
 # ==================== ERROR HANDLERS ====================
 
