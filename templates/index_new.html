@@ -1748,12 +1748,21 @@
                                     <div style="position: relative; background: #1a1a1a; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
                                         <canvas id="recordingPreviewCanvas" width="800" height="450" style="width: 100%; height: auto; display: block; cursor: crosshair;"></canvas>
 
+                                        <!-- Video elementi nascosti per catturare stream -->
+                                        <video id="previewMonitorVideo" autoplay playsinline muted style="display: none;"></video>
+                                        <video id="previewWebcamVideo" autoplay playsinline muted style="display: none;"></video>
+
                                         <!-- Overlay istruzioni -->
                                         <div id="previewInstructions" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: white; pointer-events: none; opacity: 0;">
                                             <i class="fas fa-hand-pointer" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.7;"></i>
                                             <p id="previewInstructionText" style="font-size: 1.1rem; font-weight: 600; margin: 0;">Trascina per posizionare</p>
                                             <p style="font-size: 0.9rem; margin: 10px 0 0 0; opacity: 0.8;">Usa gli angoli per ridimensionare</p>
                                         </div>
+
+                                        <!-- Bottone per avviare preview live -->
+                                        <button id="startPreviewBtn" onclick="startLivePreview()" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 15px 30px; background: linear-gradient(135deg, #4caf50 0%, #45a049 100%); color: white; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(76,175,80,0.4); transition: all 0.3s;">
+                                            <i class="fas fa-play"></i> Avvia Anteprima Live
+                                        </button>
                                     </div>
 
                                     <!-- Info coordinate -->
@@ -8458,18 +8467,20 @@
                 captureModeSection.style.display = 'none';
             }
 
-            // Mostra preview per Monitor e PIP (non per webcam)
-            if (videoSource === 'monitor' || videoSource === 'monitor_webcam') {
-                recordingPreviewSection.style.display = 'block';
-                // Inizializza canvas se non già fatto
-                if (!window.recordingPreviewInitialized) {
-                    initRecordingPreview();
-                    window.recordingPreviewInitialized = true;
-                }
-                updateRecordingPreview();
-            } else {
-                recordingPreviewSection.style.display = 'none';
+            // Ferma preview live se attiva (cambio sorgente)
+            if (previewState.isLivePreview) {
+                stopLivePreview();
+                document.getElementById('startPreviewBtn').style.display = 'block';
             }
+
+            // Mostra preview per tutte le sorgenti (monitor, webcam, pip)
+            recordingPreviewSection.style.display = 'block';
+            // Inizializza canvas se non già fatto
+            if (!window.recordingPreviewInitialized) {
+                initRecordingPreview();
+                window.recordingPreviewInitialized = true;
+            }
+            updateRecordingPreview();
 
             updateScheduledRecordingSummary();
         }
@@ -8516,7 +8527,14 @@
             dragStartY: 0,
             resizeHandle: null, // 'tl', 'tr', 'bl', 'br'
             canvasWidth: 800,
-            canvasHeight: 450
+            canvasHeight: 450,
+            // Stream video live
+            monitorStream: null,
+            webcamStream: null,
+            monitorVideo: null,
+            webcamVideo: null,
+            isLivePreview: false,
+            animationFrameId: null
         };
 
         // Inizializza canvas preview registrazione
@@ -8544,8 +8562,180 @@
             previewState.canvas.addEventListener('mouseup', handlePreviewMouseUp);
             previewState.canvas.addEventListener('mouseleave', handlePreviewMouseUp);
 
+            // Riferimenti agli elementi video
+            previewState.monitorVideo = document.getElementById('previewMonitorVideo');
+            previewState.webcamVideo = document.getElementById('previewWebcamVideo');
+
             // Disegna canvas iniziale
             updateRecordingPreview();
+        }
+
+        // Avvia preview live (cattura monitor e/o webcam)
+        async function startLivePreview() {
+            try {
+                const videoSource = document.getElementById('scheduledVideoSource').value;
+                const startBtn = document.getElementById('startPreviewBtn');
+                startBtn.style.display = 'none';
+
+                // Cattura monitor (per monitor e pip)
+                if (videoSource === 'monitor' || videoSource === 'monitor_webcam') {
+                    try {
+                        previewState.monitorStream = await navigator.mediaDevices.getDisplayMedia({
+                            video: {
+                                displaySurface: 'monitor',
+                                width: { ideal: 1920 },
+                                height: { ideal: 1080 }
+                            },
+                            audio: false
+                        });
+                        previewState.monitorVideo.srcObject = previewState.monitorStream;
+                    } catch (err) {
+                        console.error('Errore cattura monitor:', err);
+                        showModal('Errore', 'Impossibile catturare lo schermo. Permesso negato.', 'error');
+                        startBtn.style.display = 'block';
+                        return;
+                    }
+                }
+
+                // Cattura webcam (per webcam e pip)
+                if (videoSource === 'webcam' || videoSource === 'monitor_webcam') {
+                    try {
+                        previewState.webcamStream = await navigator.mediaDevices.getUserMedia({
+                            video: {
+                                width: { ideal: 1280 },
+                                height: { ideal: 720 }
+                            },
+                            audio: false
+                        });
+                        previewState.webcamVideo.srcObject = previewState.webcamStream;
+                    } catch (err) {
+                        console.error('Errore cattura webcam:', err);
+                        showModal('Errore', 'Impossibile accedere alla webcam. Permesso negato.', 'error');
+                        // Cleanup monitor stream se era stato avviato
+                        if (previewState.monitorStream) {
+                            previewState.monitorStream.getTracks().forEach(track => track.stop());
+                            previewState.monitorStream = null;
+                        }
+                        startBtn.style.display = 'block';
+                        return;
+                    }
+                }
+
+                // Attendi che i video siano pronti
+                await Promise.all([
+                    previewState.monitorVideo.srcObject ? new Promise(resolve => previewState.monitorVideo.onloadedmetadata = resolve) : Promise.resolve(),
+                    previewState.webcamVideo.srcObject ? new Promise(resolve => previewState.webcamVideo.onloadedmetadata = resolve) : Promise.resolve()
+                ]);
+
+                previewState.isLivePreview = true;
+                renderLiveFrame();
+
+                // Gestisci eventi stream ended (utente ferma condivisione)
+                if (previewState.monitorStream) {
+                    previewState.monitorStream.getTracks()[0].onended = () => {
+                        stopLivePreview();
+                        startBtn.style.display = 'block';
+                    };
+                }
+
+            } catch (err) {
+                console.error('Errore avvio preview:', err);
+                showModal('Errore', 'Errore durante l\'avvio dell\'anteprima live', 'error');
+                document.getElementById('startPreviewBtn').style.display = 'block';
+            }
+        }
+
+        // Ferma preview live e cleanup
+        function stopLivePreview() {
+            if (previewState.animationFrameId) {
+                cancelAnimationFrame(previewState.animationFrameId);
+                previewState.animationFrameId = null;
+            }
+
+            if (previewState.monitorStream) {
+                previewState.monitorStream.getTracks().forEach(track => track.stop());
+                previewState.monitorStream = null;
+                previewState.monitorVideo.srcObject = null;
+            }
+
+            if (previewState.webcamStream) {
+                previewState.webcamStream.getTracks().forEach(track => track.stop());
+                previewState.webcamStream = null;
+                previewState.webcamVideo.srcObject = null;
+            }
+
+            previewState.isLivePreview = false;
+
+            // Ridisegna canvas statico
+            drawRecordingPreview();
+        }
+
+        // Loop di rendering per disegnare frame video sul canvas
+        function renderLiveFrame() {
+            if (!previewState.isLivePreview) return;
+
+            const ctx = previewState.ctx;
+            const videoSource = document.getElementById('scheduledVideoSource').value;
+
+            // Pulisci canvas
+            ctx.clearRect(0, 0, previewState.canvasWidth, previewState.canvasHeight);
+
+            // MONITOR SOLO o PIP
+            if ((videoSource === 'monitor' || videoSource === 'monitor_webcam') && previewState.monitorVideo.readyState >= 2) {
+                // Disegna monitor (fullscreen canvas)
+                ctx.drawImage(previewState.monitorVideo, 0, 0, previewState.canvasWidth, previewState.canvasHeight);
+
+                // Se PIP, sovrapponi webcam
+                if (videoSource === 'monitor_webcam' && previewState.webcamVideo.readyState >= 2) {
+                    const webcam = previewState.webcamRect;
+                    ctx.drawImage(previewState.webcamVideo, webcam.x, webcam.y, webcam.width, webcam.height);
+
+                    // Bordo verde webcam
+                    ctx.strokeStyle = '#4caf50';
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(webcam.x, webcam.y, webcam.width, webcam.height);
+
+                    // Handle per resize
+                    const handleSize = 12;
+                    ctx.fillStyle = '#4caf50';
+                    ctx.fillRect(webcam.x - handleSize / 2, webcam.y - handleSize / 2, handleSize, handleSize);
+                    ctx.fillRect(webcam.x + webcam.width - handleSize / 2, webcam.y - handleSize / 2, handleSize, handleSize);
+                    ctx.fillRect(webcam.x - handleSize / 2, webcam.y + webcam.height - handleSize / 2, handleSize, handleSize);
+                    ctx.fillRect(webcam.x + webcam.width - handleSize / 2, webcam.y + webcam.height - handleSize / 2, handleSize, handleSize);
+
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(webcam.x - handleSize / 2, webcam.y - handleSize / 2, handleSize, handleSize);
+                    ctx.strokeRect(webcam.x + webcam.width - handleSize / 2, webcam.y - handleSize / 2, handleSize, handleSize);
+                    ctx.strokeRect(webcam.x - handleSize / 2, webcam.y + webcam.height - handleSize / 2, handleSize, handleSize);
+                    ctx.strokeRect(webcam.x + webcam.width - handleSize / 2, webcam.y + webcam.height - handleSize / 2, handleSize, handleSize);
+
+                    // Aggiorna coordinate
+                    document.getElementById('previewPosX').textContent = Math.round(webcam.x) + 'px';
+                    document.getElementById('previewPosY').textContent = Math.round(webcam.y) + 'px';
+                    document.getElementById('previewWidth').textContent = Math.round(webcam.width) + 'px';
+                    document.getElementById('previewHeight').textContent = Math.round(webcam.height) + 'px';
+                }
+            }
+
+            // WEBCAM SOLO
+            else if (videoSource === 'webcam' && previewState.webcamVideo.readyState >= 2) {
+                // Disegna webcam fullscreen
+                ctx.drawImage(previewState.webcamVideo, 0, 0, previewState.canvasWidth, previewState.canvasHeight);
+
+                // Bordo verde
+                ctx.strokeStyle = '#4caf50';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(2, 2, previewState.canvasWidth - 4, previewState.canvasHeight - 4);
+
+                document.getElementById('previewPosX').textContent = '0';
+                document.getElementById('previewPosY').textContent = '0';
+                document.getElementById('previewWidth').textContent = 'Full';
+                document.getElementById('previewHeight').textContent = 'Full';
+            }
+
+            // Continua loop
+            previewState.animationFrameId = requestAnimationFrame(renderLiveFrame);
         }
 
         // Determina modalità e aggiorna preview
@@ -8577,19 +8767,38 @@
             const presetButtons = document.getElementById('previewPresetButtons');
             const previewDesc = document.getElementById('previewDescription');
 
-            if (previewState.mode === 'pip') {
-                presetButtons.style.display = 'grid';
-                previewDesc.innerHTML = '<i class="fas fa-info-circle"></i> Trascina il riquadro verde per posizionare la webcam. Usa gli angoli per ridimensionare.';
-            } else if (previewState.mode === 'custom') {
-                presetButtons.style.display = 'none';
-                previewDesc.innerHTML = '<i class="fas fa-info-circle"></i> Visualizza l\'area che verrà registrata. Modifica le coordinate qui sopra.';
+            // Descrizioni diverse per live vs statico
+            if (previewState.isLivePreview) {
+                if (previewState.mode === 'pip') {
+                    presetButtons.style.display = 'grid';
+                    previewDesc.innerHTML = '<i class="fas fa-video"></i> <strong>Anteprima Live</strong>: Trascina il riquadro webcam per posizionarla.';
+                } else if (videoSource === 'webcam') {
+                    presetButtons.style.display = 'none';
+                    previewDesc.innerHTML = '<i class="fas fa-video"></i> <strong>Anteprima Live Webcam</strong>: Vedi cosa verrà registrato dalla webcam.';
+                } else {
+                    presetButtons.style.display = 'none';
+                    previewDesc.innerHTML = '<i class="fas fa-video"></i> <strong>Anteprima Live Monitor</strong>: Vedi cosa verrà registrato dal monitor.';
+                }
             } else {
-                presetButtons.style.display = 'none';
-                previewDesc.innerHTML = '<i class="fas fa-info-circle"></i> Verrà registrato l\'intero schermo.';
+                if (previewState.mode === 'pip') {
+                    presetButtons.style.display = 'grid';
+                    previewDesc.innerHTML = '<i class="fas fa-info-circle"></i> Clicca "Avvia Anteprima Live" per vedere monitor + webcam in tempo reale.';
+                } else if (videoSource === 'webcam') {
+                    presetButtons.style.display = 'none';
+                    previewDesc.innerHTML = '<i class="fas fa-info-circle"></i> Clicca "Avvia Anteprima Live" per vedere la webcam in tempo reale.';
+                } else if (previewState.mode === 'custom') {
+                    presetButtons.style.display = 'none';
+                    previewDesc.innerHTML = '<i class="fas fa-info-circle"></i> Clicca "Avvia Anteprima Live" per vedere l\'area che verrà registrata.';
+                } else {
+                    presetButtons.style.display = 'none';
+                    previewDesc.innerHTML = '<i class="fas fa-info-circle"></i> Clicca "Avvia Anteprima Live" per vedere l\'intero schermo.';
+                }
             }
 
-            // Ridisegna canvas
-            drawRecordingPreview();
+            // Ridisegna canvas (solo se non live - il live ha il suo loop)
+            if (!previewState.isLivePreview) {
+                drawRecordingPreview();
+            }
         }
 
         // Disegna canvas preview registrazione
@@ -9079,6 +9288,19 @@
                     });
                 }
             });
+
+            // Event listener per aggiornare mirino quando cambia monitor selezionato
+            const monitorSelect = document.getElementById('scheduledMonitor');
+            if (monitorSelect) {
+                monitorSelect.addEventListener('change', () => {
+                    // Aggiorna mirino se visibile
+                    const crosshairOverlay = document.getElementById('crosshairOverlay');
+                    if (crosshairOverlay && crosshairOverlay.style.display !== 'none') {
+                        const monitorName = monitorSelect.options[monitorSelect.selectedIndex].text;
+                        document.getElementById('crosshairMonitorName').textContent = monitorName;
+                    }
+                });
+            }
 
             // Aggiorna subito al caricamento
             updateScheduledRecordingSummary();
