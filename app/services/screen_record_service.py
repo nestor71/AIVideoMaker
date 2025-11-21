@@ -94,6 +94,12 @@ class ScreenRecordParams:
     record_audio: bool = True
     audio_device: Optional[str] = None  # Device ID (None = default)
 
+    # NUOVI PARAMETRI per controllo avanzato
+    video_source: str = "monitor"  # "monitor" o "webcam"
+    output_format: str = "mp4"  # "mp4" (H.264/AAC) o "webm" (VP9/Opus)
+    audio_system: bool = True  # Registra audio di sistema
+    audio_microphone: bool = False  # Registra audio microfono
+
 
 class ScreenRecordService:
     """
@@ -357,33 +363,90 @@ class ScreenRecordService:
         region: Dict[str, int],
         quality: Dict[str, Any]
     ) -> list:
-        """Comando ffmpeg per macOS (AVFoundation)"""
+        """Comando ffmpeg per macOS (AVFoundation) con supporto webcam e mix audio"""
         cmd = [
             self.ffmpeg_path,
-            '-f', 'avfoundation',
-            '-capture_cursor', '1',
-            '-framerate', str(params.fps)
+            '-f', 'avfoundation'
         ]
 
-        # Video + audio su macOS
-        if params.record_audio:
-            cmd.extend(['-i', '1:0'])  # Screen:Audio
+        # SORGENTE VIDEO
+        if params.video_source == "webcam":
+            # Webcam: device '0' (prima webcam disponibile)
+            cmd.extend(['-framerate', str(params.fps)])
+            video_device = '0'
         else:
-            cmd.extend(['-i', '1'])  # Solo screen
+            # Monitor: device '1' (capture screen) + monitor_index
+            # TODO: Su macOS multi-monitor, device può essere '1', '2', etc.
+            # Per ora usiamo '1' per il monitor primario
+            cmd.extend(['-capture_cursor', '1', '-framerate', str(params.fps)])
+            video_device = str(1 + params.monitor_index)  # '1' = primary, '2' = secondary, etc.
 
-        # Crop se non fullscreen
-        if params.mode != "fullscreen":
+        # SORGENTE AUDIO
+        # avfoundation usa formato "video_device:audio_device"
+        # Device audio: '0' = microfono, '1' = audio sistema (loopback)
+        audio_inputs = []
+        if params.audio_microphone:
+            audio_inputs.append('0')  # Microfono
+        if params.audio_system:
+            audio_inputs.append('1')  # Audio sistema (richiede BlackHole o SoundFlower su macOS)
+
+        if audio_inputs:
+            if len(audio_inputs) == 1:
+                # Singola sorgente audio
+                cmd.extend(['-i', f'{video_device}:{audio_inputs[0]}'])
+            else:
+                # Multiple sorgenti audio: cattura separatamente e mixa
+                # Input 0: video + primo audio
+                cmd.extend(['-i', f'{video_device}:{audio_inputs[0]}'])
+                # Input 1: secondo audio
+                cmd.extend(['-f', 'avfoundation', '-i', f'none:{audio_inputs[1]}'])
+                # Aggiungeremo filter_complex dopo
+        else:
+            # Nessun audio
+            cmd.extend(['-i', video_device])
+
+        # FILTRI VIDEO
+        filters = []
+        if params.mode != "fullscreen" and params.video_source == "monitor":
+            # Crop solo per monitor (webcam non supporta crop)
+            filters.append(f"crop={region['width']}:{region['height']}:{region['x']}:{region['y']}")
+
+        if filters:
+            cmd.extend(['-filter:v', ','.join(filters)])
+
+        # MIX AUDIO (se multiple sorgenti)
+        if len(audio_inputs) > 1:
+            cmd.extend(['-filter_complex', '[0:a][1:a]amix=inputs=2:duration=longest[aout]'])
+            cmd.extend(['-map', '0:v', '-map', '[aout]'])
+
+        # CODEC OUTPUT
+        if params.output_format == "mp4":
+            # MP4: H.264 video + AAC audio (compatibile QuickTime)
             cmd.extend([
-                '-filter:v', f"crop={region['width']}:{region['height']}:{region['x']}:{region['y']}"
+                '-c:v', 'libx264',
+                '-preset', quality['preset'],
+                '-crf', str(quality['crf']),
+                '-pix_fmt', 'yuv420p'  # Compatibilità QuickTime
             ])
+            if audio_inputs:
+                cmd.extend(['-c:a', 'aac', '-b:a', '192k'])
+        else:
+            # WebM: VP9 video + Opus audio (file più leggero)
+            cmd.extend([
+                '-c:v', 'libvpx-vp9',
+                '-b:v', '2M',
+                '-crf', str(quality['crf']),
+                '-row-mt', '1'  # Multi-threading VP9
+            ])
+            if audio_inputs:
+                cmd.extend(['-c:a', 'libopus', '-b:a', '128k'])
 
-        cmd.extend([
-            '-c:v', 'libx264',
-            '-preset', quality['preset'],
-            '-crf', str(quality['crf']),
-            '-y',
-            str(params.output_path)
-        ])
+        # Durata (se specificata)
+        if params.duration_seconds:
+            cmd.extend(['-t', str(params.duration_seconds)])
+
+        # Output file
+        cmd.extend(['-y', str(params.output_path)])
 
         return cmd
 

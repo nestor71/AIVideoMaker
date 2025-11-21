@@ -75,6 +75,12 @@ class ScheduleRecordRequest(BaseModel):
     quality: str = "high"
     record_audio: bool = True
 
+    # NUOVI PARAMETRI per controllo avanzato
+    video_source: str = "monitor"  # "monitor" o "webcam"
+    output_format: str = "mp4"  # "mp4" o "webm"
+    audio_system: bool = True  # Audio di sistema
+    audio_microphone: bool = False  # Audio microfono
+
 
 class ScheduledJobResponse(BaseModel):
     """Schema per risposta job schedulato"""
@@ -626,7 +632,12 @@ def execute_scheduled_recording(scheduled_job_id: str, db_session):
             duration_seconds=scheduled_job.duration_seconds,
             fps=params_dict.get("fps", 30),
             quality=params_dict.get("quality", "high"),
-            record_audio=params_dict.get("record_audio", True)
+            record_audio=params_dict.get("record_audio", True),
+            # NUOVI PARAMETRI
+            video_source=params_dict.get("video_source", "monitor"),
+            output_format=params_dict.get("output_format", "mp4"),
+            audio_system=params_dict.get("audio_system", True),
+            audio_microphone=params_dict.get("audio_microphone", False)
         )
 
         # Callback progresso

@@ -1666,8 +1666,22 @@
                                     </small>
                                 </div>
 
-                                <!-- Modalità Cattura -->
+                                <!-- Sorgente Video -->
                                 <div style="margin-bottom: 25px;">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        <i class="fas fa-video"></i> Sorgente Video
+                                    </label>
+                                    <select id="scheduledVideoSource" onchange="updateVideoSourceOptions()" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem;">
+                                        <option value="monitor" selected>🖥️ Monitor</option>
+                                        <option value="webcam">📹 Webcam</option>
+                                    </select>
+                                    <small style="color: #666; display: block; margin-top: 5px;">
+                                        <i class="fas fa-info-circle"></i> Scegli se registrare il monitor o la webcam
+                                    </small>
+                                </div>
+
+                                <!-- Modalità Cattura (solo per monitor) -->
+                                <div id="captureModeSection" style="margin-bottom: 25px;">
                                     <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
                                         <i class="fas fa-desktop"></i> Modalità Cattura
                                     </label>
@@ -1785,10 +1799,24 @@
                                     </div>
                                 </div>
 
+                                <!-- Formato Output -->
+                                <div style="margin-bottom: 25px;">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                                        <i class="fas fa-file-video"></i> Formato Output
+                                    </label>
+                                    <select id="scheduledOutputFormat" onchange="updateOutputFileName()" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem;">
+                                        <option value="mp4" selected>MP4 (H.264) - QuickTime compatibile ⭐</option>
+                                        <option value="webm">WebM (VP9) - File più leggero</option>
+                                    </select>
+                                    <small style="color: #666; display: block; margin-top: 5px;">
+                                        <i class="fas fa-info-circle"></i> MP4 funziona su tutti i player, WebM è più leggero
+                                    </small>
+                                </div>
+
                                 <!-- Nome File -->
                                 <div style="margin-bottom: 25px;">
                                     <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
-                                        <i class="fas fa-file-video"></i> Nome File Output
+                                        <i class="fas fa-signature"></i> Nome File Output
                                     </label>
                                     <input type="text" id="scheduledOutputName" value="scheduled_recording.mp4" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px;">
                                 </div>
@@ -8348,6 +8376,40 @@
         }
 
         // Toggle opzioni cattura personalizzata nella registrazione programmata
+        // Gestisce cambio sorgente video (monitor/webcam)
+        function updateVideoSourceOptions() {
+            const videoSource = document.getElementById('scheduledVideoSource').value;
+            const captureModeSection = document.getElementById('captureModeSection');
+            const monitorSelectionSection = document.getElementById('monitorSelectionSection');
+
+            if (videoSource === 'monitor') {
+                // Mostra opzioni monitor
+                captureModeSection.style.display = 'block';
+                // Monitor selection viene gestita da toggleScheduledCaptureOptions
+            } else {
+                // Webcam: nascondi opzioni monitor
+                captureModeSection.style.display = 'none';
+                monitorSelectionSection.style.display = 'none';
+            }
+
+            updateScheduledRecordingSummary();
+        }
+
+        // Aggiorna estensione nome file quando cambia formato
+        function updateOutputFileName() {
+            const format = document.getElementById('scheduledOutputFormat').value;
+            const outputNameInput = document.getElementById('scheduledOutputName');
+            let currentName = outputNameInput.value;
+
+            // Rimuovi estensione esistente
+            currentName = currentName.replace(/\.(mp4|webm)$/i, '');
+
+            // Aggiungi nuova estensione
+            outputNameInput.value = currentName + '.' + format;
+
+            updateScheduledRecordingSummary();
+        }
+
         function toggleScheduledCaptureOptions() {
             const mode = document.getElementById('scheduledCaptureMode').value;
             const customOptions = document.getElementById('scheduledCustomOptions');
@@ -8466,6 +8528,10 @@
             const recordSystemAudio = document.getElementById('scheduledRecordSystemAudio').checked;
             const recordMicAudio = document.getElementById('scheduledRecordMicAudio').checked;
 
+            // NUOVI PARAMETRI
+            const videoSource = document.getElementById('scheduledVideoSource').value;
+            const outputFormat = document.getElementById('scheduledOutputFormat').value;
+
             // Leggi modalità cattura
             const captureMode = document.getElementById('scheduledCaptureMode').value;
 
@@ -8509,7 +8575,12 @@
                 mode: captureMode === 'custom' ? 'custom' : 'fullscreen',
                 fps: fps,
                 quality: quality,
-                record_audio: recordAudio
+                record_audio: recordAudio,
+                // NUOVI PARAMETRI
+                video_source: videoSource,
+                output_format: outputFormat,
+                audio_system: recordSystemAudio,
+                audio_microphone: recordMicAudio
             };
 
             // Se modalità personalizzata, aggiungi parametri monitor e area
