@@ -101,10 +101,8 @@ class ScreenRecorder:
             if self.audio_source != "none" and self.temp_audio_path.exists():
                 success = self._merge_video_audio()
             else:
-                # Solo video, rinomina
-                import shutil
-                shutil.move(str(self.temp_video_path), self.output_path)
-                success = True
+                # Solo video, ricodifica per compatibilità QuickTime
+                success = self._convert_video_only()
 
             # Cleanup
             self._cleanup_temp_files()
@@ -229,6 +227,41 @@ class ScreenRecorder:
         except Exception as e:
             logger.error(f"Errore stop audio: {e}")
 
+    def _convert_video_only(self):
+        """Ricodifica video senza audio per compatibilità QuickTime"""
+        try:
+            cmd = [
+                'ffmpeg', '-y',
+                '-i', str(self.temp_video_path),
+                '-c:v', 'libx264',  # Ricodifica in H.264
+                '-preset', 'medium',
+                '-crf', '18',
+                '-pix_fmt', 'yuv420p',  # Compatibilità QuickTime Player
+                '-movflags', '+faststart',  # Ottimizzazione MP4
+                self.output_path
+            ]
+
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=60
+            )
+
+            if result.returncode == 0:
+                logger.info("Video convertito con successo")
+                return True
+            else:
+                logger.error(f"Errore conversione ffmpeg: {result.stderr}")
+                # Fallback: copia comunque
+                import shutil
+                shutil.move(str(self.temp_video_path), self.output_path)
+                return True
+
+        except Exception as e:
+            logger.error(f"Errore conversione video: {e}")
+            return False
+
     def _merge_video_audio(self):
         """Combina video e audio con ffmpeg"""
         try:
@@ -236,9 +269,13 @@ class ScreenRecorder:
                 'ffmpeg', '-y',
                 '-i', str(self.temp_video_path),
                 '-i', str(self.temp_audio_path),
-                '-c:v', 'copy',
+                '-c:v', 'libx264',  # Ricodifica in H.264
+                '-preset', 'medium',
+                '-crf', '18',
+                '-pix_fmt', 'yuv420p',  # Compatibilità QuickTime Player
                 '-c:a', 'aac',
                 '-b:a', '128k',
+                '-movflags', '+faststart',  # Ottimizzazione MP4
                 '-shortest',
                 self.output_path
             ]

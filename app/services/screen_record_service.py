@@ -263,6 +263,8 @@ class ScreenRecordService:
             '-c:v', 'libx264',
             '-preset', quality['preset'],
             '-crf', str(quality['crf']),
+            '-pix_fmt', 'yuv420p',  # Compatibilità QuickTime Player
+            '-movflags', '+faststart',  # Ottimizzazione MP4
             '-y',
             str(params.output_path)
         ])
@@ -299,6 +301,8 @@ class ScreenRecordService:
             '-c:v', 'libx264',
             '-preset', quality['preset'],
             '-crf', str(quality['crf']),
+            '-pix_fmt', 'yuv420p',  # Compatibilità QuickTime Player
+            '-movflags', '+faststart',  # Ottimizzazione MP4
             '-y',
             str(params.output_path)
         ])
@@ -329,6 +333,8 @@ class ScreenRecordService:
             '-c:v', 'libx264',
             '-preset', quality['preset'],
             '-crf', str(quality['crf']),
+            '-pix_fmt', 'yuv420p',  # Compatibilità QuickTime Player
+            '-movflags', '+faststart',  # Ottimizzazione MP4
             '-y',
             str(params.output_path)
         ])
