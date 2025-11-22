@@ -8501,10 +8501,6 @@
                 }
             }
 
-            // Mostra mirino e countdown prima di programmare
-            showMonitorCrosshair();
-            await showRecordingCountdown();
-
             try {
                 const token = localStorage.getItem('auth_token');
                 const response = await fetch('/api/v1/screen-record/schedule', {
