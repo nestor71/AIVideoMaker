@@ -1674,7 +1674,7 @@
                                     <select id="scheduledVideoSource" onchange="updateVideoSourceOptions()" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem;">
                                         <option value="monitor" selected>🖥️ Monitor</option>
                                         <option value="webcam">📹 Webcam</option>
-                                        <option value="monitor_webcam">🖥️📹 Monitor + Webcam (Picture-in-Picture)</option>
+                                        <option value="monitor_webcam">🖥️📹 Monitor + Webcam</option>
                                     </select>
                                     <small style="color: #666; display: block; margin-top: 5px;">
                                         <i class="fas fa-info-circle"></i> Scegli cosa registrare: schermo, webcam, o entrambi
@@ -8477,7 +8477,7 @@
             updateRecordingPreview();
 
             // Avvia automaticamente preview live
-            setTimeout(() => startLivePreview(), 300);
+            // setTimeout(() => startLivePreview(), 300);
 
             updateScheduledRecordingSummary();
         }
@@ -8628,7 +8628,7 @@
                     previewState.monitorStream.getTracks()[0].onended = () => {
                         stopLivePreview();
                         // Riavvia automaticamente dopo che utente ferma
-                        setTimeout(() => startLivePreview(), 1000);
+                        // setTimeout(() => startLivePreview(), 1000);
                     };
                 }
 
