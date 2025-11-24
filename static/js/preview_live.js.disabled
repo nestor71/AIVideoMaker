@@ -1,0 +1,828 @@
+/**
+ * Live Preview System for Scheduled Recording
+ * Mostra anteprima del monitor selezionato con overlay webcam draggable
+ */
+
+// ==================== VARIABILI GLOBALI ====================
+
+let previewActive = false;
+let previewWebcamStream = null;
+let previewCanvas = null;
+let previewCtx = null;
+let previewAnimationId = null;
+let previewUpdateInterval = null; // Interval per aggiornare screenshot
+
+// Screenshot monitor (Image element)
+let monitorScreenshot = null;
+let currentMonitorIndex = null;
+let currentVideoSource = null; // 'monitor', 'webcam', 'monitor_webcam'
+
+// Video element webcam (hidden)
+let webcamVideo = null;
+
+// Webcam devices disponibili
+let availableWebcams = [];
+let webcamsLoaded = false;
+
+// Configurazione webcam PIP (posizione e dimensione sul canvas)
+let webcamConfig = {
+    x: 20,
+    y: 20,
+    width: 320,
+    height: 240,
+    isDragging: false,
+    isResizing: false,
+    resizeCorner: null, // 'nw', 'ne', 'sw', 'se'
+    dragStartX: 0,
+    dragStartY: 0,
+    startX: 0,
+    startY: 0,
+    startWidth: 0,
+    startHeight: 0,
+    offsetX: 0,
+    offsetY: 0
+};
+
+// ==================== FUNZIONI WEBCAM ====================
+
+/**
+ * Carica lista webcam disponibili e popola il dropdown
+ */
+async function loadAvailableWebcams() {
+    if (webcamsLoaded) {
+        console.log('[Webcam] Lista webcam già caricata');
+        return;
+    }
+
+    console.log('[Webcam] Caricamento webcam disponibili...');
+
+    try {
+        // Enumera devices disponibili
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        availableWebcams = devices.filter(device => device.kind === 'videoinput');
+
+        console.log(`[Webcam] Trovate ${availableWebcams.length} webcam:`, availableWebcams);
+
+        // Popola dropdown
+        const webcamSelect = document.getElementById('scheduledWebcam');
+        if (!webcamSelect) {
+            console.error('[Webcam] Dropdown #scheduledWebcam non trovato');
+            return;
+        }
+
+        // Pulisci options esistenti
+        webcamSelect.innerHTML = '';
+
+        if (availableWebcams.length === 0) {
+            webcamSelect.innerHTML = '<option value="">Nessuna webcam trovata</option>';
+            console.warn('[Webcam] Nessuna webcam disponibile');
+            return;
+        }
+
+        // Aggiungi option per ogni webcam
+        availableWebcams.forEach((device, index) => {
+            const option = document.createElement('option');
+            option.value = device.deviceId;
+            // Pulisci label rimuovendo ID device tra parentesi
+            let label = device.label || `Webcam ${index + 1}`;
+            // Rimuovi pattern tipo "(1234:5678)" alla fine del nome
+            label = label.replace(/\s*\([0-9a-fA-F:]+\)\s*$/, '').trim();
+            option.textContent = label;
+            webcamSelect.appendChild(option);
+        });
+
+        // Ripristina selezione salvata (se presente)
+        const savedDeviceId = localStorage.getItem('selectedWebcamId');
+        if (savedDeviceId && availableWebcams.find(d => d.deviceId === savedDeviceId)) {
+            webcamSelect.value = savedDeviceId;
+            console.log('[Webcam] Ripristinata webcam salvata:', savedDeviceId);
+        }
+
+        webcamsLoaded = true;
+        console.log('[Webcam] Lista webcam caricata con successo');
+
+    } catch (error) {
+        console.error('[Webcam] Errore enumerazione devices:', error);
+        const webcamSelect = document.getElementById('scheduledWebcam');
+        if (webcamSelect) {
+            webcamSelect.innerHTML = '<option value="">Errore caricamento webcam</option>';
+        }
+    }
+}
+
+/**
+ * Ottiene deviceId webcam selezionata
+ */
+function getSelectedWebcamId() {
+    const webcamSelect = document.getElementById('scheduledWebcam');
+    if (!webcamSelect) return null;
+
+    const deviceId = webcamSelect.value;
+
+    // Salva selezione in localStorage
+    if (deviceId) {
+        localStorage.setItem('selectedWebcamId', deviceId);
+    }
+
+    return deviceId;
+}
+
+/**
+ * Handler cambio webcam - ferma stream corrente e riavvia preview
+ */
+async function handleWebcamChange() {
+    console.log('[Webcam] Cambio webcam rilevato');
+
+    // Ferma stream webcam corrente (se attivo)
+    if (previewWebcamStream) {
+        console.log('[Webcam] Fermo stream corrente...');
+        previewWebcamStream.getTracks().forEach(track => track.stop());
+        previewWebcamStream = null;
+
+        // Rimuovi video element dal DOM
+        if (webcamVideo) {
+            webcamVideo.srcObject = null;
+            if (webcamVideo.parentElement) {
+                webcamVideo.parentElement.removeChild(webcamVideo);
+            }
+            webcamVideo = null;
+        }
+    }
+
+    // Aggiorna riepilogo
+    if (typeof updateScheduledRecordingSummary === 'function') {
+        updateScheduledRecordingSummary();
+    }
+
+    // Se preview è attiva, riavvia con nuova webcam
+    if (previewActive) {
+        console.log('[Webcam] Riavvio preview con nuova webcam...');
+        await startLivePreview();
+    }
+}
+
+// ==================== FUNZIONI PRINCIPALI ====================
+
+/**
+ * Toggle anteprima live on/off
+ */
+async function toggleLivePreview() {
+    if (previewActive) {
+        stopLivePreview();
+    } else {
+        await startLivePreview();
+    }
+}
+
+/**
+ * Avvia anteprima live usando screenshot dal backend
+ */
+async function startLivePreview() {
+    console.log('[Preview] Avvio anteprima live...');
+
+    // Se anteprima già attiva, ferma solo il rendering (NON la webcam)
+    if (previewActive) {
+        console.log('[Preview] Anteprima già attiva, riavvio solo rendering...');
+        if (previewAnimationId) {
+            cancelAnimationFrame(previewAnimationId);
+            previewAnimationId = null;
+        }
+        if (previewUpdateInterval) {
+            clearInterval(previewUpdateInterval);
+            previewUpdateInterval = null;
+        }
+        previewActive = false;
+    }
+
+    try {
+        // Ottieni monitor e sorgente video selezionati
+        const monitorSelect = document.getElementById('scheduledMonitor');
+        const videoSource = document.getElementById('scheduledVideoSource').value;
+
+        if (!monitorSelect || !monitorSelect.value) {
+            console.log('[Preview] Nessun monitor selezionato');
+            return;
+        }
+
+        currentMonitorIndex = parseInt(monitorSelect.value);
+        currentVideoSource = videoSource; // Salva sorgente video corrente
+        console.log(`[Preview] Monitor selezionato: ${currentMonitorIndex}, Video source: ${currentVideoSource}`);
+
+        // Inizializza canvas
+        initPreviewCanvas();
+
+        // Ottieni JWT token per autenticazione
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+            throw new Error('Token JWT non trovato. Effettua il login.');
+        }
+
+        // Crea Image element per screenshot monitor (solo se serve)
+        if (videoSource !== 'webcam') {
+            monitorScreenshot = new Image();
+            monitorScreenshot.crossOrigin = 'anonymous';
+        }
+
+        // Se è webcam o monitor + webcam, cattura la webcam
+        if (videoSource === 'webcam' || videoSource === 'monitor_webcam') {
+            // Se webcam già attiva, riusa lo stream esistente
+            if (webcamVideo && previewWebcamStream) {
+                console.log('[Preview] Webcam già attiva, riuso stream esistente');
+            } else {
+                console.log('[Preview] Richiesta webcam per videoSource:', videoSource);
+
+                try {
+                    // Ottieni deviceId webcam selezionata
+                    const selectedDeviceId = getSelectedWebcamId();
+                    console.log('[Preview] DeviceId webcam selezionato:', selectedDeviceId);
+
+                    // Configurazione video constraints
+                    const videoConstraints = {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    };
+
+                    // Se c'è un deviceId specifico, usalo
+                    if (selectedDeviceId) {
+                        videoConstraints.deviceId = { exact: selectedDeviceId };
+                    }
+
+                    previewWebcamStream = await navigator.mediaDevices.getUserMedia({
+                        video: videoConstraints,
+                        audio: false
+                    });
+
+                    console.log('[Preview] Stream webcam ottenuto, creo video element...');
+
+                    webcamVideo = document.createElement('video');
+                    webcamVideo.srcObject = previewWebcamStream;
+                    webcamVideo.autoplay = true;
+                    webcamVideo.muted = true;
+                    webcamVideo.playsInline = true; // Importante per Safari/iOS
+
+                    // DEBUG: Aggiungi video al DOM per vedere se funziona
+                    webcamVideo.style.position = 'fixed';
+                    webcamVideo.style.top = '10px';
+                    webcamVideo.style.right = '10px';
+                    webcamVideo.style.width = '200px';
+                    webcamVideo.style.height = '150px';
+                    webcamVideo.style.border = '3px solid red';
+                    webcamVideo.style.zIndex = '99999';
+                    document.body.appendChild(webcamVideo);
+                    console.log('[Preview] DEBUG: Video element aggiunto al DOM in alto a destra');
+
+                    // Aspetta che i metadati siano caricati
+                    await new Promise((resolve, reject) => {
+                        const timeout = setTimeout(() => reject(new Error('Timeout loadedmetadata')), 5000);
+
+                        webcamVideo.addEventListener('loadedmetadata', () => {
+                            clearTimeout(timeout);
+                            console.log('[Preview] Metadati webcam caricati, dimensioni:',
+                                webcamVideo.videoWidth, 'x', webcamVideo.videoHeight);
+                            resolve();
+                        }, { once: true });
+
+                        webcamVideo.addEventListener('error', (e) => {
+                            clearTimeout(timeout);
+                            reject(new Error('Errore caricamento video: ' + e.message));
+                        }, { once: true });
+                    });
+
+                    console.log('[Preview] Avvio playback webcam...');
+                    await webcamVideo.play();
+
+                    console.log('[Preview] Webcam video element readyState:', webcamVideo.readyState);
+                    console.log('[Preview] Webcam stream attivo e in playback');
+
+                } catch (webcamError) {
+                    console.error('[Preview] Errore ottenimento webcam:', webcamError);
+                    // Se l'utente nega il permesso, continua solo con monitor
+                    if (webcamError.name === 'NotAllowedError') {
+                        console.log('[Preview] Permesso webcam negato - continuo solo con monitor');
+                        webcamVideo = null;
+                        previewWebcamStream = null;
+                    } else {
+                        console.warn('[Preview] Errore webcam, continuo solo con monitor:', webcamError.message);
+                        webcamVideo = null;
+                        previewWebcamStream = null;
+                    }
+                }
+            }
+        } else {
+            console.log('[Preview] VideoSource è "' + videoSource + '", webcam NON richiesta');
+        }
+
+        // Nascondi placeholder, mostra canvas
+        const placeholder = document.getElementById('previewPlaceholder');
+        if (placeholder) {
+            placeholder.style.display = 'none';
+            console.log('[Preview] Placeholder nascosto');
+        } else {
+            console.error('[Preview] ERRORE: placeholder non trovato!');
+        }
+
+        // Mostra canvas
+        if (previewCanvas) {
+            previewCanvas.style.display = 'block';
+            console.log('[Preview] Canvas mostrato');
+        }
+
+        previewActive = true;
+
+        // Funzione per aggiornare screenshot dal backend
+        const updateScreenshot = async () => {
+            if (!previewActive) return;
+
+            try {
+                // Fetch screenshot dal backend
+                const response = await fetch(`/api/v1/screen-record/screenshot/${currentMonitorIndex}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    cache: 'no-store'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Errore HTTP: ${response.status}`);
+                }
+
+                // Converti response in blob e crea URL
+                const blob = await response.blob();
+                const imageUrl = URL.createObjectURL(blob);
+
+                // Aggiorna Image element
+                monitorScreenshot.onload = () => {
+                    URL.revokeObjectURL(imageUrl); // Pulisci URL dopo caricamento
+                };
+                monitorScreenshot.src = imageUrl;
+
+            } catch (error) {
+                console.error('[Preview] Errore aggiornamento screenshot:', error);
+            }
+        };
+
+        // Aggiorna screenshot solo se serve (non per webcam sola)
+        if (videoSource !== 'webcam') {
+            // Primo aggiornamento immediato
+            await updateScreenshot();
+
+            // Avvia interval per aggiornare screenshot ogni 1000ms (1 fps - per rispettare rate limit)
+            previewUpdateInterval = setInterval(updateScreenshot, 1000);
+        }
+
+        // Avvia rendering loop
+        renderPreview();
+
+        console.log('[Preview] Anteprima live attiva (screenshot mode)');
+
+    } catch (error) {
+        console.error('[Preview] Errore avvio anteprima:', error);
+
+        // Se è errore webcam e l'utente ha annullato, non mostrare errore
+        if (error.name === 'NotAllowedError' || error.name === 'AbortError') {
+            console.log('[Preview] Utente ha negato accesso webcam');
+        } else {
+            alert('Impossibile avviare anteprima: ' + error.message);
+        }
+
+        stopLivePreview();
+    }
+}
+
+/**
+ * Ferma anteprima live
+ */
+function stopLivePreview() {
+    console.log('[Preview] Fermo anteprima live...');
+
+    // Ferma animation loop
+    if (previewAnimationId) {
+        cancelAnimationFrame(previewAnimationId);
+        previewAnimationId = null;
+    }
+
+    // Ferma interval aggiornamento screenshot
+    if (previewUpdateInterval) {
+        clearInterval(previewUpdateInterval);
+        previewUpdateInterval = null;
+    }
+
+    // Ferma stream webcam
+    if (previewWebcamStream) {
+        previewWebcamStream.getTracks().forEach(track => track.stop());
+        previewWebcamStream = null;
+    }
+
+    // Pulisci screenshot monitor
+    if (monitorScreenshot) {
+        monitorScreenshot.src = '';
+        monitorScreenshot = null;
+    }
+
+    // Pulisci video webcam
+    if (webcamVideo) {
+        webcamVideo.srcObject = null;
+        webcamVideo = null;
+    }
+
+    // Pulisci canvas
+    if (previewCtx) {
+        previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+    }
+
+    // Mostra placeholder
+    const placeholder = document.getElementById('previewPlaceholder');
+    if (placeholder) {
+        placeholder.style.display = 'flex';
+    }
+
+    previewActive = false;
+    currentMonitorIndex = null;
+
+    console.log('[Preview] Anteprima fermata');
+}
+
+/**
+ * Inizializza canvas per anteprima
+ */
+function initPreviewCanvas() {
+    previewCanvas = document.getElementById('scheduledPreviewCanvas');
+    previewCtx = previewCanvas.getContext('2d');
+
+    // Imposta dimensioni canvas (risoluzione interna)
+    previewCanvas.width = 1920;
+    previewCanvas.height = 1080;
+
+    // Event listeners per drag & drop webcam
+    previewCanvas.addEventListener('mousedown', handleCanvasMouseDown);
+    previewCanvas.addEventListener('mousemove', handleCanvasMouseMove);
+    previewCanvas.addEventListener('mouseup', handleCanvasMouseUp);
+    previewCanvas.addEventListener('mouseleave', handleCanvasMouseUp);
+
+    console.log('[Preview] Canvas inizializzato');
+}
+
+/**
+ * Loop rendering anteprima
+ */
+function renderPreview() {
+    if (!previewActive || !previewCtx) return;
+
+    // Pulisci canvas
+    previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+
+    // Disegna screenshot monitor (SOLO se non è modalità webcam)
+    if (currentVideoSource !== 'webcam') {
+        if (monitorScreenshot && monitorScreenshot.complete && monitorScreenshot.naturalWidth > 0) {
+            previewCtx.drawImage(monitorScreenshot, 0, 0, previewCanvas.width, previewCanvas.height);
+        }
+    }
+
+    // Disegna webcam (fullscreen se solo webcam, overlay se monitor+webcam)
+    if (webcamVideo) {
+        if (webcamVideo.readyState >= 2) {
+            // Debug: log dimensioni video ogni tanto
+            if (Math.random() < 0.01) {
+                console.log('[Preview] Webcam rendering - videoWidth:', webcamVideo.videoWidth,
+                           'videoHeight:', webcamVideo.videoHeight,
+                           'readyState:', webcamVideo.readyState,
+                           'paused:', webcamVideo.paused,
+                           'currentTime:', webcamVideo.currentTime);
+            }
+
+            // Modalità webcam fullscreen
+            if (currentVideoSource === 'webcam') {
+                try {
+                    previewCtx.drawImage(webcamVideo, 0, 0, previewCanvas.width, previewCanvas.height);
+                } catch (drawError) {
+                    console.error('[Preview] Errore drawImage webcam fullscreen:', drawError);
+                }
+            }
+            // Modalità webcam overlay (PIP)
+            else if (currentVideoSource === 'monitor_webcam') {
+                // Disegna sfondo semi-trasparente per vedere l'area
+                previewCtx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                previewCtx.fillRect(webcamConfig.x, webcamConfig.y, webcamConfig.width, webcamConfig.height);
+
+                // Disegna video webcam
+                try {
+                    previewCtx.drawImage(
+                        webcamVideo,
+                        webcamConfig.x,
+                        webcamConfig.y,
+                        webcamConfig.width,
+                        webcamConfig.height
+                    );
+                } catch (drawError) {
+                    console.error('[Preview] Errore drawImage webcam overlay:', drawError);
+                }
+
+                // Disegna bordo webcam SOPRA il video
+                previewCtx.strokeStyle = '#4CAF50';
+                previewCtx.lineWidth = 4;
+                previewCtx.strokeRect(webcamConfig.x, webcamConfig.y, webcamConfig.width, webcamConfig.height);
+
+                // Disegna handle resize in tutti e 4 gli angoli
+                const handleSize = 15;
+                previewCtx.fillStyle = '#4CAF50';
+
+                // Angolo top-left (NW)
+                previewCtx.fillRect(webcamConfig.x - 2, webcamConfig.y - 2, handleSize, handleSize);
+
+                // Angolo top-right (NE)
+                previewCtx.fillRect(webcamConfig.x + webcamConfig.width - handleSize + 2, webcamConfig.y - 2, handleSize, handleSize);
+
+                // Angolo bottom-left (SW)
+                previewCtx.fillRect(webcamConfig.x - 2, webcamConfig.y + webcamConfig.height - handleSize + 2, handleSize, handleSize);
+
+                // Angolo bottom-right (SE)
+                previewCtx.fillRect(webcamConfig.x + webcamConfig.width - handleSize + 2, webcamConfig.y + webcamConfig.height - handleSize + 2, handleSize, handleSize);
+            }
+        } else {
+            // Webcam video non pronto
+            if (Math.random() < 0.01) { // Log ogni ~100 frame per non saturare console
+                console.log('[Preview] Webcam video readyState:', webcamVideo.readyState, '(serve >= 2)');
+            }
+        }
+    }
+
+    // Continua loop
+    previewAnimationId = requestAnimationFrame(renderPreview);
+}
+
+/**
+ * Converte coordinate mouse da canvas CSS a canvas interno
+ */
+function getCanvasCoords(event) {
+    const rect = previewCanvas.getBoundingClientRect();
+    const scaleX = previewCanvas.width / rect.width;
+    const scaleY = previewCanvas.height / rect.height;
+
+    return {
+        x: (event.clientX - rect.left) * scaleX,
+        y: (event.clientY - rect.top) * scaleY
+    };
+}
+
+/**
+ * Mouse down su canvas
+ */
+function handleCanvasMouseDown(event) {
+    if (!webcamVideo) return; // Webcam non attiva
+
+    const coords = getCanvasCoords(event);
+    const x = coords.x;
+    const y = coords.y;
+
+    const handleSize = 20;
+
+    // Check quale angolo resize viene cliccato
+    // Top-Left (NW)
+    if (x >= webcamConfig.x - handleSize && x <= webcamConfig.x + handleSize &&
+        y >= webcamConfig.y - handleSize && y <= webcamConfig.y + handleSize) {
+        webcamConfig.isResizing = true;
+        webcamConfig.resizeCorner = 'nw';
+        webcamConfig.dragStartX = x;
+        webcamConfig.dragStartY = y;
+        webcamConfig.startX = webcamConfig.x;
+        webcamConfig.startY = webcamConfig.y;
+        webcamConfig.startWidth = webcamConfig.width;
+        webcamConfig.startHeight = webcamConfig.height;
+        previewCanvas.style.cursor = 'nwse-resize';
+        return;
+    }
+
+    // Top-Right (NE)
+    if (x >= webcamConfig.x + webcamConfig.width - handleSize && x <= webcamConfig.x + webcamConfig.width + handleSize &&
+        y >= webcamConfig.y - handleSize && y <= webcamConfig.y + handleSize) {
+        webcamConfig.isResizing = true;
+        webcamConfig.resizeCorner = 'ne';
+        webcamConfig.dragStartX = x;
+        webcamConfig.dragStartY = y;
+        webcamConfig.startX = webcamConfig.x;
+        webcamConfig.startY = webcamConfig.y;
+        webcamConfig.startWidth = webcamConfig.width;
+        webcamConfig.startHeight = webcamConfig.height;
+        previewCanvas.style.cursor = 'nesw-resize';
+        return;
+    }
+
+    // Bottom-Left (SW)
+    if (x >= webcamConfig.x - handleSize && x <= webcamConfig.x + handleSize &&
+        y >= webcamConfig.y + webcamConfig.height - handleSize && y <= webcamConfig.y + webcamConfig.height + handleSize) {
+        webcamConfig.isResizing = true;
+        webcamConfig.resizeCorner = 'sw';
+        webcamConfig.dragStartX = x;
+        webcamConfig.dragStartY = y;
+        webcamConfig.startX = webcamConfig.x;
+        webcamConfig.startY = webcamConfig.y;
+        webcamConfig.startWidth = webcamConfig.width;
+        webcamConfig.startHeight = webcamConfig.height;
+        previewCanvas.style.cursor = 'nesw-resize';
+        return;
+    }
+
+    // Bottom-Right (SE)
+    if (x >= webcamConfig.x + webcamConfig.width - handleSize && x <= webcamConfig.x + webcamConfig.width + handleSize &&
+        y >= webcamConfig.y + webcamConfig.height - handleSize && y <= webcamConfig.y + webcamConfig.height + handleSize) {
+        webcamConfig.isResizing = true;
+        webcamConfig.resizeCorner = 'se';
+        webcamConfig.dragStartX = x;
+        webcamConfig.dragStartY = y;
+        webcamConfig.startX = webcamConfig.x;
+        webcamConfig.startY = webcamConfig.y;
+        webcamConfig.startWidth = webcamConfig.width;
+        webcamConfig.startHeight = webcamConfig.height;
+        previewCanvas.style.cursor = 'nwse-resize';
+        return;
+    }
+
+    // Check se click dentro webcam (per drag)
+    const isInsideWebcam =
+        x >= webcamConfig.x &&
+        x <= webcamConfig.x + webcamConfig.width &&
+        y >= webcamConfig.y &&
+        y <= webcamConfig.y + webcamConfig.height;
+
+    if (isInsideWebcam) {
+        webcamConfig.isDragging = true;
+        webcamConfig.offsetX = x - webcamConfig.x;
+        webcamConfig.offsetY = y - webcamConfig.y;
+        previewCanvas.style.cursor = 'move';
+    }
+}
+
+/**
+ * Mouse move su canvas
+ */
+function handleCanvasMouseMove(event) {
+    if (!webcamVideo) return;
+
+    const coords = getCanvasCoords(event);
+    const x = coords.x;
+    const y = coords.y;
+
+    // Resize webcam da angoli
+    if (webcamConfig.isResizing) {
+        const deltaX = x - webcamConfig.dragStartX;
+        const deltaY = y - webcamConfig.dragStartY;
+        const minWidth = 160;
+        const minHeight = 120;
+
+        switch (webcamConfig.resizeCorner) {
+            case 'nw': // Top-Left: muovi x,y e cambia width,height
+                const newWidthNW = webcamConfig.startWidth - deltaX;
+                const newHeightNW = webcamConfig.startHeight - deltaY;
+                if (newWidthNW >= minWidth && newHeightNW >= minHeight) {
+                    webcamConfig.width = newWidthNW;
+                    webcamConfig.height = newHeightNW;
+                    webcamConfig.x = webcamConfig.startX + deltaX;
+                    webcamConfig.y = webcamConfig.startY + deltaY;
+                }
+                break;
+
+            case 'ne': // Top-Right: muovi y, cambia width,height
+                const newWidthNE = webcamConfig.startWidth + deltaX;
+                const newHeightNE = webcamConfig.startHeight - deltaY;
+                if (newWidthNE >= minWidth && newHeightNE >= minHeight) {
+                    webcamConfig.width = newWidthNE;
+                    webcamConfig.height = newHeightNE;
+                    webcamConfig.y = webcamConfig.startY + deltaY;
+                }
+                break;
+
+            case 'sw': // Bottom-Left: muovi x, cambia width,height
+                const newWidthSW = webcamConfig.startWidth - deltaX;
+                const newHeightSW = webcamConfig.startHeight + deltaY;
+                if (newWidthSW >= minWidth && newHeightSW >= minHeight) {
+                    webcamConfig.width = newWidthSW;
+                    webcamConfig.height = newHeightSW;
+                    webcamConfig.x = webcamConfig.startX + deltaX;
+                }
+                break;
+
+            case 'se': // Bottom-Right: solo cambia width,height
+                const newWidthSE = webcamConfig.startWidth + deltaX;
+                const newHeightSE = webcamConfig.startHeight + deltaY;
+                if (newWidthSE >= minWidth && newHeightSE >= minHeight) {
+                    webcamConfig.width = newWidthSE;
+                    webcamConfig.height = newHeightSE;
+                }
+                break;
+        }
+
+        // Assicura che rimanga dentro il canvas
+        if (webcamConfig.x < 0) webcamConfig.x = 0;
+        if (webcamConfig.y < 0) webcamConfig.y = 0;
+        if (webcamConfig.x + webcamConfig.width > previewCanvas.width) {
+            webcamConfig.width = previewCanvas.width - webcamConfig.x;
+        }
+        if (webcamConfig.y + webcamConfig.height > previewCanvas.height) {
+            webcamConfig.height = previewCanvas.height - webcamConfig.y;
+        }
+
+        return;
+    }
+
+    // Drag webcam
+    if (webcamConfig.isDragging) {
+        webcamConfig.x = Math.max(0, Math.min(previewCanvas.width - webcamConfig.width, x - webcamConfig.offsetX));
+        webcamConfig.y = Math.max(0, Math.min(previewCanvas.height - webcamConfig.height, y - webcamConfig.offsetY));
+        return;
+    }
+
+    // Update cursor in base a posizione
+    const handleSize = 20;
+
+    // Check angoli per cursor
+    if (x >= webcamConfig.x - handleSize && x <= webcamConfig.x + handleSize &&
+        y >= webcamConfig.y - handleSize && y <= webcamConfig.y + handleSize) {
+        previewCanvas.style.cursor = 'nwse-resize';
+    } else if (x >= webcamConfig.x + webcamConfig.width - handleSize && x <= webcamConfig.x + webcamConfig.width + handleSize &&
+               y >= webcamConfig.y - handleSize && y <= webcamConfig.y + handleSize) {
+        previewCanvas.style.cursor = 'nesw-resize';
+    } else if (x >= webcamConfig.x - handleSize && x <= webcamConfig.x + handleSize &&
+               y >= webcamConfig.y + webcamConfig.height - handleSize && y <= webcamConfig.y + webcamConfig.height + handleSize) {
+        previewCanvas.style.cursor = 'nesw-resize';
+    } else if (x >= webcamConfig.x + webcamConfig.width - handleSize && x <= webcamConfig.x + webcamConfig.width + handleSize &&
+               y >= webcamConfig.y + webcamConfig.height - handleSize && y <= webcamConfig.y + webcamConfig.height + handleSize) {
+        previewCanvas.style.cursor = 'nwse-resize';
+    } else if (x >= webcamConfig.x && x <= webcamConfig.x + webcamConfig.width &&
+               y >= webcamConfig.y && y <= webcamConfig.y + webcamConfig.height) {
+        previewCanvas.style.cursor = 'move';
+    } else {
+        previewCanvas.style.cursor = 'default';
+    }
+}
+
+/**
+ * Mouse up su canvas
+ */
+function handleCanvasMouseUp() {
+    webcamConfig.isDragging = false;
+    webcamConfig.isResizing = false;
+    webcamConfig.resizeCorner = null;
+    previewCanvas.style.cursor = 'default';
+
+    // Salva configurazione
+    console.log('[Preview] Webcam config:', webcamConfig);
+}
+
+// ==================== FUNZIONI STUB PER COMPATIBILITÀ ====================
+
+/**
+ * Stub per showMonitorCrosshair (sostituito da anteprima live)
+ */
+function showMonitorCrosshair() {
+    console.log('[Preview] showMonitorCrosshair deprecato - usa anteprima live');
+}
+
+/**
+ * Stub per hideMonitorCrosshair (sostituito da anteprima live)
+ */
+function hideMonitorCrosshair() {
+    console.log('[Preview] hideMonitorCrosshair deprecato - usa anteprima live');
+}
+
+// ==================== EXPORT CONFIGURAZIONE ====================
+
+/**
+ * Ottieni configurazione webcam per registrazione
+ */
+function getWebcamConfig() {
+    return {
+        x: webcamConfig.x,
+        y: webcamConfig.y,
+        width: webcamConfig.width,
+        height: webcamConfig.height
+    };
+}
+
+// ==================== EVENT LISTENERS ====================
+
+/**
+ * Aggiungi listener per avvio automatico anteprima
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    const videoSourceSelect = document.getElementById('scheduledVideoSource');
+    const monitorSelect = document.getElementById('scheduledMonitor');
+
+    // Avvia anteprima quando cambia la sorgente video
+    if (videoSourceSelect) {
+        videoSourceSelect.addEventListener('change', function() {
+            // Aspetta che updateVideoSourceOptions() finisca
+            setTimeout(() => {
+                startLivePreview();
+            }, 100);
+        });
+    }
+
+    // Avvia anteprima quando cambia il monitor
+    if (monitorSelect) {
+        monitorSelect.addEventListener('change', function() {
+            startLivePreview();
+        });
+    }
+});
+
+console.log('[Preview] Preview Live system caricato');

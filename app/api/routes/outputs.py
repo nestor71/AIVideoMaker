@@ -105,10 +105,13 @@ def guess_operation_type(filename: str) -> str:
         compositor_xxx.mp4 -> "Sovrapposizione File"
         chromakey_xxx.mp4 -> "Rimozione Sfondo"
         translated_xxx.mp4 -> "Traduzione Video"
+        recording_xxx.mp4 -> "Registrazione Schermo"
     """
     filename_lower = filename.lower()
 
-    if 'compositor' in filename_lower or 'composite' in filename_lower:
+    if 'recording' in filename_lower or 'screen_record' in filename_lower:
+        return "Registrazione Schermo"
+    elif 'compositor' in filename_lower or 'composite' in filename_lower:
         return "Sovrapposizione File"
     elif 'chromakey' in filename_lower or 'chroma' in filename_lower:
         return "Rimozione Sfondo"

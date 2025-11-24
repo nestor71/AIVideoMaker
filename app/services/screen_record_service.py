@@ -46,18 +46,34 @@ def stop_recording_by_job_id(job_id: str) -> bool:
     process = _active_recordings[job_id]
 
     try:
+        # Su macOS, ffmpeg con AVFoundation risponde meglio a 'q' via stdin che a SIGTERM
+        import platform
+        if platform.system() == "Darwin":
+            try:
+                # Prova a inviare 'q' via stdin per chiusura graceful
+                process.stdin.write(b'q')
+                process.stdin.flush()
+                process.wait(timeout=15)  # Aumentato timeout per permettere finalizzazione
+                del _active_recordings[job_id]
+                logger.info(f"Registrazione {job_id} fermata con successo (graceful quit)")
+                return True
+            except Exception as stdin_err:
+                logger.warning(f"Stdin 'q' fallito per {job_id}: {stdin_err}, provo SIGTERM")
+
+        # Fallback: prova SIGTERM
         process.terminate()
-        process.wait(timeout=5)
+        process.wait(timeout=15)  # Aumentato timeout
         del _active_recordings[job_id]
-        logger.info(f"Registrazione {job_id} fermata con successo")
+        logger.info(f"Registrazione {job_id} fermata con successo (SIGTERM)")
         return True
     except Exception as e:
         logger.error(f"Errore fermando registrazione {job_id}: {e}")
-        # Prova kill forzato
+        # Ultimo tentativo: kill forzato (corromperà il file)
         try:
             process.kill()
+            process.wait(timeout=2)
             del _active_recordings[job_id]
-            logger.warning(f"Registrazione {job_id} fermata con SIGKILL")
+            logger.warning(f"Registrazione {job_id} fermata con SIGKILL (file potrebbe essere corrotto)")
             return True
         except Exception as e2:
             logger.error(f"Impossibile fermare registrazione {job_id}: {e2}")
@@ -289,6 +305,7 @@ class ScreenRecordService:
         try:
             self.recording_process = subprocess.Popen(
                 cmd,
+                stdin=subprocess.PIPE,  # Permette invio 'q' per chiusura graceful
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE
             )
@@ -345,6 +362,16 @@ class ScreenRecordService:
             '-c:v', 'libx264',
             '-preset', quality['preset'],
             '-crf', str(quality['crf']),
+            '-pix_fmt', 'yuv420p',  # Pixel format per compatibilità
+        ])
+
+        # Codec audio AAC se presente audio
+        if params.record_audio:
+            cmd.extend(['-c:a', 'aac', '-b:a', '128k'])
+
+        # Movflags per compatibilità streaming
+        cmd.extend([
+            '-movflags', '+faststart',
             '-y',
             str(params.output_path)
         ])
@@ -365,11 +392,19 @@ class ScreenRecordService:
             '-framerate', str(params.fps)
         ]
 
+        # Calcola device video: i monitor partono da index 2 in AVFoundation
+        # [0] = scheda cattura, [1] = webcam, [2] = screen 0, [3] = screen 1, [4] = screen 2
+        video_device = 2 + (params.monitor_index or 0)  # Default monitor 0 -> device 2
+
+        # Device audio: se specificato usa quello, altrimenti usa device 1 (BlackHole/audio sistema)
+        # [0] = microfono, [1] = BlackHole/sistema, [2+] = altri device
+        audio_device = params.audio_device if params.audio_device else '1'
+
         # Video + audio su macOS
         if params.record_audio:
-            cmd.extend(['-i', '1:0'])  # Screen:Audio
+            cmd.extend(['-i', f'{video_device}:{audio_device}'])  # Monitor:Audio
         else:
-            cmd.extend(['-i', '1'])  # Solo screen
+            cmd.extend(['-i', str(video_device)])  # Solo monitor
 
         # Crop se non fullscreen
         if params.mode != "fullscreen":
@@ -381,6 +416,16 @@ class ScreenRecordService:
             '-c:v', 'libx264',
             '-preset', quality['preset'],
             '-crf', str(quality['crf']),
+            '-pix_fmt', 'yuv420p',  # Pixel format richiesto da QuickTime
+        ])
+
+        # Codec audio AAC se presente audio
+        if params.record_audio:
+            cmd.extend(['-c:a', 'aac', '-b:a', '128k'])
+
+        # Movflags per compatibilità streaming e QuickTime
+        cmd.extend([
+            '-movflags', '+faststart',
             '-y',
             str(params.output_path)
         ])
@@ -411,6 +456,16 @@ class ScreenRecordService:
             '-c:v', 'libx264',
             '-preset', quality['preset'],
             '-crf', str(quality['crf']),
+            '-pix_fmt', 'yuv420p',  # Pixel format per compatibilità
+        ])
+
+        # Codec audio AAC se presente audio
+        if params.record_audio:
+            cmd.extend(['-c:a', 'aac', '-b:a', '128k'])
+
+        # Movflags per compatibilità streaming
+        cmd.extend([
+            '-movflags', '+faststart',
             '-y',
             str(params.output_path)
         ])

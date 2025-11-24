@@ -40,11 +40,15 @@ class ScreenRecordRequest(BaseModel):
     area_width: Optional[int] = None
     area_height: Optional[int] = None
 
+    # Monitor selection
+    monitor_index: Optional[int] = 0  # Indice monitor (0=primario, 1=secondario, etc.)
+
     # Parametri registrazione
     duration_seconds: int = 10  # Durata registrazione (REQUIRED)
     fps: int = 30  # Frame per secondo
     quality: str = "high"  # low, medium, high, ultra
-    record_audio: bool = True  # Registra audio di sistema
+    record_audio: bool = True  # Registra audio
+    audio_device: Optional[str] = None  # ID device audio (None = audio sistema, es: "1" per BlackHole)
 
 
 class ScreenRecordResponse(BaseModel):
@@ -67,6 +71,7 @@ class ScheduleRecordRequest(BaseModel):
     mode: str = "fullscreen"
     window_title: Optional[str] = None
     monitor_index: Optional[int] = 0  # Indice monitor (0=primario)
+    webcam_index: Optional[int] = 0  # Indice webcam (0=primaria)
     area_x: Optional[int] = None
     area_y: Optional[int] = None
     area_width: Optional[int] = None
@@ -74,6 +79,19 @@ class ScheduleRecordRequest(BaseModel):
     fps: int = 30
     quality: str = "high"
     record_audio: bool = True
+    audio_device: Optional[str] = None  # ID device audio
+
+    # Parametri sorgente video
+    video_source: Optional[str] = "monitor"  # monitor, webcam, monitor_webcam
+    audio_system: Optional[bool] = False
+    audio_microphone: Optional[bool] = False
+
+    # Configurazione webcam overlay (per monitor_webcam)
+    webcam_x: Optional[int] = None
+    webcam_y: Optional[int] = None
+    webcam_width: Optional[int] = None
+    webcam_height: Optional[int] = None
+    webcam_shape: Optional[str] = "square"  # square, circle
 
 
 class ScheduledJobResponse(BaseModel):
@@ -122,16 +140,46 @@ def process_screen_record_task(job_id: str, params: ScreenRecordRequest, db: Ses
         # Aggiorna status
         job.status = JobStatus.PROCESSING
         job.progress = 0
+        job.started_at = datetime.now(timezone.utc)  # Timestamp UTC per calcolo durata
         db.commit()
 
         # Configura servizio con job_id per tracciamento
         service = ScreenRecordService(settings, job_id=job_id)
 
+        # Gestisci nome file con timestamp
+        import re
+        output_name = params.output_name.strip() if params.output_name else ""
+
+        # Pattern per detectare timestamp già esistenti (es: 2025-11-23T21-19-34 o 20251123_221837)
+        timestamp_pattern = r'(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2})|(\d{8}_\d{6})'
+
+        if output_name and output_name != "screen_recording.mp4":
+            # Nome personalizzato
+            from pathlib import Path as PathLib
+            name_parts = PathLib(output_name).stem  # nome senza estensione
+            extension = PathLib(output_name).suffix  # .mp4
+            if not extension:
+                extension = ".mp4"  # Default se non specificato
+
+            # Controlla se contiene già un timestamp
+            if re.search(timestamp_pattern, name_parts):
+                # Ha già un timestamp, usa così com'è
+                final_name = f"{name_parts}{extension}"
+            else:
+                # Non ha timestamp, aggiungilo
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                final_name = f"{name_parts}_{timestamp}{extension}"
+        else:
+            # Nome default con timestamp
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            final_name = f"recording_{timestamp}.mp4"
+
         # Prepara parametri
         record_params = ScreenRecordParams(
-            output_path=settings.output_dir / params.output_name,
+            output_path=settings.output_dir / final_name,
             mode=params.mode,
             window_title=params.window_title,
+            monitor_index=params.monitor_index,
             area_x=params.area_x,
             area_y=params.area_y,
             area_width=params.area_width,
@@ -139,7 +187,8 @@ def process_screen_record_task(job_id: str, params: ScreenRecordRequest, db: Ses
             duration_seconds=params.duration_seconds,
             fps=params.fps,
             quality=params.quality,
-            record_audio=params.record_audio
+            record_audio=params.record_audio,
+            audio_device=params.audio_device
         )
 
         # Callback per aggiornare progresso
@@ -158,8 +207,129 @@ def process_screen_record_task(job_id: str, params: ScreenRecordRequest, db: Ses
 
     except Exception as e:
         job.status = JobStatus.FAILED
-        job.error_message = str(e)
+        job.error = str(e)
         db.commit()
+
+
+# ==================== Display Mapping Cache ====================
+
+# Cache globale per il mapping display (evita di ricalcolarlo ogni volta)
+_display_mapping_cache = None
+
+def build_display_mapping():
+    """
+    Costruisce dinamicamente il mapping tra screeninfo index e screencapture display number
+
+    Su macOS, screencapture usa display numbers (1-based) che non corrispondono agli indici
+    di screeninfo (0-based). Questo metodo crea un mapping automatico testando ogni display
+    di screencapture e confrontando le dimensioni con i monitor di screeninfo.
+
+    Returns:
+        dict: {screeninfo_index: screencapture_display_num}
+    """
+    global _display_mapping_cache
+
+    # Se già in cache, restituisci
+    if _display_mapping_cache is not None:
+        return _display_mapping_cache
+
+    import platform
+    import logging
+    logger = logging.getLogger(__name__)
+
+    # Solo su macOS serve il mapping (altri OS non hanno questo problema)
+    if platform.system() != "Darwin":
+        from screeninfo import get_monitors
+        monitors = list(get_monitors())
+        # Mapping semplice 0->0, 1->1, etc.
+        _display_mapping_cache = {i: i for i in range(len(monitors))}
+        return _display_mapping_cache
+
+    try:
+        from screeninfo import get_monitors
+        import subprocess
+        import tempfile
+        from PIL import Image
+
+        monitors = list(get_monitors())
+        logger.info(f"Costruzione mapping display per {len(monitors)} monitor")
+
+        # Crea dizionario con caratteristiche monitor screeninfo
+        # Chiave: (width, height), Valore: screeninfo_index
+        screeninfo_monitors = {}
+        for idx, mon in enumerate(monitors):
+            key = (mon.width, mon.height)
+            screeninfo_monitors[key] = idx
+            logger.info(f"  screeninfo[{idx}]: {mon.width}x{mon.height} @ ({mon.x},{mon.y})")
+
+        # Testa ogni display di screencapture (prova fino a 10 display)
+        screencapture_displays = {}
+        max_displays = 10
+
+        for display_num in range(1, max_displays + 1):
+            try:
+                with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp_file:
+                    tmp_path = tmp_file.name
+
+                # Tenta screenshot da display_num
+                result = subprocess.run(
+                    ['screencapture', '-D', str(display_num), '-x', tmp_path],
+                    capture_output=True,
+                    timeout=3,
+                    check=False
+                )
+
+                if result.returncode == 0:
+                    # Leggi dimensioni screenshot
+                    img = Image.open(tmp_path)
+                    width, height = img.size
+                    img.close()
+
+                    screencapture_displays[display_num] = (width, height)
+                    logger.info(f"  screencapture display {display_num}: {width}x{height}")
+                else:
+                    # Display non esiste, fermati
+                    break
+
+                # Pulisci file temporaneo
+                import os
+                if os.path.exists(tmp_path):
+                    os.unlink(tmp_path)
+
+            except Exception as e:
+                # Errore su questo display, fermati
+                logger.debug(f"Display {display_num} non disponibile: {e}")
+                break
+
+        # Costruisci mapping confrontando dimensioni
+        mapping = {}
+        for display_num, (width, height) in screencapture_displays.items():
+            key = (width, height)
+            if key in screeninfo_monitors:
+                screeninfo_idx = screeninfo_monitors[key]
+                mapping[screeninfo_idx] = display_num
+                logger.info(f"Mapping: screeninfo[{screeninfo_idx}] -> screencapture display {display_num}")
+            else:
+                logger.warning(f"screencapture display {display_num} ({width}x{height}) non ha corrispondenza in screeninfo")
+
+        # Se il mapping non copre tutti i monitor, usa fallback
+        for idx in range(len(monitors)):
+            if idx not in mapping:
+                # Fallback: usa idx + 1
+                mapping[idx] = idx + 1
+                logger.warning(f"Fallback mapping: screeninfo[{idx}] -> screencapture display {idx + 1}")
+
+        _display_mapping_cache = mapping
+        logger.info(f"Mapping display completato: {mapping}")
+        return mapping
+
+    except Exception as e:
+        logger.error(f"Errore costruzione mapping display: {e}")
+        # Fallback: mapping semplice
+        from screeninfo import get_monitors
+        monitors = list(get_monitors())
+        _display_mapping_cache = {i: i + 1 for i in range(len(monitors))}
+        return _display_mapping_cache
 
 
 # ==================== Routes ====================
@@ -299,7 +469,7 @@ async def get_job_status(
     return {
         "job_id": str(job.id),
         "status": job.status.value,
-        "message": job.error_message or "Registrazione in corso..." if job.status == JobStatus.PROCESSING else "Registrazione completata",
+        "message": job.error or "Registrazione in corso..." if job.status == JobStatus.PROCESSING else "Registrazione completata",
         "output_path": job.result.get("output_path") if job.result else None,
         "progress": job.progress,
         "duration_seconds": duration
@@ -347,7 +517,7 @@ async def stop_recording(
     if success:
         # Aggiorna job nel database
         job.status = JobStatus.FAILED
-        job.error_message = "Registrazione interrotta manualmente dall'utente"
+        job.error = "Registrazione interrotta manualmente dall'utente"
         db.commit()
 
         return {
@@ -396,9 +566,14 @@ async def list_active_ffmpeg_jobs(
     # Trasforma in formato JSON-friendly
     jobs_list = []
     for job in active_jobs:
+        # Usa started_at se disponibile, altrimenti created_at come fallback
+        timestamp = job.started_at or job.created_at
+        # Aggiunge 'Z' per indicare UTC se il timestamp non ha timezone
+        timestamp_str = timestamp.isoformat() + 'Z' if timestamp and not timestamp.tzinfo else (timestamp.isoformat() if timestamp else None)
+
         jobs_list.append({
             "job_id": str(job.id),
-            "started_at": job.created_at.isoformat() if job.created_at else None,
+            "started_at": timestamp_str,
             "progress": job.progress,
             "output_name": job.result.get("output_name") if job.result else "recording.mp4"
         })
@@ -425,7 +600,9 @@ async def list_monitors(
     import subprocess
     import re
     import json
+    import logging
 
+    logger = logging.getLogger(__name__)
     system = platform.system()
     monitors = []
 
@@ -523,8 +700,6 @@ async def list_monitors(
                             })
 
     except Exception as e:
-        import logging
-        logger = logging.getLogger(__name__)
         logger.error(f"Errore rilevamento monitor: {e}")
 
     # Se non abbiamo rilevato monitor, restituisci monitor di default
@@ -540,14 +715,462 @@ async def list_monitors(
             'model': 'Monitor Primario'
         })
 
-    # Aggiungi indice a ciascun monitor
-    for i, monitor in enumerate(monitors):
-        monitor['index'] = i
+    # Matcha monitor system_profiler con screeninfo usando CoreGraphics come ponte
+    # CoreGraphics fornisce Display ID univoci che corrispondono a _spdisplays_displayID in system_profiler
+    # e possono essere matchati con screeninfo tramite coordinate
+    try:
+        from screeninfo import get_monitors as get_screen_info
+        import Quartz.CoreGraphics as CG
+
+        screen_monitors = list(get_screen_info())
+
+        # Step 1: Ottieni Display IDs da CoreGraphics
+        max_displays = 32
+        (err, cg_displays, count) = CG.CGGetActiveDisplayList(max_displays, None, None)
+
+        # Crea mapping CoreGraphics: {display_id_hex: {index, x, y, width, height}}
+        cg_map = {}
+        for i, display_id in enumerate(cg_displays):
+            bounds = CG.CGDisplayBounds(display_id)
+            hex_id = hex(display_id)[2:]  # Converti in hex senza '0x'
+            cg_map[hex_id] = {
+                'index': i,
+                'display_id': display_id,
+                'x': int(bounds.origin.x),
+                'y': int(bounds.origin.y),
+                'width': int(bounds.size.width),
+                'height': int(bounds.size.height)
+            }
+
+        # Step 2: Crea mapping system_profiler: {display_id_hex: monitor_data}
+        sp_map = {}
+        for sp_monitor in monitors:
+            # system_profiler ha aggiunto _spdisplays_displayID durante il parsing
+            # Dobbiamo rifare il parsing per includerlo
+            pass  # Verrà sovrascritto sotto
+
+        # Re-parse system_profiler per ottenere displayID
+        if system == "Darwin":
+            result = subprocess.run(
+                ['system_profiler', 'SPDisplaysDataType', '-json'],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+
+            if result.returncode == 0:
+                data = json.loads(result.stdout)
+                sp_map = {}
+
+                if 'SPDisplaysDataType' in data:
+                    for gpu in data['SPDisplaysDataType']:
+                        if 'spdisplays_ndrvs' in gpu:
+                            for display in gpu['spdisplays_ndrvs']:
+                                display_id_hex = display.get('_spdisplays_displayID', None)
+                                if display_id_hex:
+                                    name = display.get('_name', 'Monitor Sconosciuto')
+                                    resolution = display.get('_spdisplays_resolution', 'N/A')
+                                    connection = display.get('spdisplays_connection_type', 'N/A')
+
+                                    sp_map[display_id_hex] = {
+                                        'name': name,
+                                        'resolution': resolution,
+                                        'connection': connection,
+                                        'brand': name.split()[0] if ' ' in name else 'N/A',
+                                        'model': ' '.join(name.split()[1:]) if ' ' in name else name
+                                    }
+
+        # Step 3: Matcha screeninfo -> CoreGraphics -> system_profiler
+        matched_monitors = []
+
+        for screeninfo_idx, screen_mon in enumerate(screen_monitors):
+            # Trova il display CoreGraphics corrispondente tramite coordinate
+            # screeninfo e CoreGraphics hanno lo stesso X, ma Y potrebbe essere invertito
+            cg_display_id_hex = None
+
+            for hex_id, cg_info in cg_map.items():
+                # Match esatto su X, width, height
+                # Y può essere diverso (CG usa negativo per monitor sopra il principale)
+                if (cg_info['x'] == screen_mon.x and
+                    cg_info['width'] == screen_mon.width and
+                    cg_info['height'] == screen_mon.height):
+                    cg_display_id_hex = hex_id
+                    break
+
+            # Se abbiamo trovato il display CG, cerca il corrispondente in system_profiler
+            if cg_display_id_hex and cg_display_id_hex in sp_map:
+                # Match perfetto!
+                matched = sp_map[cg_display_id_hex].copy()
+            else:
+                # Fallback: usa info generiche
+                matched = {
+                    'name': f'Monitor {screeninfo_idx + 1}',
+                    'resolution': f"{screen_mon.width}x{screen_mon.height}",
+                    'connection': 'N/A',
+                    'brand': 'N/A',
+                    'model': f'Monitor {screeninfo_idx + 1}'
+                }
+
+            # Aggiungi info da screeninfo
+            matched['index'] = screeninfo_idx
+            matched['x'] = screen_mon.x
+            matched['y'] = screen_mon.y
+            matched['width'] = screen_mon.width
+            matched['height'] = screen_mon.height
+            matched['is_primary'] = screen_mon.is_primary
+
+            matched_monitors.append(matched)
+
+        # Sostituisci array monitors con quello matchato
+        monitors = matched_monitors
+
+        logger.info(f"✅ Monitor matchati con CoreGraphics bridge: {len(monitors)} monitor")
+    except Exception as e:
+        # Se screeninfo fallisce, usa valori di default
+        logger.warning(f"Impossibile ottenere coordinate monitor con screeninfo: {e}")
+
+        for i, monitor in enumerate(monitors):
+            monitor['index'] = i
+            monitor['x'] = 0
+            monitor['y'] = 0
+            monitor['width'] = 1920
+            monitor['height'] = 1080
+            monitor['is_primary'] = (i == 0)
+
+    # NON riordiniamo i monitor - manteniamo l'ordine screeninfo
+    # Il frontend userà il mapping per tradurre gli indici quando richiede screenshot
 
     return {
         'monitors': monitors,
         'count': len(monitors)
     }
+
+
+@router.get("/audio-devices")
+async def list_audio_devices(
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Lista device audio disponibili per registrazione
+
+    Usa FFmpeg AVFoundation per rilevare i device audio disponibili.
+    Utile per permettere all'utente di scegliere tra microfono, audio di sistema (BlackHole), ecc.
+
+    Richiede JWT token.
+    """
+    import platform
+    import subprocess
+    import re
+    import logging
+
+    logger = logging.getLogger(__name__)
+    system = platform.system()
+    audio_devices = []
+
+    try:
+        if system == "Darwin":  # macOS
+            # Usa FFmpeg per listare device AVFoundation
+            result = subprocess.run(
+                ['ffmpeg', '-f', 'avfoundation', '-list_devices', 'true', '-i', ''],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+
+            # FFmpeg scrive l'output su stderr
+            output = result.stderr
+
+            # Cerca la sezione audio devices
+            audio_section = False
+            device_pattern = re.compile(r'\[AVFoundation.*?\]\s+\[(\d+)\]\s+(.+)')
+
+            for line in output.split('\n'):
+                if 'AVFoundation audio devices:' in line:
+                    audio_section = True
+                    continue
+
+                # Fine sezione audio (arriva video devices o altro)
+                if audio_section and ('AVFoundation video devices:' in line or line.strip() == ''):
+                    if 'video devices' in line.lower():
+                        break
+
+                if audio_section:
+                    match = device_pattern.search(line)
+                    if match:
+                        device_id = int(match.group(1))
+                        device_name = match.group(2).strip()
+
+                        # Determina tipo device
+                        device_type = "other"
+                        if "BlackHole" in device_name or "Soundflower" in device_name:
+                            device_type = "system_audio"
+                        elif "Microphone" in device_name or "WEBCAM" in device_name.upper() or "Built-in" in device_name:
+                            device_type = "microphone"
+                        elif "Speaker" in device_name or "Audio Recorder" in device_name:
+                            device_type = "system_audio"
+
+                        audio_devices.append({
+                            "id": device_id,
+                            "name": device_name,
+                            "type": device_type,
+                            "recommended": device_type == "system_audio"
+                        })
+
+            logger.info(f"Trovati {len(audio_devices)} device audio")
+
+        elif system == "Windows":
+            # Windows usa DirectShow
+            # Placeholder per ora
+            audio_devices = [
+                {"id": 0, "name": "Microfono predefinito", "type": "microphone", "recommended": False},
+                {"id": 1, "name": "Stereo Mix", "type": "system_audio", "recommended": True}
+            ]
+
+        elif system == "Linux":
+            # Linux usa PulseAudio
+            # Placeholder per ora
+            audio_devices = [
+                {"id": 0, "name": "default", "type": "microphone", "recommended": False}
+            ]
+
+    except Exception as e:
+        logger.error(f"Errore rilevamento device audio: {e}")
+        # Fallback: restituisci device di base
+        audio_devices = [
+            {"id": 0, "name": "Microfono predefinito", "type": "microphone", "recommended": False},
+            {"id": 1, "name": "Audio di sistema", "type": "system_audio", "recommended": True}
+        ]
+
+    return {
+        'audio_devices': audio_devices,
+        'count': len(audio_devices)
+    }
+
+
+@router.get("/video-devices")
+async def list_video_devices(
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Lista device video disponibili (webcam)
+
+    Usa FFmpeg AVFoundation per rilevare le webcam disponibili.
+
+    Richiede JWT token.
+    """
+    import platform
+    import subprocess
+    import re
+    import logging
+
+    logger = logging.getLogger(__name__)
+    system = platform.system()
+    video_devices = []
+
+    try:
+        if system == "Darwin":  # macOS
+            # Usa FFmpeg per listare device AVFoundation
+            result = subprocess.run(
+                ['ffmpeg', '-f', 'avfoundation', '-list_devices', 'true', '-i', ''],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+
+            # FFmpeg scrive l'output su stderr
+            output = result.stderr
+
+            # Cerca la sezione video devices
+            video_section = False
+            device_pattern = re.compile(r'\[AVFoundation.*?\]\s+\[(\d+)\]\s+(.+)')
+
+            for line in output.split('\n'):
+                if 'AVFoundation video devices:' in line:
+                    video_section = True
+                    continue
+
+                # Fine sezione video (arriva audio devices o altro)
+                if video_section and ('AVFoundation audio devices:' in line or line.strip() == ''):
+                    if 'audio devices' in line.lower():
+                        break
+
+                if video_section:
+                    match = device_pattern.search(line)
+                    if match:
+                        device_id = int(match.group(1))
+                        device_name = match.group(2).strip()
+
+                        # Salta i "Capture screen" (sono monitor, non webcam)
+                        if 'Capture screen' in device_name or 'Screen' in device_name:
+                            continue
+
+                        video_devices.append({
+                            "id": device_id,
+                            "name": device_name,
+                            "is_webcam": True
+                        })
+
+            logger.info(f"Trovate {len(video_devices)} webcam")
+
+        elif system == "Windows":
+            # Windows usa DirectShow - placeholder
+            video_devices = [
+                {"id": 0, "name": "Webcam predefinita", "is_webcam": True}
+            ]
+
+        elif system == "Linux":
+            # Linux usa video4linux - placeholder
+            video_devices = [
+                {"id": 0, "name": "/dev/video0", "is_webcam": True}
+            ]
+
+    except Exception as e:
+        logger.error(f"Errore rilevamento webcam: {e}")
+        # Fallback: restituisci webcam di base
+        video_devices = [
+            {"id": 0, "name": "Webcam predefinita", "is_webcam": True}
+        ]
+
+    return {
+        'video_devices': video_devices,
+        'count': len(video_devices)
+    }
+
+
+@router.get("/webcam-screenshot/{device_id}")
+async def capture_webcam_screenshot(
+    device_id: int,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Cattura screenshot dalla webcam specificata
+
+    - **device_id**: ID della webcam (vedi /video-devices)
+
+    Ritorna immagine JPEG per preview live.
+
+    Richiede JWT token.
+    """
+    import logging
+    from fastapi.responses import Response
+    from io import BytesIO
+    import tempfile
+    import subprocess
+    import platform
+    from PIL import Image
+
+    logger = logging.getLogger(__name__)
+    logger.info(f"Catturando screenshot webcam device_id={device_id}")
+
+    try:
+
+        system = platform.system()
+
+        if system == "Darwin":  # macOS
+            # Usa FFmpeg con AVFoundation per catturare frame dalla webcam
+            with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
+                tmp_path = tmp_file.name
+
+            try:
+                # FFmpeg: cattura 1 frame dalla webcam
+                # Formato AVFoundation: -i "video_index:audio_index" oppure "video_index:none"
+                cmd = [
+                    'ffmpeg',
+                    '-f', 'avfoundation',
+                    '-framerate', '30',  # Forza framerate supportato dalla webcam
+                    '-i', f'{device_id}:none',  # Video device ID : nessun audio
+                    '-frames:v', '1',  # Cattura solo 1 frame
+                    '-y',  # Sovrascrivi se esiste
+                    tmp_path
+                ]
+
+                logger.info(f"Comando FFmpeg webcam: {' '.join(cmd)}")
+
+                result = subprocess.run(
+                    cmd,
+                    capture_output=True,
+                    text=True,
+                    timeout=5
+                )
+
+                if result.returncode != 0:
+                    logger.error(f"FFmpeg errore webcam - Return Code: {result.returncode}")
+                    logger.error(f"FFmpeg STDOUT completo:\n{result.stdout}")
+                    logger.error(f"FFmpeg STDERR completo:\n{result.stderr}")
+                    raise HTTPException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        detail=f"Impossibile catturare frame da webcam {device_id}: {result.stderr[:200]}"
+                    )
+
+                # Carica immagine
+                screenshot = Image.open(tmp_path)
+
+            finally:
+                # Pulisci file temporaneo
+                import os
+                if os.path.exists(tmp_path):
+                    os.unlink(tmp_path)
+
+        elif system == "Windows":
+            # Windows: usa DirectShow
+            raise HTTPException(
+                status_code=status.HTTP_501_NOT_IMPLEMENTED,
+                detail="Screenshot webcam non ancora supportato su Windows"
+            )
+
+        elif system == "Linux":
+            # Linux: usa Video4Linux
+            raise HTTPException(
+                status_code=status.HTTP_501_NOT_IMPLEMENTED,
+                detail="Screenshot webcam non ancora supportato su Linux"
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_501_NOT_IMPLEMENTED,
+                detail=f"Piattaforma {system} non supportata"
+            )
+
+        # Converti RGBA in RGB se necessario
+        if screenshot.mode == 'RGBA':
+            rgb_screenshot = Image.new('RGB', screenshot.size, (255, 255, 255))
+            rgb_screenshot.paste(screenshot, mask=screenshot.split()[3])
+            screenshot = rgb_screenshot
+        elif screenshot.mode != 'RGB':
+            screenshot = screenshot.convert('RGB')
+
+        # Ridimensiona per ridurre banda (max 1920x1080)
+        max_width = 1920
+        max_height = 1080
+
+        if screenshot.width > max_width or screenshot.height > max_height:
+            ratio = min(max_width / screenshot.width, max_height / screenshot.height)
+            new_size = (int(screenshot.width * ratio), int(screenshot.height * ratio))
+            screenshot = screenshot.resize(new_size, Image.LANCZOS)
+
+        # Converti in JPEG
+        img_buffer = BytesIO()
+        screenshot.save(img_buffer, format='JPEG', quality=85, optimize=True)
+        img_buffer.seek(0)
+
+        # Ritorna come immagine
+        return Response(
+            content=img_buffer.getvalue(),
+            media_type="image/jpeg",
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0"
+            }
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Errore cattura webcam screenshot: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Errore cattura screenshot webcam: {str(e)}"
+        )
 
 
 @router.get("/windows")
@@ -584,6 +1207,127 @@ async def list_windows(
         }
 
 
+@router.get("/screenshot/{monitor_index}")
+async def capture_monitor_screenshot(
+    monitor_index: int,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Cattura screenshot del monitor specificato
+
+    - **monitor_index**: Indice del monitor (0=primario, 1=secondario, etc.)
+
+    Ritorna immagine PNG come base64 per preview live.
+
+    Richiede JWT token.
+    """
+    from fastapi.responses import Response
+    from io import BytesIO
+    import base64
+
+    try:
+        # Ottieni info monitor usando screeninfo
+        from screeninfo import get_monitors
+        monitors = list(get_monitors())
+
+        if monitor_index < 0 or monitor_index >= len(monitors):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Monitor index {monitor_index} non valido. Disponibili: 0-{len(monitors)-1}"
+            )
+
+        monitor = monitors[monitor_index]
+
+        # Su macOS usa screencapture nativo per evitare problemi con ImageGrab
+        import platform
+        import tempfile
+        import subprocess
+        from PIL import Image
+        import logging
+        logger = logging.getLogger(__name__)
+
+        logger.info(f"Catturando screenshot monitor {monitor_index}")
+
+        if platform.system() == "Darwin":  # macOS
+            # Usa screencapture per monitor multipli (più affidabile su macOS)
+            with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp_file:
+                tmp_path = tmp_file.name
+
+            try:
+                # screencapture -D <display> cattura display specifico (1=primario, 2=secondo, etc)
+                # Display index in screencapture parte da 1, non da 0
+                # Costruisci mapping dinamico screeninfo index -> screencapture display number
+                display_mapping = build_display_mapping()
+                display_num = display_mapping.get(monitor_index, monitor_index + 1)
+
+                logger.info(f"Mapping monitor_index {monitor_index} -> screencapture display {display_num}")
+                subprocess.run(['screencapture', '-D', str(display_num), '-x', tmp_path],
+                             check=True, timeout=5)
+
+                # Carica immagine
+                screenshot = Image.open(tmp_path)
+
+            finally:
+                # Pulisci file temporaneo
+                import os
+                if os.path.exists(tmp_path):
+                    os.unlink(tmp_path)
+        else:
+            # Altri OS: usa ImageGrab con bbox
+            from PIL import ImageGrab
+            bbox = (monitor.x, monitor.y, monitor.x + monitor.width, monitor.y + monitor.height)
+            logger.info(f"Usando ImageGrab con bbox: {bbox}")
+            screenshot = ImageGrab.grab(bbox=bbox)
+
+        # Converti RGBA in RGB (JPEG non supporta trasparenza)
+        if screenshot.mode == 'RGBA':
+            # Crea sfondo bianco e componi l'immagine
+            rgb_screenshot = Image.new('RGB', screenshot.size, (255, 255, 255))
+            rgb_screenshot.paste(screenshot, mask=screenshot.split()[3])  # usa alpha channel come mask
+            screenshot = rgb_screenshot
+        elif screenshot.mode != 'RGB':
+            screenshot = screenshot.convert('RGB')
+
+        # Ridimensiona per ridurre banda (max 1920x1080)
+        max_width = 1920
+        max_height = 1080
+
+        if screenshot.width > max_width or screenshot.height > max_height:
+            ratio = min(max_width / screenshot.width, max_height / screenshot.height)
+            new_size = (int(screenshot.width * ratio), int(screenshot.height * ratio))
+            screenshot = screenshot.resize(new_size, Image.LANCZOS)
+
+        # Converti in JPEG per ridurre dimensione (preview non richiede qualità massima)
+        img_buffer = BytesIO()
+        screenshot.save(img_buffer, format='JPEG', quality=85, optimize=True)
+        img_buffer.seek(0)
+
+        # Ritorna come immagine
+        return Response(
+            content=img_buffer.getvalue(),
+            media_type="image/jpeg",
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0"
+            }
+        )
+
+    except ImportError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Libreria mancante: {str(e)}. Installa: pip install pillow screeninfo"
+        )
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Errore cattura screenshot monitor {monitor_index}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Impossibile catturare screenshot: {str(e)}"
+        )
+
+
 # ==================== Scheduled Recording Routes ====================
 
 def execute_scheduled_recording(scheduled_job_id: str, db_session):
@@ -607,15 +1351,44 @@ def execute_scheduled_recording(scheduled_job_id: str, db_session):
             logger.error(f"ScheduledJob {scheduled_job_id} non trovato")
             return
 
-        # Aggiorna status
+        # Aggiorna status (usa ora locale)
         scheduled_job.status = ScheduledJobStatus.RUNNING
-        scheduled_job.started_at = datetime.utcnow()
+        scheduled_job.started_at = datetime.now()
         db_session.commit()
 
         # Crea parametri registrazione
         params_dict = scheduled_job.parameters
+
+        # Gestisci nome file con timestamp
+        import re
+        output_name = params_dict.get("output_name", "").strip()
+
+        # Pattern per detectare timestamp già esistenti (es: 2025-11-23T21-19-34 o 20251123_221837)
+        timestamp_pattern = r'(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2})|(\d{8}_\d{6})'
+
+        if output_name:
+            # Nome personalizzato
+            from pathlib import Path as PathLib
+            name_parts = PathLib(output_name).stem  # nome senza estensione
+            extension = PathLib(output_name).suffix  # .mp4
+            if not extension:
+                extension = ".mp4"  # Default se non specificato
+
+            # Controlla se contiene già un timestamp
+            if re.search(timestamp_pattern, name_parts):
+                # Ha già un timestamp, usa così com'è
+                final_name = f"{name_parts}{extension}"
+            else:
+                # Non ha timestamp, aggiungilo
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                final_name = f"{name_parts}_{timestamp}{extension}"
+        else:
+            # Nome default con timestamp
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            final_name = f"recording_{timestamp}.mp4"
+
         params = ScreenRecordParams(
-            output_path=settings.output_dir / params_dict.get("output_name", "scheduled_recording.mp4"),
+            output_path=settings.output_dir / final_name,
             mode=params_dict.get("mode", "fullscreen"),
             window_title=params_dict.get("window_title"),
             monitor_index=params_dict.get("monitor_index", 0),
@@ -637,9 +1410,9 @@ def execute_scheduled_recording(scheduled_job_id: str, db_session):
         service = ScreenRecordService(settings, job_id=scheduled_job_id)
         result = service.record(params, progress_callback)
 
-        # Aggiorna job
+        # Aggiorna job (usa ora locale)
         scheduled_job.status = ScheduledJobStatus.COMPLETED
-        scheduled_job.completed_at = datetime.utcnow()
+        scheduled_job.completed_at = datetime.now()
         scheduled_job.output_path = result.get("output_path")
         db_session.commit()
 
@@ -650,7 +1423,7 @@ def execute_scheduled_recording(scheduled_job_id: str, db_session):
         if scheduled_job:
             scheduled_job.status = ScheduledJobStatus.FAILED
             scheduled_job.error_message = str(e)
-            scheduled_job.completed_at = datetime.utcnow()
+            scheduled_job.completed_at = datetime.now()
             db_session.commit()
 
 
@@ -906,10 +1679,10 @@ async def stop_scheduled_recording(
     success = stop_recording_by_job_id(job_id)
 
     if success:
-        # Aggiorna job nel database
+        # Aggiorna job nel database (usa ora locale)
         job.status = ScheduledJobStatus.FAILED
         job.error_message = "Registrazione interrotta manualmente dall'utente"
-        job.completed_at = datetime.utcnow()
+        job.completed_at = datetime.now()
         db.commit()
 
         return {
@@ -1018,9 +1791,9 @@ async def upload_browser_recording(
     user_recordings_dir = settings.output_dir / "screen_recordings" / str(current_user.id)
     user_recordings_dir.mkdir(parents=True, exist_ok=True)
 
-    # Genera nome file univoco
-    timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-    safe_filename = f"recording_{timestamp}.webm"
+    # Genera nome file univoco (usa ora locale)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    safe_filename = f"recording_{timestamp}.mp4"
     temp_filename = f"temp_{safe_filename}"
 
     temp_path = user_recordings_dir / temp_filename
@@ -1031,7 +1804,7 @@ async def upload_browser_recording(
     with open(temp_path, "wb") as f:
         f.write(content)
 
-    # Ripara il file WebM con ffmpeg per assicurare metadata corretti
+    # Ripara il file MP4 con ffmpeg per assicurare metadata corretti
     try:
         result = subprocess.run([
             settings.ffmpeg_path,
@@ -1044,17 +1817,17 @@ async def upload_browser_recording(
         if result.returncode == 0:
             # Rimozione file temporaneo
             temp_path.unlink()
-            logger.info(f"File WebM riparato con successo: {safe_filename}")
+            logger.info(f"File MP4 riparato con successo: {safe_filename}")
         else:
             # Se fallisce, usa il file originale
             temp_path.rename(file_path)
-            logger.warning(f"Impossibile riparare WebM, uso file originale: {result.stderr}")
+            logger.warning(f"Impossibile riparare MP4, uso file originale: {result.stderr}")
 
     except Exception as e:
         # Se ffmpeg fallisce, usa il file originale
         if temp_path.exists():
             temp_path.rename(file_path)
-        logger.error(f"Errore riparazione WebM: {e}")
+        logger.error(f"Errore riparazione MP4: {e}")
 
     return {
         "filename": safe_filename,
@@ -1080,7 +1853,7 @@ async def list_browser_recordings(
         return {"recordings": []}
 
     recordings = []
-    for file_path in sorted(user_recordings_dir.glob("*.webm"), key=os.path.getmtime, reverse=True):
+    for file_path in sorted(user_recordings_dir.glob("*.mp4"), key=os.path.getmtime, reverse=True):
         stat = file_path.stat()
 
         # Ottieni durata video con ffprobe
@@ -1188,7 +1961,7 @@ async def delete_all_browser_recordings(
         return {"message": "Nessuna registrazione da eliminare", "count": 0}
 
     # Conta file
-    count = len(list(user_recordings_dir.glob("*.webm")))
+    count = len(list(user_recordings_dir.glob("*.mp4")))
 
     # Elimina tutta la cartella
     shutil.rmtree(user_recordings_dir)
@@ -1224,6 +1997,6 @@ async def stream_browser_recording(
 
     return FileResponse(
         path=str(file_path),
-        media_type="video/webm",
+        media_type="video/mp4",
         filename=filename
     )

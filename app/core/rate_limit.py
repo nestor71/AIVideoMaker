@@ -58,6 +58,12 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             "/openapi.json"
         }
 
+        # Prefissi endpoint esclusi (per pattern matching)
+        self.excluded_prefixes = [
+            "/api/v1/screen-record/screenshot/",  # Preview live screenshot (richieste frequenti)
+            "/api/v1/screen-record/active-jobs",  # Polling active jobs
+        ]
+
         logger.info(f"✅ Rate limiting ABILITATO: {self.max_requests} req/{self.window_seconds}s")
 
     async def dispatch(self, request: Request, call_next):
@@ -70,6 +76,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         # Skippa endpoint esclusi
         if request.url.path in self.excluded_paths:
             return await call_next(request)
+
+        # Skippa endpoint con prefissi esclusi
+        for prefix in self.excluded_prefixes:
+            if request.url.path.startswith(prefix):
+                return await call_next(request)
 
         # Skippa static files
         if request.url.path.startswith("/static") or request.url.path.startswith("/uploads") or request.url.path.startswith("/outputs"):
